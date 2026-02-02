@@ -4,7 +4,8 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "echo 'Use: pnpm dev:session-pro (or cd into apps/[app] and run pnpm dev)'",
+    "dev:session-pro": "turbo dev --filter=session-pro",
     "lint": "turbo lint"
   },
   "devDependencies": {
