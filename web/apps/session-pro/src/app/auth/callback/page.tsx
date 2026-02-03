@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -12,9 +12,13 @@ function CallbackHandler() {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
     async function handleCallback() {
+      // Prevent double execution in React Strict Mode
+      if (hasProcessed.current) return;
+
       const code = searchParams.get("code");
       const state = searchParams.get("state");
       const errorParam = searchParams.get("error");
@@ -40,6 +44,9 @@ function CallbackHandler() {
       }
 
       try {
+        // Mark as processed to prevent Strict Mode double execution
+        hasProcessed.current = true;
+
         // Exchange code for tokens
         const tokens = await exchangeCodeForTokens(code);
 
