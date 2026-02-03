@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CoachCard } from "@/components/coach-card";
+import { HeroCTAs } from "@/components/hero-ctas";
 import { coaches, categories } from "@/lib/data";
 
 export default function Home() {
@@ -18,20 +19,7 @@ export default function Home() {
             Book 1:1 sessions with verified experts in gaming, music, fitness,
             business, and more. Level up your skills with personalized coaching.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              href="/browse"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Find a Coach
-            </Link>
-            <Link
-              href="/become-a-coach"
-              className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium border border-gray-700"
-            >
-              Become a Coach
-            </Link>
-          </div>
+          <HeroCTAs />
         </div>
       </section>
 

@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
 
   const handleWhopLogin = async () => {
     await startWhopOAuth(redirect);
@@ -79,12 +79,14 @@ function LoginForm() {
           </p>
         </div>
 
-        <p className="text-center text-gray-400 mt-6">
-          Want to become a coach?{" "}
-          <Link href="/become-a-coach" className="text-blue-500 hover:text-blue-400">
-            Apply here
-          </Link>
-        </p>
+{!isAuthenticated && (
+          <p className="text-center text-gray-400 mt-6">
+            Want to become a coach?{" "}
+            <Link href="/become-a-coach" className="text-blue-500 hover:text-blue-400">
+              Apply here
+            </Link>
+          </p>
+        )}
       </div>
     </div>
   );
