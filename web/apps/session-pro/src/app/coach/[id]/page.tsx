@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getCoach, coaches } from "@/lib/data";
+import { CoachBookingSection } from "./coach-booking";
 
 export function generateStaticParams() {
   return coaches.map((coach) => ({
@@ -90,31 +91,11 @@ export default async function CoachPage({
         </div>
 
         {/* Booking Section */}
-        <div className="mt-10 bg-gray-800 rounded-xl p-6 border border-gray-700">
-          <h2 className="text-xl font-semibold mb-4">Book a Session</h2>
-          <p className="text-gray-400 mb-6">
-            Select a time slot and book your 1:1 session with {coach.name}.
-          </p>
-
-          {/* Time slots (mock) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {["Mon 10am", "Mon 2pm", "Tue 11am", "Wed 3pm"].map((slot) => (
-              <button
-                key={slot}
-                className="px-4 py-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-sm"
-              >
-                {slot}
-              </button>
-            ))}
-          </div>
-
-          <button className="w-full py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg">
-            Book for ${coach.hourlyRate}
-          </button>
-          <p className="text-gray-500 text-sm text-center mt-3">
-            Secure payment powered by Whop
-          </p>
-        </div>
+        <CoachBookingSection
+          coachId={coach.id}
+          coachName={coach.name}
+          hourlyRate={coach.hourlyRate}
+        />
       </div>
     </main>
   );

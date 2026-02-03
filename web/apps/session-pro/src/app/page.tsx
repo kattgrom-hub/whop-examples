@@ -26,7 +26,7 @@ export default function Home() {
               Find a Coach
             </Link>
             <Link
-              href="#"
+              href="/become-a-coach"
               className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium border border-gray-700"
             >
               Become a Coach

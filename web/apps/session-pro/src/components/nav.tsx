@@ -2,17 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-// Mock auth state - will be replaced with Whop OAuth
-const mockUser = {
-  isLoggedIn: true,
-  name: "Demo User",
-  avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=demo",
-  isCoach: true,
-};
+import { useAuth } from "@/lib/auth-context";
 
 export function Nav() {
   const pathname = usePathname();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   // Don't show nav on auth pages
   if (pathname.startsWith("/auth")) {
@@ -47,7 +41,7 @@ export function Nav() {
             >
               Community
             </Link>
-            {mockUser.isLoggedIn && (
+            {isAuthenticated && (
               <Link
                 href="/messages"
                 className={`transition-colors ${
@@ -63,30 +57,34 @@ export function Nav() {
         </div>
 
         <div className="flex items-center gap-4">
-          {mockUser.isLoggedIn ? (
+          {isLoading ? (
+            <div className="w-8 h-8 border-2 border-gray-600 border-t-blue-500 rounded-full animate-spin" />
+          ) : isAuthenticated && user ? (
             <>
-              {mockUser.isCoach && (
-                <Link
-                  href="/dashboard"
-                  className={`transition-colors ${
-                    pathname.startsWith("/dashboard")
-                      ? "text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  Dashboard
-                </Link>
-              )}
+              <Link
+                href="/dashboard"
+                className={`transition-colors ${
+                  pathname.startsWith("/dashboard")
+                    ? "text-white"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Dashboard
+              </Link>
               <div className="flex items-center gap-3">
-                <img
-                  src={mockUser.avatar}
-                  alt={mockUser.name}
-                  className="w-8 h-8 rounded-full bg-gray-700"
-                />
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                  {user.name?.[0] || user.username?.[0] || "U"}
+                </div>
                 <span className="hidden md:block text-sm text-gray-300">
-                  {mockUser.name}
+                  {user.name || user.username}
                 </span>
               </div>
+              <button
+                onClick={logout}
+                className="text-gray-400 hover:text-white transition-colors text-sm"
+              >
+                Log out
+              </button>
             </>
           ) : (
             <>
@@ -97,7 +95,7 @@ export function Nav() {
                 Log in
               </Link>
               <Link
-                href="/auth/login?role=coach"
+                href="/become-a-coach"
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Become a Coach

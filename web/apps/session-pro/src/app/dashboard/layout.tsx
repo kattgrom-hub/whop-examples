@@ -19,13 +19,13 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex gap-8">
           {/* Sidebar */}
           <aside className="w-64 flex-shrink-0">
-            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 sticky top-24">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-700">
+            <div className="rounded-xl p-4 border border-gray-800 sticky top-24" style={{ backgroundColor: 'var(--whop-card)' }}>
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-800">
                 <img
                   src="https://api.dicebear.com/9.x/notionists/svg?seed=coach"
                   alt="Coach"
