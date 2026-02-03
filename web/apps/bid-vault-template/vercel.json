@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd ../.. && pnpm run build --filter=bid-vault",
+  "installCommand": "cd ../.. && pnpm install --filter=bid-vault...",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+}

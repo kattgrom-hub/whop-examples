@@ -1,0 +1,174 @@
+import Link from "next/link";
+import { ListingCard } from "@/components/listing-card";
+import { categories, getFeaturedListings, campuses } from "@/lib/data";
+
+const categoryIcons: Record<string, string> = {
+  tickets: "ticket",
+  fashion: "shirt",
+  textbooks: "book",
+  electronics: "laptop",
+  furniture: "chair",
+  other: "package",
+};
+
+const categoryEmojis: Record<string, string> = {
+  tickets: "ticket",
+  fashion: "shirt",
+  textbooks: "book",
+  electronics: "laptop",
+  furniture: "chair",
+  other: "package",
+};
+
+export default function Home() {
+  const featuredListings = getFeaturedListings();
+
+  return (
+    <main>
+      {/* Hero */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-5xl font-bold mb-6">
+            Student deals,{" "}
+            <span className="text-green-500">delivered</span>
+          </h1>
+          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+            The campus marketplace for students to buy and sell tickets, fashion, textbooks,
+            electronics, and more. Secure payments, trusted community.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Link
+              href="/browse"
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            >
+              Start Shopping
+            </Link>
+            <Link
+              href="/dashboard/create"
+              className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium border border-gray-700"
+            >
+              Sell Something
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="py-12 px-6 border-t border-gray-800">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6">Browse by Category</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/browse?category=${category.id}`}
+                className="flex flex-col items-center gap-3 p-6 bg-gray-800 rounded-xl hover:bg-gray-700 transition-colors border border-gray-700 hover:border-gray-600"
+              >
+                <span className="text-3xl">
+                  {category.id === "tickets" && "ticket"}
+                  {category.id === "fashion" && "shirt"}
+                  {category.id === "textbooks" && "book"}
+                  {category.id === "electronics" && "laptop"}
+                  {category.id === "furniture" && "chair"}
+                  {category.id === "other" && "package"}
+                </span>
+                <span className="text-sm font-medium text-gray-300">
+                  {category.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Listings */}
+      <section className="py-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Hot Deals</h2>
+            <Link
+              href="/browse"
+              className="text-green-500 hover:text-green-400 transition-colors"
+            >
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredListings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Campus Filter */}
+      <section className="py-12 px-6 border-t border-gray-800">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6">Shop by Campus</h2>
+          <div className="flex flex-wrap gap-3">
+            {campuses.map((campus) => (
+              <Link
+                key={campus}
+                href={`/browse?campus=${encodeURIComponent(campus)}`}
+                className="px-5 py-2.5 bg-gray-800 rounded-full text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              >
+                {campus}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-16 px-6 border-t border-gray-800">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-bold mb-10 text-center">How it works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                1
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Find or List</h3>
+              <p className="text-gray-400">
+                Browse listings from students at your campus or list your own items in seconds.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                2
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Chat & Pay</h3>
+              <p className="text-gray-400">
+                Message sellers directly and pay securely through the platform.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                3
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Meet & Swap</h3>
+              <p className="text-gray-400">
+                Arrange a meetup on campus and complete the trade safely.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-8 px-6 border-t border-gray-800 text-center text-gray-500">
+        <p>
+          Powered by{" "}
+          <a
+            href="#"
+            className="text-green-500 hover:text-green-400"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Platform
+          </a>
+        </p>
+      </footer>
+    </main>
+  );
+}

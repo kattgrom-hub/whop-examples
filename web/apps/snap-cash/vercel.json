@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd ../.. && pnpm run build --filter=snap-cash",
+  "installCommand": "cd ../.. && pnpm install --filter=snap-cash...",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+}

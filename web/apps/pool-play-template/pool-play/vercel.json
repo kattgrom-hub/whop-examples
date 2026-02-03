@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd ../.. && pnpm run build --filter=pool-play",
+  "installCommand": "cd ../.. && pnpm install --filter=pool-play...",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+}

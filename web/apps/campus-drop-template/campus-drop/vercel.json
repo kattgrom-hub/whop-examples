@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd ../.. && pnpm run build --filter=campus-drop",
+  "installCommand": "cd ../.. && pnpm install --filter=campus-drop...",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+}
