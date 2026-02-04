@@ -39,10 +39,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (!tokenResponse.ok) {
-      const error = await tokenResponse.text();
-      console.error("Token exchange failed:", error);
+      const errorText = await tokenResponse.text();
+      console.error("Token exchange failed:", errorText);
+      // Return the actual Whop error for debugging
       return NextResponse.json(
-        { error: "Failed to exchange code for tokens" },
+        {
+          error: "Failed to exchange code for tokens",
+          whopError: errorText,
+          debug: {
+            status: tokenResponse.status,
+            redirectUri: whopConfig.redirectUri,
+            appId: whopConfig.appId,
+          }
+        },
         { status: 400 }
       );
     }
