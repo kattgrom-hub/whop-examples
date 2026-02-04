@@ -61,11 +61,7 @@ export async function exchangeCodeForTokens(code: string): Promise<WhopTokens> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, codeVerifier: verifier }),
   });
-  if (!res.ok) {
-    const errData = await res.json();
-    // Include full error details for debugging
-    throw new Error(JSON.stringify(errData, null, 2));
-  }
+  if (!res.ok) throw new Error((await res.json()).error || "Token exchange failed");
   localStorage.removeItem(PKCE_KEY);
   return res.json();
 }

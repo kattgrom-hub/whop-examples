@@ -12,10 +12,5 @@ export async function GET() {
     companyId: whopConfig.companyId || "(empty)",
     redirectUri: whopConfig.redirectUri,
     hasApiKey: !!process.env.WHOP_API_KEY,
-    // Raw env vars for debugging
-    env: {
-      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "(not set)",
-      NEXT_PUBLIC_WHOP_APP_ID: process.env.NEXT_PUBLIC_WHOP_APP_ID || "(not set)",
-    },
   });
 }
