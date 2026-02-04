@@ -35,4 +35,5 @@ npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.claude/
+# Ignore claude settings but keep skills
+.claude/settings.local.json
