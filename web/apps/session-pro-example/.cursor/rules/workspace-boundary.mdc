@@ -1,0 +1,22 @@
+---
+description: Restrict file access to this project and web directory only
+alwaysApply: true
+---
+
+# Workspace Boundary
+
+**Do NOT read, search, or reference files outside of these directories:**
+- `/Users/johnzhou/ox/ox-whop-examples/web/apps/session-pro-example/` (this project)
+- `/Users/johnzhou/ox/ox-whop-examples/web/packages/` (shared packages, if needed)
+
+**Explicitly forbidden:**
+- Reading sibling apps (e.g., `session-pro`, `bid-vault`, etc.)
+- Copying code from other example projects
+- Using other projects as "reference implementations"
+
+If you need to understand how to use an external library or API:
+1. Use web search to find official documentation
+2. Ask the user for guidance
+3. Read the library's types from `node_modules`
+
+This ensures the code in this project is original and not copied from internal examples.
