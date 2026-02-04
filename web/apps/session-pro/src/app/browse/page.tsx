@@ -1,67 +1,71 @@
-import { CoachCard } from "@/components/coach-card";
-import { coaches, categories } from "@/lib/data";
 import Link from "next/link";
+import { SessionCard } from "@/components/session-card";
 
-export default async function BrowsePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ category?: string }>;
-}) {
-  const { category } = await searchParams;
-  const selectedCategory = category || "All";
+interface Session {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  duration: number;
+  price: number;
+  coachId: string;
+  coachName: string;
+  coachAvatar: string;
+}
 
-  const filteredCoaches =
-    selectedCategory === "All"
-      ? coaches
-      : coaches.filter((c) => c.category === selectedCategory);
+async function getSessions(): Promise<Session[]> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
+
+  try {
+    const response = await fetch(`${baseUrl}/api/sessions`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch sessions:", response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.sessions || [];
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    return [];
+  }
+}
+
+export default async function BrowsePage() {
+  const sessions = await getSessions();
 
   return (
     <main className="py-12 px-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Browse Coaches</h1>
-
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          <Link
-            href="/browse"
-            className={`px-4 py-2 rounded-full transition-colors ${
-              selectedCategory === "All"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-            }`}
-          >
-            All
-          </Link>
-          {categories.map((cat) => (
-            <Link
-              key={cat}
-              href={`/browse?category=${cat}`}
-              className={`px-4 py-2 rounded-full transition-colors ${
-                selectedCategory === cat
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-              }`}
-            >
-              {cat}
-            </Link>
-          ))}
-        </div>
+        <h1 className="text-3xl font-bold mb-2">Available Sessions</h1>
+        <p className="text-gray-400 mb-8">
+          Book a 1:1 session with a coach
+        </p>
 
         {/* Results */}
         <p className="text-gray-400 mb-6">
-          {filteredCoaches.length} coach{filteredCoaches.length !== 1 && "es"}{" "}
-          {selectedCategory !== "All" && `in ${selectedCategory}`}
+          {sessions.length} session{sessions.length !== 1 && "s"} available
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCoaches.map((coach) => (
-            <CoachCard key={coach.id} coach={coach} />
-          ))}
-        </div>
-
-        {filteredCoaches.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400">No coaches found in this category.</p>
+        {sessions.length === 0 ? (
+          <div className="text-center py-12 bg-gray-800 rounded-xl border border-gray-700">
+            <p className="text-gray-400 mb-2">No sessions available yet.</p>
+            <p className="text-gray-500 text-sm">
+              Be the first to offer a session!{" "}
+              <Link href="/dashboard/sessions" className="text-blue-400 hover:underline">
+                Create one →
+              </Link>
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sessions.map((session) => (
+              <SessionCard key={session.id} session={session} />
+            ))}
           </div>
         )}
       </div>

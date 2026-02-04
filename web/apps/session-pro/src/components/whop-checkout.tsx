@@ -32,7 +32,7 @@ export function WhopEmbeddedCheckout({
   };
 
   return (
-    <div className="min-h-[400px]">
+    <div>
       <WhopCheckoutEmbed
         planId={planId}
         onComplete={handleComplete}
