@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nav } from "@/components/nav";
+import { KonamiEasterEgg } from "@/components/konami";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
@@ -19,6 +20,7 @@ export default function RootLayout({
         <AuthProvider>
           <Nav />
           {children}
+          <KonamiEasterEgg />
         </AuthProvider>
       </body>
     </html>
