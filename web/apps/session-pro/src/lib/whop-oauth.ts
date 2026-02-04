@@ -39,7 +39,7 @@ function generateNonce(): string {
 export async function startWhopOAuth(redirectPath?: string): Promise<void> {
   const verifier = generateCodeVerifier();
   const challenge = await generateCodeChallenge(verifier);
-  sessionStorage.setItem(PKCE_KEY, verifier);
+  localStorage.setItem(PKCE_KEY, verifier);
 
   const params = new URLSearchParams({
     client_id: whopConfig.appId,
@@ -55,14 +55,14 @@ export async function startWhopOAuth(redirectPath?: string): Promise<void> {
 }
 
 export async function exchangeCodeForTokens(code: string): Promise<WhopTokens> {
-  const verifier = sessionStorage.getItem(PKCE_KEY);
+  const verifier = localStorage.getItem(PKCE_KEY);
   const res = await fetch("/api/auth/token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, codeVerifier: verifier }),
   });
   if (!res.ok) throw new Error((await res.json()).error || "Token exchange failed");
-  sessionStorage.removeItem(PKCE_KEY);
+  localStorage.removeItem(PKCE_KEY);
   return res.json();
 }
 
@@ -85,6 +85,6 @@ export const storeTokens = (t: WhopTokens) => localStorage.setItem(TOKEN_KEY, JS
 export const getTokens = (): WhopTokens | null => { const s = localStorage.getItem(TOKEN_KEY); return s ? JSON.parse(s) : null; };
 export const storeUser = (u: WhopUserInfo) => localStorage.setItem(USER_KEY, JSON.stringify(u));
 export const getStoredUser = (): WhopUserInfo | null => { const s = localStorage.getItem(USER_KEY); return s ? JSON.parse(s) : null; };
-export const clearAuthData = () => { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); sessionStorage.removeItem(PKCE_KEY); };
+export const clearAuthData = () => { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); localStorage.removeItem(PKCE_KEY); };
 export const isTokenExpired = (t: WhopTokens) => t.expires_at ? Date.now() >= t.expires_at * 1000 : false;
 export const logout = () => { clearAuthData(); window.location.href = "/"; };
