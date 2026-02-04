@@ -8,10 +8,7 @@ export function Nav() {
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
-  // Don't show nav on auth pages
-  if (pathname.startsWith("/auth")) {
-    return null;
-  }
+  if (pathname.startsWith("/auth")) return null;
 
   return (
     <nav className="border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
@@ -20,42 +17,15 @@ export function Nav() {
           <Link href="/" className="text-xl font-bold text-white">
             Session<span className="text-blue-500">Pro</span>
           </Link>
-          <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/browse"
-              className={`transition-colors ${
-                pathname === "/browse"
-                  ? "text-white"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Browse
-            </Link>
-            <Link
-              href="/community"
-              className={`transition-colors ${
-                pathname.startsWith("/community")
-                  ? "text-white"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Community
-            </Link>
-            {isAuthenticated && (
-              <Link
-                href="/messages"
-                className={`transition-colors ${
-                  pathname === "/messages"
-                    ? "text-white"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Messages
-              </Link>
-            )}
-          </div>
+          <Link
+            href="/browse"
+            className={`hidden md:block transition-colors ${
+              pathname === "/browse" ? "text-white" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Browse
+          </Link>
         </div>
-
         <div className="flex items-center gap-4">
           {isLoading ? (
             <div className="w-8 h-8 border-2 border-gray-600 border-t-blue-500 rounded-full animate-spin" />
@@ -64,34 +34,21 @@ export function Nav() {
               <Link
                 href="/dashboard"
                 className={`transition-colors ${
-                  pathname.startsWith("/dashboard")
-                    ? "text-white"
-                    : "text-gray-400 hover:text-white"
+                  pathname.startsWith("/dashboard") ? "text-white" : "text-gray-400 hover:text-white"
                 }`}
               >
                 Dashboard
               </Link>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                  {user.name?.[0] || user.username?.[0] || "U"}
-                </div>
-                <span className="hidden md:block text-sm text-gray-300">
-                  {user.name || user.username}
-                </span>
+              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                {user.name?.[0] || user.username?.[0] || "U"}
               </div>
-              <button
-                onClick={logout}
-                className="text-gray-400 hover:text-white transition-colors text-sm"
-              >
+              <button onClick={logout} className="text-gray-400 hover:text-white transition-colors text-sm">
                 Log out
               </button>
             </>
           ) : (
             <>
-              <Link
-                href="/auth/login"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
+              <Link href="/auth/login" className="text-gray-400 hover:text-white transition-colors">
                 Log in
               </Link>
               <Link

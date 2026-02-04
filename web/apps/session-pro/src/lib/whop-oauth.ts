@@ -1,8 +1,8 @@
 import { whopConfig, WHOP_OAUTH_SCOPES } from "./whop-sdk";
 
-const TOKEN_STORAGE_KEY = "whop_tokens";
-const USER_STORAGE_KEY = "whop_user";
-const PKCE_VERIFIER_KEY = "whop_pkce_verifier";
+const TOKEN_KEY = "whop_tokens";
+const USER_KEY = "whop_user";
+const PKCE_KEY = "whop_pkce_verifier";
 
 export interface WhopTokens {
   access_token: string;
@@ -19,205 +19,72 @@ export interface WhopUserInfo {
   name?: string;
 }
 
-/**
- * Generate a random string for PKCE code verifier
- */
 function generateCodeVerifier(): string {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/**
- * Generate code challenge from verifier using SHA-256
- */
 async function generateCodeChallenge(verifier: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(digest)));
-  // Convert to base64url
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+  return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-/**
- * Generate a random nonce
- */
 function generateNonce(): string {
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/**
- * Generate the Whop OAuth authorization URL
- */
-export async function getWhopAuthUrl(state?: string): Promise<string> {
-  // Generate PKCE values
-  const codeVerifier = generateCodeVerifier();
-  const codeChallenge = await generateCodeChallenge(codeVerifier);
-  const nonce = generateNonce();
-
-  // Store verifier for later use in token exchange
-  if (typeof window !== "undefined") {
-    sessionStorage.setItem(PKCE_VERIFIER_KEY, codeVerifier);
-  }
+export async function startWhopOAuth(redirectPath?: string): Promise<void> {
+  const verifier = generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  sessionStorage.setItem(PKCE_KEY, verifier);
 
   const params = new URLSearchParams({
     client_id: whopConfig.appId,
     redirect_uri: whopConfig.redirectUri,
     response_type: "code",
     scope: WHOP_OAUTH_SCOPES.join(" "),
-    code_challenge: codeChallenge,
+    code_challenge: challenge,
     code_challenge_method: "S256",
-    nonce,
-    ...(state && { state }),
+    nonce: generateNonce(),
+    ...(redirectPath && { state: btoa(JSON.stringify({ redirect: redirectPath })) }),
   });
-
-  return `https://api.whop.com/oauth/authorize?${params.toString()}`;
+  window.location.href = `https://api.whop.com/oauth/authorize?${params}`;
 }
 
-/**
- * Start the Whop OAuth flow
- */
-export async function startWhopOAuth(redirectPath?: string): Promise<void> {
-  const state = redirectPath
-    ? btoa(JSON.stringify({ redirect: redirectPath }))
-    : undefined;
-  const authUrl = await getWhopAuthUrl(state);
-  window.location.href = authUrl;
-}
-
-/**
- * Exchange authorization code for tokens (call from callback page)
- */
-export async function exchangeCodeForTokens(
-  code: string
-): Promise<WhopTokens> {
-  // Get the stored code verifier
-  const codeVerifier = typeof window !== "undefined"
-    ? sessionStorage.getItem(PKCE_VERIFIER_KEY)
-    : null;
-
-  const response = await fetch("/api/auth/token", {
+export async function exchangeCodeForTokens(code: string): Promise<WhopTokens> {
+  const verifier = sessionStorage.getItem(PKCE_KEY);
+  const res = await fetch("/api/auth/token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, codeVerifier }),
+    body: JSON.stringify({ code, codeVerifier: verifier }),
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to exchange code for tokens");
-  }
-
-  // Clear the verifier after use
-  if (typeof window !== "undefined") {
-    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
-  }
-
-  const tokens = await response.json();
-  return tokens;
+  if (!res.ok) throw new Error((await res.json()).error || "Token exchange failed");
+  sessionStorage.removeItem(PKCE_KEY);
+  return res.json();
 }
 
-/**
- * Handle the OAuth callback - exchange code and get user info
- */
-export async function handleWhopCallback(code: string): Promise<{
-  tokens: WhopTokens;
-  user: WhopUserInfo;
-}> {
+export async function getUserInfo(accessToken: string): Promise<WhopUserInfo> {
+  const res = await fetch("https://api.whop.com/oauth/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
+  const data = await res.json();
+  return { id: data.sub, username: data.username || data.name || "", email: data.email || "", profile_pic_url: data.picture, name: data.name };
+}
+
+export async function handleWhopCallback(code: string) {
   const tokens = await exchangeCodeForTokens(code);
   const user = await getUserInfo(tokens.access_token);
   return { tokens, user };
 }
 
-/**
- * Get user info from Whop API (OAuth userinfo endpoint)
- */
-export async function getUserInfo(accessToken: string): Promise<WhopUserInfo> {
-  const response = await fetch("https://api.whop.com/oauth/userinfo", {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("User info fetch failed:", response.status, errorText);
-    throw new Error(`Failed to get user info: ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  // Map OIDC userinfo fields to our WhopUserInfo interface
-  return {
-    id: data.sub,
-    username: data.username || data.name || "",
-    email: data.email || "",
-    profile_pic_url: data.picture,
-    name: data.name,
-  };
-}
-
-/**
- * Store tokens in localStorage
- */
-export function storeTokens(tokens: WhopTokens): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
-  }
-}
-
-/**
- * Get stored tokens
- */
-export function getTokens(): WhopTokens | null {
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : null;
-}
-
-/**
- * Store user info in localStorage
- */
-export function storeUser(user: WhopUserInfo): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-  }
-}
-
-/**
- * Get stored user
- */
-export function getStoredUser(): WhopUserInfo | null {
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem(USER_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : null;
-}
-
-/**
- * Clear all auth data (logout)
- */
-export function clearAuthData(): void {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem(USER_STORAGE_KEY);
-    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
-  }
-}
-
-/**
- * Check if tokens are expired
- */
-export function isTokenExpired(tokens: WhopTokens): boolean {
-  if (!tokens.expires_at) return false;
-  return Date.now() >= tokens.expires_at * 1000;
-}
-
-/**
- * Logout - clear tokens and redirect
- */
-export function logout(): void {
-  clearAuthData();
-  window.location.href = "/";
-}
+export const storeTokens = (t: WhopTokens) => localStorage.setItem(TOKEN_KEY, JSON.stringify(t));
+export const getTokens = (): WhopTokens | null => { const s = localStorage.getItem(TOKEN_KEY); return s ? JSON.parse(s) : null; };
+export const storeUser = (u: WhopUserInfo) => localStorage.setItem(USER_KEY, JSON.stringify(u));
+export const getStoredUser = (): WhopUserInfo | null => { const s = localStorage.getItem(USER_KEY); return s ? JSON.parse(s) : null; };
+export const clearAuthData = () => { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); sessionStorage.removeItem(PKCE_KEY); };
+export const isTokenExpired = (t: WhopTokens) => t.expires_at ? Date.now() >= t.expires_at * 1000 : false;
+export const logout = () => { clearAuthData(); window.location.href = "/"; };
