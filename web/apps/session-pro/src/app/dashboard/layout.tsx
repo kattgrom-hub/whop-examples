@@ -6,9 +6,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: "📊" },
   { href: "/dashboard/sessions", label: "Sessions", icon: "📅" },
-  { href: "/dashboard/courses", label: "Courses", icon: "🎓" },
   { href: "/dashboard/payouts", label: "Payouts", icon: "💰" },
-  { href: "/dashboard/settings", label: "Settings", icon: "⚙️" },
 ];
 
 export default function DashboardLayout({

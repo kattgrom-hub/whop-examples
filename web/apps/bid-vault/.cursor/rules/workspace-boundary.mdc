@@ -1,0 +1,19 @@
+---
+description: Restrict agent access to bid-vault codebase only
+alwaysApply: true
+---
+
+# Workspace Boundary
+
+This workspace is the **bid-vault** app only. Do NOT access files outside of this directory:
+
+```
+/Users/johnzhou/whop-examples/web/apps/bid-vault/
+```
+
+## Rules
+
+- Only read, search, and modify files within the bid-vault directory
+- Do NOT look at other apps in the monorepo (session-pro, talent-drop, etc.)
+- If you need reference implementations or examples, use web search or ask the user
+- If the user explicitly asks you to look at another app, confirm first before accessing
