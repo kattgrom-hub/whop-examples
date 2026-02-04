@@ -8,7 +8,10 @@
         "NEXT_PUBLIC_WHOP_APP_ID",
         "NEXT_PUBLIC_WHOP_COMPANY_ID",
         "NEXT_PUBLIC_APP_URL",
-        "WHOP_API_KEY"
+        "WHOP_API_KEY",
+        "WHOP_CLIENT_SECRET",
+        "ENABLE_COREPACK",
+        "ENABLE_EXPERIMENTAL_COREPACK"
       ]
     },
     "dev": {
