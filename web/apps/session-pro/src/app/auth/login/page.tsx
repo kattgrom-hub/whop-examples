@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { startWhopOAuth } from "@/lib/whop-oauth";
 import { useAuth } from "@/lib/auth-context";
+import { whopConfig } from "@/lib/whop-sdk";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -87,6 +88,14 @@ function LoginForm() {
             </Link>
           </p>
         )}
+
+        {/* Debug info - remove in production */}
+        <div className="mt-8 p-4 bg-gray-900 rounded-lg border border-gray-700 text-xs font-mono">
+          <p className="text-gray-500 mb-2">Debug (client-side values):</p>
+          <p className="text-gray-400">appId: {whopConfig.appId}</p>
+          <p className="text-gray-400">redirectUri: {whopConfig.redirectUri}</p>
+          <p className="text-gray-400">NEXT_PUBLIC_APP_URL: {process.env.NEXT_PUBLIC_APP_URL || "(not set)"}</p>
+        </div>
       </div>
     </div>
   );
