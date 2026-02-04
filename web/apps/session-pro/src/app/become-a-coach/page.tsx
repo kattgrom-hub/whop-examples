@@ -3,17 +3,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { startWhopOAuth } from "@/lib/whop-oauth";
 
 export default function BecomeACoachPage() {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [isYearly, setIsYearly] = useState(false);
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   const proPrice = isYearly ? 13 : 19;
   const proOriginalPrice = isYearly ? 19 : 29;
 
   const handleSelectPlan = async (plan: "core" | "pro") => {
+    // For free "core" plan: check auth status
+    if (plan === "core") {
+      if (isAuthenticated) {
+        // Already logged in - go to dashboard
+        router.push("/dashboard");
+        return;
+      }
+      // Show welcome modal for login
+      setShowWelcome(true);
+      return;
+    }
+
+    // For paid "pro" plan: proceed to checkout
     setIsLoading(plan);
     setError(null);
 
@@ -33,7 +50,7 @@ export default function BecomeACoachPage() {
         throw new Error(data.error || "Failed to create checkout");
       }
 
-      // Redirect to Whop checkout or login for free plan
+      // Redirect to Whop checkout
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       }
@@ -41,6 +58,10 @@ export default function BecomeACoachPage() {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setIsLoading(null);
     }
+  };
+
+  const handleWelcomeLogin = async () => {
+    await startWhopOAuth("/dashboard");
   };
 
   return (
@@ -297,6 +318,39 @@ export default function BecomeACoachPage() {
           </Link>
         </div>
       </div>
+
+      {/* Welcome Modal */}
+      {showWelcome && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+          <div className="bg-gray-900 rounded-2xl border border-gray-800 max-w-md w-full p-8 text-center animate-in fade-in zoom-in duration-300">
+            <div className="text-6xl mb-6 animate-bounce">🎉</div>
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Welcome to SessionPro!
+            </h2>
+            <p className="text-gray-400 mb-8">
+              You're about to start your coaching journey. Sign in with Whop to
+              set up your profile and start earning.
+            </p>
+
+            <button
+              onClick={handleWelcomeLogin}
+              className="w-full py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center gap-3 mb-4"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+              </svg>
+              Continue with Whop
+            </button>
+
+            <button
+              onClick={() => setShowWelcome(false)}
+              className="text-gray-500 hover:text-white transition-colors text-sm"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
