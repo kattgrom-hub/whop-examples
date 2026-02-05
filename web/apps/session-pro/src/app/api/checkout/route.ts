@@ -19,12 +19,6 @@ export async function POST(request: NextRequest) {
     // Get the Whop API client
     const client = getWhopApi();
 
-    // Build checkout config - redirect_url requires HTTPS, so only include in production
-    const isProduction = appUrl.startsWith("https://");
-
-    // Convert price to cents
-    const priceInCents = Math.round((price || 0) * 100);
-
     // Parse date and time from timeSlot if available
     let date = "";
     let time = "";
@@ -40,10 +34,7 @@ export async function POST(request: NextRequest) {
     // The membership will be created under the coach's connected account
     const checkoutConfig = await client.checkoutConfigurations.create({
       mode: "payment",
-      // Only include redirect_url if we have an HTTPS URL (required by Whop)
-      ...(isProduction && {
-        redirect_url: `${appUrl}/dashboard/sessions?success=true&coach=${coachId}`,
-      }),
+      redirect_url: `${appUrl}/dashboard/sessions?success=true&coach=${coachId}`,
       metadata: {
         coach_id: coachId,
         coach_name: coachName || "",
@@ -60,7 +51,7 @@ export async function POST(request: NextRequest) {
         // Include product_id if we have one
         ...(productId && { product_id: productId }),
         currency: "usd",
-        initial_price: priceInCents / 100,
+        initial_price: price || 0,
         plan_type: "one_time",
         visibility: "hidden",
         release_method: "buy_now",

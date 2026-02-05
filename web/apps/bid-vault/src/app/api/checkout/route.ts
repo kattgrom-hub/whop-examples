@@ -27,16 +27,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build checkout config - redirect_url requires HTTPS, so only include in production
-    const isProduction = appUrl.startsWith("https://");
-
     // Create a checkout configuration with a one-time payment plan
     const checkoutConfig = await client.checkoutConfigurations.create({
       mode: "payment",
-      // Only include redirect_url if we have an HTTPS URL (required by Whop)
-      ...(isProduction && {
-        redirect_url: `${appUrl}/dashboard/won?success=true&auction=${auctionId}`,
-      }),
+      redirect_url: `${appUrl}/dashboard/won?success=true&auction=${auctionId}`,
       metadata: {
         auction_id: auctionId,
         auction_title: auctionTitle,
