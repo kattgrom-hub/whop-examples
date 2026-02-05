@@ -1,0 +1,13 @@
+[
+  {
+    "slug": "session-pro",
+    "name": "SessionPro",
+    "description": "1:1 coaching marketplace — book sessions with experts, coaches get paid via Whop Payouts",
+    "category": "Coaching",
+    "status": "built",
+    "demoUrl": "https://session-pro.vercel.app",
+    "stack": ["Next.js", "Tailwind"],
+    "integrations": ["Checkout", "Payouts", "OAuth"],
+    "previewImage": "preview.png"
+  }
+]
