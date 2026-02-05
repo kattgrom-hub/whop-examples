@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       email,
       parent_company_id: PLATFORM_COMPANY_ID,
       title: name || `Coach ${userId}`,
-      metadata: { user_id: userId, email },
+      metadata: { user_id: userId, email, plan: "core" },
     });
     return NextResponse.json({ company: newAccount, created: true });
   } catch (error) {

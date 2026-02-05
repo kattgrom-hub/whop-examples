@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
 
+// Fee rates by coach plan tier
+const FEE_RATES = {
+  core: 0.08, // 8% for free tier
+  pro: 0.05,  // 5% for paid tier
+} as const;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -18,6 +24,21 @@ export async function POST(request: NextRequest) {
 
     // Get the Whop API client
     const client = getWhopApi();
+
+    // Fetch coach's connected account to get their plan tier
+    let feeRate = FEE_RATES.core; // Default to core (8%)
+    try {
+      const coachAccount = await client.companies.retrieve(coachId);
+      const metadata = coachAccount.metadata as Record<string, string> | undefined;
+      const coachPlan = metadata?.plan || "core";
+      feeRate = coachPlan === "pro" ? FEE_RATES.pro : FEE_RATES.core;
+    } catch (e) {
+      console.warn("Could not fetch coach account, using default fee rate:", e);
+    }
+
+    // Calculate platform fee
+    const sessionPrice = price || 0;
+    const applicationFee = Math.round(sessionPrice * feeRate * 100) / 100; // Round to cents
 
     // Parse date and time from timeSlot if available
     let date = "";
@@ -51,10 +72,12 @@ export async function POST(request: NextRequest) {
         // Include product_id if we have one
         ...(productId && { product_id: productId }),
         currency: "usd",
-        initial_price: price || 0,
+        initial_price: sessionPrice,
         plan_type: "one_time",
         visibility: "hidden",
         release_method: "buy_now",
+        // Platform fee: 8% for core coaches, 5% for pro coaches
+        application_fee_amount: applicationFee,
       },
     });
 
