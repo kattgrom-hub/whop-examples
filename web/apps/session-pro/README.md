@@ -15,8 +15,8 @@ SessionPro connects students with expert coaches for live 1:1 sessions. The plat
 | Plan | Price | Platform Fee |
 |------|-------|--------------|
 | Core | Free | 8% per transaction |
-| Pro Monthly | $19/month | 0% |
-| Pro Yearly | $156/year ($13/mo) | 0% |
+| Pro Monthly | $15/month | 5% |
+| Pro Yearly | $150/year ($12.50/mo) | 5% |
 
 **For Students (Buyers):**
 - Free to browse and book
