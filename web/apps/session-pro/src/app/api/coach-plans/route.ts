@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
  * Coach plan checkout links - all plans go to Whop hosted checkout
  */
 const PLAN_IDS = {
-  core: process.env.WHOP_PLAN_CORE || "",
-  pro_monthly: process.env.WHOP_PLAN_PRO_MONTHLY || "",
-  pro_yearly: process.env.WHOP_PLAN_PRO_YEARLY || "",
+  core: "plan_jkXUdgZw1MAeL",
+  pro_monthly: "plan_dILTpyq7hdoFT",
+  pro_yearly: "plan_HuiQ7GzCm8jtG",
 };
 
 export async function POST(request: NextRequest) {

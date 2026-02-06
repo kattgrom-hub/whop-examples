@@ -65,9 +65,9 @@ async function createPlans(productId: string) {
     },
     {
       title: "Pro Monthly",
-      description: "Lower fees for high-volume coaches. $15/month + 5% platform fee.",
-      initial_price: 15,
-      renewal_price: 15,
+      description: "Lower fees for high-volume coaches. $19/month + 5% platform fee.",
+      initial_price: 19,
+      renewal_price: 19,
       billing_period: 30,
       plan_type: "renewal",
       internal_notes: "pro_monthly",

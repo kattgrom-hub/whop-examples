@@ -23,7 +23,7 @@ const PLANS = {
   },
   pro: {
     name: "Pro",
-    price: 15,
+    price: 19,
     fee: 5,
     description: "Lower fees for high-volume coaches",
     features: [
@@ -43,7 +43,11 @@ export default function BecomeACoachPage() {
 
   const handleStart = () => {
     if (isAuthenticated) {
-      router.push("/dashboard");
+      if (selectedPlan === "pro") {
+        router.push("/upgrade/pro");
+      } else {
+        router.push("/dashboard");
+      }
     } else {
       setShowWelcome(true);
     }
@@ -51,13 +55,9 @@ export default function BecomeACoachPage() {
 
   const handleContinue = async () => {
     if (selectedPlan === "core") {
-      // Core plan is free - just sign in and go to dashboard
       startWhopOAuth("/dashboard");
     } else {
-      // Pro plan - redirect to checkout after auth
-      // Store selection in sessionStorage for after OAuth callback
-      sessionStorage.setItem("selectedPlan", selectedPlan);
-      startWhopOAuth("/dashboard?upgrade=pro");
+      startWhopOAuth("/upgrade/pro");
     }
   };
 
