@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const client = getWhopApi();
 
     // Fetch coach's connected account to get their plan tier
-    let feeRate = FEE_RATES.core; // Default to core (8%)
+    let feeRate: number = FEE_RATES.core; // Default to core (8%)
     try {
       const coachAccount = await client.companies.retrieve(coachId);
       const metadata = coachAccount.metadata as Record<string, string> | undefined;
