@@ -21,7 +21,8 @@ async function updateCoachPlanTier(userId: string, plan: "core" | "pro") {
     const meta = account.metadata as Record<string, string> | undefined;
     if (account.owner_user?.id === userId || meta?.user_id === userId) {
       // Update the plan in metadata
-      await client.companies.update(account.id, {
+      // Note: metadata field not in SDK types but supported by API
+      await (client.companies.update as Function)(account.id, {
         metadata: { ...meta, plan },
       });
       console.log(`Updated coach ${account.id} plan to: ${plan}`);
