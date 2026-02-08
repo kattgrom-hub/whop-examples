@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd ../.. && pnpm run build --filter=session-pro",
-  "installCommand": "cd ../.. && pnpm install --filter=session-pro...",
-  "framework": "nextjs",
-  "outputDirectory": ".next"
-}
