@@ -3,35 +3,17 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { startWhopOAuth } from "@/lib/whop-oauth";
+import { signIn } from "next-auth/react";
 import { useAuth } from "@/lib/auth-context";
 
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
-  const { login, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  const handleWhopLogin = async () => {
-    await startWhopOAuth(redirect);
+  const handleWhopLogin = () => {
+    signIn("whop", { callbackUrl: redirect });
   };
-
-  const handleDevLogin = () => {
-    // Dev bypass - create a mock user for local development
-    const mockUser = {
-      id: "user_dev123",
-      username: "devuser",
-      email: "dev+sessionpro@example.com",
-      name: "Dev User",
-    };
-    const mockTokens = {
-      access_token: "dev_token_123",
-      token_type: "bearer",
-    };
-    login(mockTokens, mockUser);
-    window.location.href = redirect;
-  };
-
-  const isDev = process.env.NODE_ENV === "development";
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
@@ -52,26 +34,6 @@ function LoginForm() {
               </svg>
               Continue with Whop
             </button>
-
-            {isDev && (
-              <>
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-700"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-gray-800 text-gray-500">dev only</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleDevLogin}
-                  className="w-full py-4 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-semibold"
-                >
-                  Dev Bypass (Skip OAuth)
-                </button>
-              </>
-            )}
           </div>
 
           <p className="text-center text-gray-500 text-sm mt-6">
@@ -79,7 +41,7 @@ function LoginForm() {
           </p>
         </div>
 
-{!isAuthenticated && (
+        {!isAuthenticated && (
           <p className="text-center text-gray-400 mt-6">
             Want to become a coach?{" "}
             <Link href="/become-a-coach" className="text-blue-500 hover:text-blue-400">

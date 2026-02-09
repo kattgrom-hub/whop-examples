@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { startWhopOAuth } from "@/lib/whop-oauth";
+import { signIn } from "next-auth/react";
 
 type PlanTier = "core" | "pro";
 
@@ -53,12 +53,10 @@ export default function BecomeACoachPage() {
     }
   };
 
-  const handleContinue = async () => {
-    if (selectedPlan === "core") {
-      startWhopOAuth("/dashboard");
-    } else {
-      startWhopOAuth("/upgrade/pro");
-    }
+  const handleContinue = () => {
+    signIn("whop", {
+      callbackUrl: selectedPlan === "core" ? "/dashboard" : "/upgrade/pro",
+    });
   };
 
   return (
