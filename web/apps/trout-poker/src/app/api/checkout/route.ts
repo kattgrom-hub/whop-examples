@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
+import { getTournament } from "@/lib/db";
 
 const PLATFORM_COMPANY_ID = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || "";
 
@@ -13,19 +14,17 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3003";
     const client = getWhopApi();
 
-    // Fetch tournament to validate
-    const product = await client.products.retrieve(tournamentId);
-    if (!product.description?.startsWith('{"type":"fishing_tournament"') && !product.description?.startsWith('{"type":"poker_tournament"')) {
+    // Fetch tournament from DB
+    const tournament = await getTournament(tournamentId);
+    if (!tournament) {
       return NextResponse.json({ error: "Not a tournament" }, { status: 400 });
     }
 
-    const meta = JSON.parse(product.description);
-
-    if (meta.status !== "upcoming") {
+    if (tournament.status !== "upcoming") {
       return NextResponse.json({ error: "Tournament is not accepting entries" }, { status: 400 });
     }
 
-    if (meta.maxPlayers > 0) {
+    if (tournament.max_players > 0) {
       let currentPlayers = 0;
       try {
         for await (const _m of await client.memberships.list({ product_ids: [tournamentId] })) {
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
       } catch {
         // membership count may fail
       }
-      if (currentPlayers >= meta.maxPlayers) {
+      if (currentPlayers >= tournament.max_players) {
         return NextResponse.json({ error: "Tournament is full" }, { status: 400 });
       }
     }
@@ -44,7 +43,7 @@ export async function POST(request: NextRequest) {
       mode: "payment",
       redirect_url: `${appUrl}/tournaments/${tournamentId}?entered=true`,
       metadata: {
-        organizer_id: meta.organizerId || meta.commissionerId || "",
+        organizer_id: tournament.organizer_id,
         tournament_id: tournamentId,
         type: "tournament_entry",
       },
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
         company_id: PLATFORM_COMPANY_ID,
         product_id: tournamentId,
         currency: "usd",
-        initial_price: meta.entryFee ?? meta.buyIn,
+        initial_price: tournament.entry_fee,
         plan_type: "one_time",
         visibility: "hidden",
         release_method: "buy_now",

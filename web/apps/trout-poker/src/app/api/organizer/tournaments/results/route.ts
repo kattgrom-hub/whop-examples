@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
+import { getTournament, setTournamentResults } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,46 +9,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "tournamentId and placements array required" }, { status: 400 });
     }
 
-    const client = getWhopApi();
-    const product = await client.products.retrieve(tournamentId);
-
-    if (!product.description?.startsWith('{"type":"fishing_tournament"') && !product.description?.startsWith('{"type":"poker_tournament"')) {
+    const tournament = await getTournament(tournamentId);
+    if (!tournament) {
       return NextResponse.json({ error: "Not a tournament" }, { status: 404 });
     }
 
-    const meta = JSON.parse(product.description);
-
-    if (meta.status !== "in_progress" && meta.status !== "upcoming") {
+    if (tournament.status !== "in_progress" && tournament.status !== "upcoming") {
       return NextResponse.json({ error: "Tournament must be in progress to record results" }, { status: 400 });
     }
 
     // Count total entries for prize pool calculation
+    const client = getWhopApi();
     let totalEntries = 0;
     for await (const _m of await client.memberships.list({ product_ids: [tournamentId] })) {
       totalEntries++;
     }
 
-    const totalPrizePool = (meta.entryFee ?? meta.buyIn) * totalEntries;
+    const totalPrizePool = tournament.entry_fee * totalEntries;
 
     // Calculate prize amounts based on prize structure percentages
     const resultsWithPrizes = placements.map((p: { userId: string; companyId: string; username: string; place: number }) => ({
       ...p,
-      prize: Math.floor(totalPrizePool * ((meta.prizeStructure[`${p.place}${getOrdinalSuffix(p.place)}`] || 0) / 100)),
+      prize: Math.floor(totalPrizePool * ((tournament.prize_structure[`${p.place}${getOrdinalSuffix(p.place)}`] || 0) / 100)),
     }));
 
-    meta.status = "completed";
-    meta.results = {
+    const results = {
       placements: resultsWithPrizes,
       totalPrizePool,
       totalEntries,
       completedAt: new Date().toISOString(),
     };
 
-    await client.products.update(tournamentId, {
-      description: JSON.stringify(meta),
-    });
+    await setTournamentResults(tournamentId, results);
 
-    return NextResponse.json({ success: true, results: meta.results });
+    return NextResponse.json({ success: true, results });
   } catch (error) {
     return NextResponse.json(
       { error: `Failed: ${error instanceof Error ? error.message : "Unknown"}` },

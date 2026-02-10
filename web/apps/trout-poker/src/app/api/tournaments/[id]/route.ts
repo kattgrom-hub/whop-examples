@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
+import { getTournament } from "@/lib/db";
 
 export async function GET(
   _request: NextRequest,
@@ -8,16 +9,13 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const client = getWhopApi();
-    const product = await client.products.retrieve(id);
-
-    if (!product.description?.startsWith('{"type":"fishing_tournament"') && !product.description?.startsWith('{"type":"poker_tournament"')) {
+    const t = await getTournament(id);
+    if (!t) {
       return NextResponse.json({ error: "Not a tournament" }, { status: 404 });
     }
 
-    const meta = JSON.parse(product.description);
-
-    // Count current players
+    // Count current players from Whop memberships
+    const client = getWhopApi();
     let currentPlayers = 0;
     for await (const _m of await client.memberships.list({ product_ids: [id] })) {
       currentPlayers++;
@@ -25,19 +23,19 @@ export async function GET(
 
     return NextResponse.json({
       tournament: {
-        id: product.id,
-        title: meta.title || product.title,
-        description: meta.description || "",
-        date: meta.date || "",
-        time: meta.time || "",
-        entryFee: meta.entryFee ?? meta.buyIn ?? 0,
-        maxPlayers: meta.maxPlayers || 0,
+        id: t.id,
+        title: t.title,
+        description: t.description || "",
+        date: t.date,
+        time: t.time,
+        entryFee: t.entry_fee,
+        maxPlayers: t.max_players,
         currentPlayers,
-        organizerId: meta.organizerId || meta.commissionerId || "",
-        organizerName: meta.organizerName || meta.commissionerName || "",
-        prizeStructure: meta.prizeStructure || {},
-        status: meta.status || "upcoming",
-        results: meta.results || null,
+        organizerId: t.organizer_id,
+        organizerName: t.organizer_name,
+        prizeStructure: t.prize_structure,
+        status: t.status,
+        results: t.results || null,
       },
     });
   } catch (error) {

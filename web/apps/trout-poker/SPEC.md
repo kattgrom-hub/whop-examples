@@ -4,7 +4,7 @@
 
 Trout Tournaments is a fishing tournament hosting platform built as a **Whop App**. The platform (parent company) holds all funds centrally. Organizers create tournaments, anglers enter via embedded checkout, and all payouts are handled through transfer requests that surface as Whop notifications and are resolved by admins inside the Whop dashboard.
 
-**Stack:** Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, Whop SDK
+**Stack:** Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, Whop SDK, Vercel Blob
 
 **Key principle:** All money flows through the platform parent account. No funds sit in child accounts unless explicitly transferred there via an approved request.
 
@@ -24,17 +24,30 @@ The `dashboard_path` is where admins resolve payout requests after clicking a Wh
 
 ---
 
-## Domain Model (mapped to Whop primitives)
+## Domain Model
+
+### Vercel Blob (app data)
+
+Each record is stored as a JSON file in Vercel Blob at a deterministic path:
+
+| Blob prefix | Purpose | Key fields |
+|---|---|---|
+| `users/{id}.json` | User profiles, roles, plan tiers | `id` (Whop user ID), `role`, `plan_tier`, `whop_company_id` |
+| `tournaments/{id}.json` | Tournament metadata | `id` (= Whop product ID), `whop_plan_id`, `title`, `date`, `entry_fee`, `prize_structure`, `status`, `results` |
+| `payout-requests/{id}.json` | Payout request lifecycle | `id` (req_xxx), `requester_id`, `amount`, `status`, `transfer_id`, `denial_reason` |
+
+No schema setup required — Blob is schemaless. Query helpers in `src/lib/db.ts`.
+
+### Whop primitives (financial/payment layer)
 
 | Domain Concept | Whop Primitive | Notes |
 |---|---|---|
 | Platform | Parent Company (`NEXT_PUBLIC_WHOP_COMPANY_ID`) | Holds all funds centrally |
-| Organizer | Child Company (connected account) | `metadata.role = "organizer"`. Receives transfers when requests are approved. |
-| Angler | Child Company (connected account) | `metadata.role = "angler"`. Receives transfers when requests are approved. |
-| Tournament | Product (on platform company) | Metadata JSON in `description`. `metadata.organizer_id` links to creator. |
+| Organizer | Child Company (connected account) | Receives transfers when requests are approved |
+| Angler | Child Company (connected account) | Receives transfers when requests are approved |
+| Tournament (checkout) | Product (on platform company) | Shell product for Whop checkout/memberships. Metadata lives in Postgres. |
 | Tournament Entry (entry fee) | Plan (`one_time`) on the product | Created at checkout. `company_id = platform`. All funds go to platform. |
 | Angler Registration | Membership | Created when angler completes checkout |
-| Payout Request | Product metadata (request queue) | Stored as a dedicated "requests" Product on the platform |
 | Payout Execution | Transfer (`client.transfers.create()`) | Platform -> recipient's connected account |
 | Request Notification | Notification (`client.notifications.create()`) | Surfaces in Whop bell, deep links to admin dashboard |
 | User Identity | Whop OAuth (OIDC) | `sub` claim = user ID |
@@ -267,68 +280,35 @@ Platform retains its fee (the difference between total entry fees and total appr
 
 ---
 
-## Data Structures
+## Data Storage
 
-### Tournament (stored as Product description JSON)
+All app data lives in **Vercel Blob** (JSON document store). Financial operations (transfers, checkout, memberships) use the **Whop API** at runtime.
+
+### Blob storage
+
+Each entity is a JSON file at a deterministic path (`{type}/{id}.json`). All CRUD goes through `src/lib/db.ts` which wraps `@vercel/blob`'s `put`, `list`, and `del` functions.
+
+- **`users/{id}.json`** — Whop user ID as key, role (`angler`/`organizer`), plan tier (`core`/`pro`), linked connected account ID
+- **`tournaments/{id}.json`** — Whop product ID as key, all tournament metadata, `prize_structure`, `results`
+- **`payout-requests/{id}.json`** — `req_xxx` ID, requester info, amount, status (`pending` -> `approved` | `denied`), transfer ID on approval
+
+### Setup
+
+1. Add Blob Store in Vercel project Storage tab (auto-provisions `BLOB_READ_WRITE_TOKEN`)
+2. No schema setup needed — deploy and go
+
+### Tournament results (JSONB in tournaments.results)
 ```json
 {
-  "type": "fishing_tournament",
-  "title": "Weekend Bass Classic",
-  "description": "Catch-and-release format. Biggest total weight wins.",
-  "date": "2025-03-15",
-  "time": "06:00",
-  "entryFee": 50,
-  "maxPlayers": 64,
-  "organizerId": "biz_xxx",
-  "organizerName": "Lake District Anglers",
-  "prizeStructure": { "1st": 50, "2nd": 30, "3rd": 20 },
-  "status": "upcoming",
-  "results": null
+  "placements": [
+    { "userId": "user_xxx", "companyId": "biz_xxx", "username": "AnglerA", "place": 1, "prize": 1600 },
+    { "userId": "user_yyy", "companyId": "biz_yyy", "username": "AnglerB", "place": 2, "prize": 960 }
+  ],
+  "totalPrizePool": 3200,
+  "totalEntries": 64,
+  "completedAt": "2025-03-15T23:45:00Z"
 }
 ```
-
-### Tournament Results
-```json
-{
-  "...all fields above...",
-  "status": "completed",
-  "results": {
-    "placements": [
-      { "userId": "user_xxx", "companyId": "biz_xxx", "username": "AnglerA", "place": 1, "prize": 1600 },
-      { "userId": "user_yyy", "companyId": "biz_yyy", "username": "AnglerB", "place": 2, "prize": 960 },
-      { "userId": "user_zzz", "companyId": "biz_zzz", "username": "AnglerC", "place": 3, "prize": 640 }
-    ],
-    "totalPrizePool": 3200,
-    "totalEntries": 64,
-    "completedAt": "2025-03-15T23:45:00Z"
-  }
-}
-```
-
-### Payout Request (stored as Product description JSON on a dedicated "requests" Product)
-```json
-{
-  "type": "payout_request",
-  "id": "req_uuid",
-  "requesterId": "user_xxx",
-  "requesterCompanyId": "biz_xxx",
-  "requesterName": "AnglerA",
-  "amount": 1600,
-  "currency": "usd",
-  "reason": "tournament_prize",
-  "tournamentId": "prod_xxx",
-  "tournamentTitle": "Weekend Bass Classic",
-  "place": 1,
-  "status": "pending",
-  "transferId": null,
-  "resolvedAt": null,
-  "resolvedBy": null,
-  "denialReason": null,
-  "createdAt": "2025-03-16T00:10:00Z"
-}
-```
-
-Status transitions: `pending` -> `approved` | `denied`
 
 ---
 
@@ -532,6 +512,9 @@ NEXT_PUBLIC_WHOP_APP_ID=app_xxxxx
 NEXT_PUBLIC_WHOP_COMPANY_ID=biz_xxxxx
 NEXT_PUBLIC_APP_URL=http://localhost:3002
 
+# Vercel Blob (auto-provisioned by Vercel Storage)
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxx
+
 # Organizer Plans (from scripts/setup-plans.ts)
 WHOP_PLAN_CORE=plan_xxxxx
 WHOP_PLAN_PRO_MONTHLY=plan_xxxxx
@@ -598,6 +581,7 @@ web/apps/trout-poker/
 │   │   └── payout-components.tsx
 │   └── lib/
 │       ├── auth-context.tsx
+│       ├── db.ts                          # Vercel Blob client + query helpers
 │       ├── whop-oauth.ts
 │       └── whop-sdk.ts
 ├── scripts/
