@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+@theme {
+  /* Typography */
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-plus-jakarta-sans);
+
+  /* Background layers (deep water) */
+  --color-surface-base: #0B1221;
+  --color-surface-raised: #111D32;
+  --color-surface-overlay: #1B2D47;
+  --color-surface-elevated: #274060;
+
+  /* Borders */
+  --color-border-subtle: #1B2D47;
+  --color-border-default: #274060;
+  --color-border-strong: #345580;
+  --color-border-accent: #06B6D4;
+
+  /* Text */
+  --color-text-primary: #EEF2F7;
+  --color-text-secondary: #8BA3BE;
+  --color-text-tertiary: #5B7A9B;
+  --color-text-inverse: #0B1221;
+
+  /* Creek accent (primary brand — cyan/teal) */
+  --color-creek-50: #ECFEFF;
+  --color-creek-100: #CFFAFE;
+  --color-creek-200: #A5F3FC;
+  --color-creek-300: #67E8F9;
+  --color-creek-400: #22D3EE;
+  --color-creek-500: #06B6D4;
+  --color-creek-600: #0891B2;
+  --color-creek-700: #0E7490;
+  --color-creek-800: #155E75;
+  --color-creek-900: #0C3D4D;
+
+  /* Teal accent (status badges) */
+  --color-teal-400: #5EEAD4;
+  --color-teal-500: #14B8A6;
+  --color-teal-600: #0D9488;
+  --color-teal-700: #0F766E;
+  --color-teal-900: #0A2E2B;
+}
+
+:root {
+  --whop-black: #0B1221;
+  --whop-card: #111D32;
+  --whop-card-elevated: #1B2D47;
+}
+
+body {
+  background-color: var(--color-surface-base);
+  font-family: var(--font-body), system-ui, sans-serif;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(14, 116, 144, 0.05), transparent);
+}
+
+/* Noise texture overlay */
+.noise-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  pointer-events: none;
+}
+
+/* Hero glow effect */
+.hero-glow {
+  position: relative;
+}
+.hero-glow::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(6, 182, 212, 0.14) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Card surface treatment */
+.card {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.card:hover {
+  border-color: rgba(6, 182, 212, 0.25);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 0 20px -5px rgba(6, 182, 212, 0.12);
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Navigation link underline sweep */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-creek-500);
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+.nav-link-active::after {
+  width: 100%;
+}
+
+/* Keyframe animations */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-creek {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.2); }
+  50% { box-shadow: 0 0 0 8px rgba(6, 182, 212, 0); }
+}
+
+/* Animation utilities */
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out both;
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered reveal for lists/grids */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-up 0.5s ease-out both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 75ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 225ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 375ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 450ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 525ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 600ms; }
+
+/* Loading spinner (creek ring) */
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(6, 182, 212, 0.2);
+  border-top-color: #06B6D4;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.spinner-lg {
+  width: 3rem;
+  height: 3rem;
+  border-width: 4px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Modal animations */
+.modal-overlay {
+  animation: fade-in 0.2s ease-out both;
+}
+.modal-content {
+  animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Badge base */
+.badge {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+}
