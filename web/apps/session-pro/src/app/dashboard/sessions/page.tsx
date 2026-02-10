@@ -117,7 +117,10 @@ function SessionModal({
               <option value={60}>60 min</option>
               <option value={90}>90 min</option>
             </select>
-            <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} min="0" placeholder="Price ($)" className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+              <input type="text" inputMode="decimal" value={form.price || ""} onChange={(e) => { const v = e.target.value.replace(/[^0-9.]/g, ""); setForm({ ...form, price: parseFloat(v) || 0 }); }} placeholder="0.00" className="w-full pl-7 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" />
+            </div>
           </div>
           <button type="submit" disabled={isSubmitting || !form.title} className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
             {isSubmitting ? "Saving..." : session ? "Save Changes" : "Create Session"}
