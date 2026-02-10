@@ -10,6 +10,8 @@
         "NEXT_PUBLIC_APP_URL",
         "WHOP_API_KEY",
         "WHOP_CLIENT_SECRET",
+        "AUTH_SECRET",
+        "AUTH_TRUST_HOST",
         "ENABLE_COREPACK",
         "ENABLE_EXPERIMENTAL_COREPACK"
       ]
