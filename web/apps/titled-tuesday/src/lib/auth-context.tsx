@@ -1,96 +1,47 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
-import {
-  getTokens,
-  getStoredUser,
-  storeTokens,
-  storeUser,
-  clearAuthData,
-  isTokenExpired,
-  type WhopTokens,
-  type WhopUserInfo,
-} from "./whop-oauth";
+import { SessionProvider, useSession, signOut } from "next-auth/react";
+import type { ReactNode } from "react";
+
+interface WhopUserInfo {
+  id: string;
+  username: string;
+  email: string;
+  profile_pic_url?: string;
+  name?: string;
+}
 
 interface AuthContextType {
   user: WhopUserInfo | null;
-  tokens: WhopTokens | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (tokens: WhopTokens, user: WhopUserInfo) => void;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  tokens: null,
-  isLoading: true,
-  isAuthenticated: false,
-  login: () => {},
-  logout: () => {},
-});
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<WhopUserInfo | null>(null);
-  const [tokens, setTokens] = useState<WhopTokens | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const storedTokens = getTokens();
-    const storedUser = getStoredUser();
-
-    if (storedTokens && storedUser) {
-      if (isTokenExpired(storedTokens)) {
-        clearAuthData();
-      } else {
-        setTokens(storedTokens);
-        setUser(storedUser);
-      }
-    }
-
-    setIsLoading(false);
-  }, []);
-
-  const login = (newTokens: WhopTokens, newUser: WhopUserInfo) => {
-    storeTokens(newTokens);
-    storeUser(newUser);
-    setTokens(newTokens);
-    setUser(newUser);
-  };
-
-  const logout = () => {
-    clearAuthData();
-    setTokens(null);
-    setUser(null);
-    window.location.href = "/";
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        tokens,
-        isLoading,
-        isAuthenticated: !!user && !!tokens,
-        login,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <SessionProvider>{children}</SessionProvider>;
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+export function useAuth(): AuthContextType {
+  const { data: session, status } = useSession();
+
+  const user: WhopUserInfo | null =
+    status === "authenticated" && session?.user
+      ? {
+          id: session.user.id,
+          username: session.user.username || "",
+          email: session.user.email || "",
+          profile_pic_url: session.user.profile_pic_url || session.user.image || undefined,
+          name: session.user.name || undefined,
+        }
+      : null;
+
+  return {
+    user,
+    isLoading: status === "loading",
+    isAuthenticated: status === "authenticated",
+    logout: () => {
+      signOut({ callbackUrl: "/" });
+    },
+  };
 }

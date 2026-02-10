@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useAuth } from "@/lib/auth-context";
-import { startWhopOAuth } from "@/lib/whop-oauth";
 
 export default function BecomeOrganizerPage() {
   const router = useRouter();
@@ -93,7 +93,7 @@ export default function BecomeOrganizerPage() {
           </button>
         ) : (
           <button
-            onClick={() => startWhopOAuth("/become-organizer")}
+            onClick={() => signIn("whop", { callbackUrl: "/become-organizer" })}
             className="w-full py-4 bg-amber-600 text-text-inverse rounded-xl hover:bg-amber-500 transition-all duration-200 font-semibold hover:-translate-y-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]"
           >
             Sign In to Get Started

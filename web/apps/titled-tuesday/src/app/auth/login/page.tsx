@@ -3,34 +3,17 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { startWhopOAuth } from "@/lib/whop-oauth";
+import { signIn } from "next-auth/react";
 import { useAuth } from "@/lib/auth-context";
 
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
-  const { login, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  const handleWhopLogin = async () => {
-    await startWhopOAuth(redirect);
+  const handleWhopLogin = () => {
+    signIn("whop", { callbackUrl: redirect });
   };
-
-  const handleDevLogin = () => {
-    const mockUser = {
-      id: "user_dev123",
-      username: "devuser",
-      email: "dev+titledtuesday@example.com",
-      name: "Dev User",
-    };
-    const mockTokens = {
-      access_token: "dev_token_123",
-      token_type: "bearer",
-    };
-    login(mockTokens, mockUser);
-    window.location.href = redirect;
-  };
-
-  const isDev = process.env.NODE_ENV === "development";
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
@@ -56,26 +39,6 @@ function LoginForm() {
                 </svg>
                 Continue with Whop
               </button>
-
-              {isDev && (
-                <>
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-border-subtle"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-4 bg-surface-raised text-text-tertiary">dev only</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleDevLogin}
-                    className="w-full py-4 bg-surface-overlay text-text-primary rounded-xl hover:bg-surface-elevated transition-all duration-200 font-semibold"
-                  >
-                    Dev Bypass (Skip OAuth)
-                  </button>
-                </>
-              )}
             </div>
 
             <p className="text-center text-text-tertiary text-sm mt-6">
