@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm turbo build",
+  "installCommand": "pnpm install --filter=titled-tuesday...",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+}
