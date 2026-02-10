@@ -76,13 +76,11 @@ async function ensureConnectedAccount(
   name?: string | null,
   image?: string | null,
 ): Promise<string | null> {
-  // Find existing first
   const existing = await findConnectedAccount(userId);
   if (existing) return existing;
 
   if (!PLATFORM_COMPANY_ID) return null;
 
-  // No account found — create one
   try {
     const client = getWhopApi();
     const newAccount = await client.companies.create({
@@ -133,14 +131,15 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
+      if (user && account) {
+        // Use providerAccountId (OIDC sub = user_xxx) — NOT user.id (Auth.js UUID)
+        token.id = account.providerAccountId;
         token.username = user.username || "";
         token.profile_pic_url = user.image || "";
+        token.accessToken = account.access_token;
 
-        // First sign-in: find or create connected account
         const companyId = await ensureConnectedAccount(
-          user.id!,
+          account.providerAccountId,
           user.email!,
           user.name,
           user.image,
@@ -148,15 +147,22 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.companyId = companyId || "";
       }
 
-      // Backfill: existing sessions that predate this change (find only, never create)
+      // Backfill: existing sessions with missing companyId
       if (!token.companyId && token.id) {
-        const companyId = await findConnectedAccount(token.id);
-        if (companyId) token.companyId = companyId;
+        if (token.email) {
+          const companyId = await ensureConnectedAccount(
+            token.id,
+            token.email,
+            token.name,
+            token.profile_pic_url,
+          );
+          if (companyId) token.companyId = companyId;
+        } else {
+          const companyId = await findConnectedAccount(token.id);
+          if (companyId) token.companyId = companyId;
+        }
       }
 
-      if (account) {
-        token.accessToken = account.access_token;
-      }
       return token;
     },
     session({ session, token }) {
