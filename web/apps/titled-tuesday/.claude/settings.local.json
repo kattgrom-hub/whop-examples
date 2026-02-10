@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:orm.drizzle.team)",
+      "WebFetch(domain:neon.com)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat\\(trout-poker\\): Migrate data storage from Whop API hacks to Vercel Blob\n\nReplace three fragile storage patterns with Vercel Blob JSON documents:\n- Payout requests: were JSON-stuffed in a hidden product description\n- Tournament metadata: were JSON-stuffed in product descriptions\n- User roles: were stored in data/users.json \\(broken on Vercel read-only FS\\)\n\nAll API routes now use db.ts abstraction layer with deterministic blob paths\n\\(users/{id}.json, tournaments/{id}.json, payout-requests/{id}.json\\).\nWhop API still handles all financial operations \\(checkout, transfers, memberships\\).\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(gh pr create --title \"feat\\(trout-poker\\): Migrate data storage to Vercel Blob\" --body \"$\\(cat <<''EOF''\n## Summary\n\n- Replace three fragile storage hacks \\(JSON in Whop product descriptions, filesystem JSON\\) with **Vercel Blob** document store\n- Add `src/lib/db.ts` abstraction layer — all 13 API routes use it, Whop API still handles financial ops\n- Delete `user-store.ts` and `data/users.json` \\(was broken on Vercel''s read-only FS\\)\n- Update SPEC.md to reflect Blob storage architecture\n\n## Test plan\n\n- [ ] Add Blob Store in Vercel project Storage tab\n- [ ] Deploy and verify `BLOB_READ_WRITE_TOKEN` is provisioned\n- [ ] Create a tournament — verify blob written at `tournaments/{id}.json`\n- [ ] Enter tournament — checkout still works via Whop\n- [ ] Submit payout request — stored in `payout-requests/{id}.json`\n- [ ] Approve request in admin — transfer executes, blob updated\n- [ ] User roles persist across requests\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\nEOF\n\\)\")",
+      "Bash(git pull:*)",
+      "Bash(vercel:*)",
+      "Bash(printf:*)"
+    ]
+  }
+}
