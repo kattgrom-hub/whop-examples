@@ -31,37 +31,15 @@ function ProfileContent() {
   const [error, setError] = useState<string | null>(null);
 
   const loadProfile = async () => {
-    if (!user?.id) return setIsLoading(false);
+    if (!user?.companyId) return setIsLoading(false);
     try {
-      const res = await fetch(`/api/instructor/profile?userId=${user.id}`);
+      const res = await fetch(`/api/instructor/profile?companyId=${user.companyId}`);
       if (res.ok) {
         const data = await res.json();
         setProfile(data.profile);
         setName(data.profile.name);
         setBio(data.profile.bio);
         setCategories(data.profile.categories);
-      } else if (res.status === 404) {
-        // Auto-create instructor account
-        const createRes = await fetch("/api/instructor/connected-account", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: user.id,
-            email: user.email,
-            name: user.name || user.username,
-          }),
-        });
-        if (createRes.ok) {
-          // Re-fetch profile after creation
-          const retryRes = await fetch(`/api/instructor/profile?userId=${user.id}`);
-          if (retryRes.ok) {
-            const data = await retryRes.json();
-            setProfile(data.profile);
-            setName(data.profile.name);
-            setBio(data.profile.bio);
-            setCategories(data.profile.categories);
-          }
-        }
       }
     } catch {
       setError("Failed to load profile");
@@ -70,7 +48,8 @@ function ProfileContent() {
     }
   };
 
-  useEffect(() => { loadProfile(); }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadProfile(); }, [user?.companyId]);
 
   const toggleCategory = (cat: string) => {
     setCategories((prev) =>
@@ -79,7 +58,7 @@ function ProfileContent() {
   };
 
   const handleSave = async () => {
-    if (!user?.id) return;
+    if (!user?.companyId) return;
     setIsSaving(true);
     setError(null);
     setSuccess(null);
@@ -88,7 +67,7 @@ function ProfileContent() {
       const res = await fetch("/api/instructor/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, name, bio, categories }),
+        body: JSON.stringify({ companyId: user.companyId, userId: user.id, name, bio, categories }),
       });
       if (!res.ok) throw new Error((await res.json()).error || "Failed to save");
       const data = await res.json();

@@ -21,12 +21,13 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) return setIsLoading(false);
-    fetch(`/api/instructor/sessions?userId=${user.id}`)
+    if (!user?.companyId) return setIsLoading(false);
+    fetch(`/api/instructor/sessions?companyId=${user.companyId}`)
       .then((res) => res.ok ? res.json() : { bookedSessions: [] })
       .then((data) => setClasses(data.bookedSessions || []))
       .finally(() => setIsLoading(false));
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.companyId]);
 
   const upcoming = classes.filter((s) => s.status === "upcoming");
   const completed = classes.filter((s) => s.status === "completed");

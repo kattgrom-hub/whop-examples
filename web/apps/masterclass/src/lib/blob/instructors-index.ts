@@ -4,6 +4,7 @@ const BLOB_PATH = "instructors/index.json";
 
 export interface InstructorEntry {
   name: string;
+  avatarUrl: string;
   plan: "core" | "pro";
   categories: string[];
 }

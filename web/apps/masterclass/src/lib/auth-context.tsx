@@ -9,6 +9,7 @@ interface WhopUserInfo {
   email: string;
   profile_pic_url?: string;
   name?: string;
+  companyId: string;
 }
 
 interface AuthContextType {
@@ -35,6 +36,7 @@ export function useAuth(): AuthContextType {
           email: session.user.email || "",
           profile_pic_url: session.user.profile_pic_url || session.user.image || undefined,
           name: session.user.name || undefined,
+          companyId: session.user.companyId || "",
         }
       : null;
 

@@ -40,16 +40,16 @@ function ClassModal({
   session,
   onClose,
   onSave,
-  userId,
-  userEmail,
+  companyId,
   userName,
+  userAvatar,
 }: {
   session?: Session;
   onClose: () => void;
   onSave: () => void;
-  userId: string;
-  userEmail?: string;
+  companyId: string;
   userName?: string;
+  userAvatar?: string;
 }) {
   const [form, setForm] = useState({
     title: session?.title || "",
@@ -71,7 +71,7 @@ function ClassModal({
       const response = await fetch("/api/instructor/sessions", {
         method: session ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(session ? { sessionId: session.id, ...form } : { userId, userEmail, userName, ...form }),
+        body: JSON.stringify(session ? { sessionId: session.id, companyId, userName, userAvatar, ...form } : { companyId, userName, userAvatar, ...form }),
       });
       if (!response.ok) throw new Error((await response.json()).error || "Failed");
       onSave();
@@ -141,9 +141,9 @@ function ClassesContent() {
   const [editing, setEditing] = useState<Session | undefined>();
 
   const load = async () => {
-    if (!user?.id) return setIsLoading(false);
+    if (!user?.companyId) return setIsLoading(false);
     try {
-      const res = await fetch(`/api/instructor/sessions?userId=${user.id}`);
+      const res = await fetch(`/api/instructor/sessions?companyId=${user.companyId}`);
       if (res.ok) {
         const data = await res.json();
         setSessions(data.availableSessions || []);
@@ -160,7 +160,8 @@ function ClassesContent() {
     load();
   };
 
-  useEffect(() => { load(); }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [user?.companyId]);
 
   const upcoming = booked.filter((s) => s.status === "upcoming");
   const past = booked.filter((s) => s.status !== "upcoming");
@@ -258,7 +259,7 @@ function ClassesContent() {
       </section>
 
       {showModal && user && (
-        <ClassModal session={editing} onClose={() => setShowModal(false)} onSave={load} userId={user.id} userEmail={user.email} userName={user.name} />
+        <ClassModal session={editing} onClose={() => setShowModal(false)} onSave={load} companyId={user.companyId} userName={user.name} userAvatar={user.profile_pic_url} />
       )}
     </div>
   );

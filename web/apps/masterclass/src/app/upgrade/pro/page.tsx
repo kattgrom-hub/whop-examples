@@ -23,30 +23,8 @@ export default function UpgradeProPage() {
 
     let cancelled = false;
 
-    async function setupAndRedirect() {
+    async function redirectToCheckout() {
       try {
-        // 1. Ensure instructor connected account exists
-        const checkRes = await fetch(`/api/instructor/connected-account?userId=${user!.id}`);
-        if (checkRes.status === 404) {
-          const createRes = await fetch("/api/instructor/connected-account", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: user!.id,
-              email: user!.email,
-              name: user!.name || user!.username,
-            }),
-          });
-          if (!createRes.ok) {
-            throw new Error("Failed to create instructor account");
-          }
-        } else if (!checkRes.ok) {
-          throw new Error("Failed to check instructor account");
-        }
-
-        if (cancelled) return;
-
-        // 2. Fetch Pro checkout URL
         const checkoutRes = await fetch("/api/instructor-plans", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -64,7 +42,6 @@ export default function UpgradeProPage() {
 
         if (cancelled) return;
 
-        // 3. Redirect to Whop checkout
         window.location.href = data.checkoutUrl;
       } catch (err) {
         if (cancelled) return;
@@ -73,9 +50,9 @@ export default function UpgradeProPage() {
       }
     }
 
-    setupAndRedirect();
+    redirectToCheckout();
     return () => { cancelled = true; };
-  }, [user, authLoading, isAuthenticated, router]);
+  }, [user?.id, authLoading, isAuthenticated, router]);
 
   if (status === "error") {
     return (
