@@ -1,6 +1,0 @@
-{
-  "buildCommand": "pnpm turbo build",
-  "installCommand": "pnpm install --filter=session-pro...",
-  "framework": "nextjs",
-  "outputDirectory": ".next"
-}

@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm turbo build",
+  "installCommand": "pnpm install --filter=masterclass...",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+}

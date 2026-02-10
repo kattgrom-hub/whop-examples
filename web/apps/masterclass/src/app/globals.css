@@ -1,0 +1,80 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&display=swap');
+
+:root {
+  --whop-black: #0a0a0a;
+  --whop-card: #111111;
+  --whop-card-elevated: #1a1a1a;
+  --red: #E53935;
+  --red-light: #EF5350;
+  --red-dark: #C62828;
+  --red-hover: #D32F2F;
+  --obsidian: #0A0A0A;
+  --obsidian-card: #1A1A1A;
+  --obsidian-border: #2A2A2A;
+  --obsidian-surface: #111111;
+}
+
+body {
+  background-color: var(--obsidian);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Serif headings */
+h1, h2 {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+
+/* Red button */
+.btn-red {
+  background-color: var(--red);
+  color: #FFFFFF;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-red:hover {
+  background-color: var(--red-dark);
+}
+
+.btn-red:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--obsidian-border);
+}
+
+/* Red gradient text */
+.text-red-gradient {
+  background: linear-gradient(135deg, #EF5350, #E53935, #C62828);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Red spinner */
+.spinner-red {
+  border-color: rgba(229, 57, 53, 0.3);
+  border-top-color: var(--red);
+}
+
+/* Red glow on hover */
+.red-glow:hover {
+  box-shadow: 0 0 20px rgba(229, 57, 53, 0.15);
+}
+
+/* Subtle red border glow */
+.red-border-glow {
+  border-color: var(--obsidian-border);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.red-border-glow:hover {
+  border-color: rgba(229, 57, 53, 0.4);
+  box-shadow: 0 0 15px rgba(229, 57, 53, 0.08);
+}

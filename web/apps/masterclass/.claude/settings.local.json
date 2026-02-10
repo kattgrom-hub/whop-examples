@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(done)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)",
+      "Bash(npm search @whop)",
+      "WebFetch(domain:docs.whop.com)",
+      "Bash(npm search:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm uninstall:*)",
+      "WebSearch",
+      "WebFetch(domain:dev.whop.com)",
+      "WebFetch(domain:linear.app)",
+      "WebFetch(domain:brand.whop.com)",
+      "Bash(git checkout:*)",
+      "WebFetch(domain:whop.com)",
+      "Bash(npx tsx:*)",
+      "Bash(source:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git push:*)",
+      "Bash(gh pr create --title \"Session Pro: Hide coach CTAs when logged in + fix OAuth flash\" --body \"$\\(cat <<''EOF''\n## Summary\n- Hide \"Become a Coach\" CTAs when user is already authenticated \\(homepage hero + login page\\)\n- Fix OAuth callback flashing red X in dev mode caused by React Strict Mode double-executing useEffect\n\n## Changes\n- Create `HeroCTAs` client component to conditionally render based on auth state\n- Update homepage to use new component\n- Hide \"Apply here\" link on login page for authenticated users\n- Add `useRef` guard in OAuth callback to prevent double code exchange\n\n## Test plan\n- [ ] Log in via OAuth - should not see red X flash\n- [ ] When logged in, homepage should only show \"Find a Coach\" button\n- [ ] When logged out, both \"Find a Coach\" and \"Become a Coach\" buttons visible\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\nEOF\n\\)\")",
+      "Bash(ln:*)",
+      "Bash(git pull:*)",
+      "Bash(gh pr create:*)",
+      "Bash(vercel:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(npm view:*)",
+      "Bash(corepack enable:*)",
+      "Bash(corepack prepare:*)",
+      "Bash(pnpm install:*)"
+    ]
+  }
+}
