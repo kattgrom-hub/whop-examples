@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
+import { getCoachEntry } from "@/lib/blob/coaches-index";
 
 // Fee rates by coach plan tier
 const FEE_RATES = {
@@ -25,15 +26,20 @@ export async function POST(request: NextRequest) {
     // Get the Whop API client
     const client = getWhopApi();
 
-    // Fetch coach's connected account to get their plan tier
+    // Look up coach's plan tier from blob first, fall back to Whop API
     let feeRate: number = FEE_RATES.core; // Default to core (8%)
-    try {
-      const coachAccount = await client.companies.retrieve(coachId);
-      const metadata = coachAccount.metadata as Record<string, string> | undefined;
-      const coachPlan = metadata?.plan || "core";
-      feeRate = coachPlan === "pro" ? FEE_RATES.pro : FEE_RATES.core;
-    } catch (e) {
-      console.warn("Could not fetch coach account, using default fee rate:", e);
+    const cachedCoach = await getCoachEntry(coachId);
+    if (cachedCoach) {
+      feeRate = cachedCoach.plan === "pro" ? FEE_RATES.pro : FEE_RATES.core;
+    } else {
+      try {
+        const coachAccount = await client.companies.retrieve(coachId);
+        const metadata = coachAccount.metadata as Record<string, string> | undefined;
+        const coachPlan = metadata?.plan || "core";
+        feeRate = coachPlan === "pro" ? FEE_RATES.pro : FEE_RATES.core;
+      } catch (e) {
+        console.warn("Could not fetch coach account, using default fee rate:", e);
+      }
     }
 
     // Calculate platform fee

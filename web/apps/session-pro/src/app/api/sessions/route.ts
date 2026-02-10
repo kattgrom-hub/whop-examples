@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getWhopApi } from "@/lib/whop-sdk";
-
-const PLATFORM_COMPANY_ID = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || "";
+import {
+  readSessionsIndex,
+  type SessionIndexEntry,
+} from "@/lib/blob/sessions-index";
 
 /**
  * Sessions List API
  *
  * Lists all available sessions across all coaches.
- * Sessions are Products with {"type":"coaching_session"} in description.
+ * Reads from the sessions index blob instead of making N+1 Whop API calls.
  */
 
 export interface SessionListItem {
@@ -21,74 +22,47 @@ export interface SessionListItem {
   coachId: string;
   coachName: string;
   coachAvatar: string;
+  categories: string[];
+}
+
+function toListItem(entry: SessionIndexEntry): SessionListItem {
+  return {
+    id: entry.id,
+    title: entry.title,
+    description: entry.description,
+    date: entry.date,
+    time: entry.time,
+    duration: entry.duration,
+    price: entry.price,
+    coachId: entry.companyId,
+    coachName: entry.coachName,
+    coachAvatar:
+      entry.coachLogo ||
+      `https://api.dicebear.com/9.x/notionists/svg?seed=${entry.companyId}`,
+    categories: entry.categories,
+  };
 }
 
 export async function GET(request: NextRequest) {
-  if (!PLATFORM_COMPANY_ID) {
-    return NextResponse.json(
-      { error: "Platform company ID not configured" },
-      { status: 500 }
-    );
-  }
-
   try {
-    const client = getWhopApi();
+    const index = await readSessionsIndex();
 
-    // List all connected accounts under the platform
-    const connectedAccounts = await client.companies.list({
-      parent_company_id: PLATFORM_COMPANY_ID,
-    });
+    if (!index) {
+      return NextResponse.json({ sessions: [], total: 0 });
+    }
 
-    const sessions: SessionListItem[] = [];
+    // Filter to visible sessions only
+    let sessions = index.sessions
+      .filter((s) => s.visibility === "visible")
+      .map(toListItem);
 
-    // For each connected account, find their session products
-    for await (const account of connectedAccounts) {
-      try {
-        const products = await client.products.list({
-          company_id: account.id,
-        });
-
-        for await (const product of products) {
-          const fullProduct = await client.products.retrieve(product.id);
-          const description = fullProduct.description || "";
-
-          // Only include coaching sessions
-          if (!description.startsWith('{"type":"coaching_session"')) {
-            continue;
-          }
-
-          // Only include visible products
-          if (fullProduct.visibility !== "visible") {
-            continue;
-          }
-
-          // Parse metadata
-          let metadata: Record<string, string> = {};
-          try {
-            metadata = JSON.parse(description);
-          } catch {
-            continue;
-          }
-
-          // Get coach name from account
-          const coachName = account.title || "Coach";
-
-          sessions.push({
-            id: fullProduct.id,
-            title: metadata.title || fullProduct.title || "Session",
-            description: metadata.description || "",
-            date: metadata.date || "",
-            time: metadata.time || "",
-            duration: parseInt(metadata.duration || "60", 10),
-            price: parseFloat(metadata.price || "0"),
-            coachId: account.id,
-            coachName: coachName,
-            coachAvatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${account.id}`,
-          });
-        }
-      } catch (err) {
-        console.error(`Failed to fetch products for account ${account.id}:`, err);
-      }
+    // Optional category filter
+    const category = request.nextUrl.searchParams.get("category");
+    if (category) {
+      const lower = category.toLowerCase();
+      sessions = sessions.filter((s) =>
+        s.categories.some((c) => c.toLowerCase() === lower),
+      );
     }
 
     // Sort by date (earliest first)
@@ -104,10 +78,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Failed to list sessions:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       { error: `Failed to list sessions: ${errorMessage}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

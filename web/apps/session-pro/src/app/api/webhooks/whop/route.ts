@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
+import { persistWebhookEvent } from "@/lib/blob/webhook-events";
+import { updateCoachEntry } from "@/lib/blob/coaches-index";
 
 // Pro plan IDs from environment
 const PRO_PLAN_IDS = [
@@ -26,11 +28,11 @@ async function updateCoachPlanTier(userId: string, plan: "core" | "pro") {
         metadata: { ...meta, plan },
       });
       console.log(`Updated coach ${account.id} plan to: ${plan}`);
-      return true;
+      return account.id;
     }
   }
   console.warn(`Could not find connected account for user: ${userId}`);
-  return false;
+  return null;
 }
 
 /**
@@ -63,39 +65,47 @@ export async function POST(request: NextRequest) {
     console.log(`Received Whop webhook: ${event}`, data);
 
     switch (event) {
-      case "payment.succeeded":
-        // TODO: Create session booking in database
-        // TODO: Send confirmation notification to student
-        // TODO: Send notification to coach
-        console.log("Payment succeeded:", data);
+      case "payment.succeeded": {
+        await persistWebhookEvent(event, data);
+        console.log("Payment succeeded (persisted):", data.id);
         break;
+      }
 
-      case "payment.failed":
-        // TODO: Handle failed payment
-        // TODO: Notify user
-        console.log("Payment failed:", data);
+      case "payment.failed": {
+        await persistWebhookEvent(event, data);
+        console.log("Payment failed (persisted):", data.id);
         break;
+      }
 
-      case "membership.went_valid":
+      case "membership.went_valid": {
         // Coach subscribed to Pro plan - update their tier
         if (data.plan_id && isProPlan(data.plan_id) && data.user_id) {
-          await updateCoachPlanTier(data.user_id, "pro");
+          const companyId = await updateCoachPlanTier(data.user_id, "pro");
+          if (companyId) {
+            await updateCoachEntry(companyId, { plan: "pro" }).catch(() => {});
+          }
         }
-        console.log("Membership went valid:", data);
+        console.log("Membership went valid:", data.id);
         break;
+      }
 
-      case "membership.went_invalid":
+      case "membership.went_invalid": {
         // Coach's Pro subscription ended - downgrade to core
         if (data.plan_id && isProPlan(data.plan_id) && data.user_id) {
-          await updateCoachPlanTier(data.user_id, "core");
+          const companyId = await updateCoachPlanTier(data.user_id, "core");
+          if (companyId) {
+            await updateCoachEntry(companyId, { plan: "core" }).catch(() => {});
+          }
         }
-        console.log("Membership went invalid:", data);
+        console.log("Membership went invalid:", data.id);
         break;
+      }
 
-      case "payout.completed":
-        // TODO: Update coach's payout history
-        console.log("Payout completed:", data);
+      case "payout.completed": {
+        await persistWebhookEvent(event, data);
+        console.log("Payout completed (persisted):", data.id);
         break;
+      }
 
       default:
         console.log("Unhandled webhook event:", event);
@@ -118,8 +128,8 @@ export async function GET() {
     events: [
       "payment.succeeded",
       "payment.failed",
-      "membership.created",
-      "membership.cancelled",
+      "membership.went_valid",
+      "membership.went_invalid",
       "payout.completed"
     ]
   });

@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@vercel/blob": "^2.2.0",
     "@whop/checkout": "^0.0.51",
     "@whop/embedded-components-react-js": "^0.0.9",
     "@whop/embedded-components-vanilla-js": "^0.0.9",

@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
+import { upsertCoachEntry, getCompanyIdByUserId } from "@/lib/blob/coaches-index";
 
 const PLATFORM_COMPANY_ID = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || "";
 
 async function findAccountByUserId(client: ReturnType<typeof getWhopApi>, userId: string) {
+  // Fast path: check blob index
+  const cachedCompanyId = await getCompanyIdByUserId(userId).catch(() => null);
+  if (cachedCompanyId) {
+    try {
+      return await client.companies.retrieve(cachedCompanyId);
+    } catch {} // blob stale, fall through to scan
+  }
+
+  // Slow path: scan Whop API
   const accounts = await client.companies.list({ parent_company_id: PLATFORM_COMPANY_ID });
   for await (const account of accounts) {
     const meta = account.metadata as Record<string, string> | undefined;
@@ -20,7 +30,18 @@ export async function POST(request: NextRequest) {
 
     const client = getWhopApi();
     const existing = await findAccountByUserId(client, userId);
-    if (existing) return NextResponse.json({ company: existing, created: false });
+    if (existing) {
+      // Ensure blob is up-to-date for existing accounts
+      const meta = existing.metadata as Record<string, string> | undefined;
+      let categories: string[] = [];
+      try { if (meta?.categories) categories = JSON.parse(meta.categories); } catch {}
+      await upsertCoachEntry(existing.id, {
+        name: existing.title || "",
+        plan: (meta?.plan as "core" | "pro") || "core",
+        categories,
+      }, userId);
+      return NextResponse.json({ company: existing, created: false });
+    }
 
     const newAccount = await client.companies.create({
       email,
@@ -28,13 +49,33 @@ export async function POST(request: NextRequest) {
       title: name || `Coach ${userId}`,
       metadata: { user_id: userId, email, plan: "core" },
     });
+
+    // Write new coach to blob index (with userId mapping)
+    await upsertCoachEntry(newAccount.id, {
+      name: name || `Coach ${userId}`,
+      plan: "core",
+      categories: [],
+    }, userId);
+
     return NextResponse.json({ company: newAccount, created: true });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown";
-    if (msg.includes("already exists")) {
+    if (msg.includes("same name") || msg.includes("already")) {
       const client = getWhopApi();
       const accounts = await client.companies.list({ parent_company_id: PLATFORM_COMPANY_ID });
-      for await (const account of accounts) return NextResponse.json({ company: account, created: false });
+      for await (const account of accounts) {
+        // Sync to blob on recovery path too (with userId mapping)
+        const meta = account.metadata as Record<string, string> | undefined;
+        const accountUserId = meta?.user_id || account.owner_user?.id;
+        let categories: string[] = [];
+        try { if (meta?.categories) categories = JSON.parse(meta.categories); } catch {}
+        await upsertCoachEntry(account.id, {
+          name: account.title || "",
+          plan: (meta?.plan as "core" | "pro") || "core",
+          categories,
+        }, accountUserId);
+        return NextResponse.json({ company: account, created: false });
+      }
     }
     return NextResponse.json({ error: `Failed: ${msg}` }, { status: 500 });
   }

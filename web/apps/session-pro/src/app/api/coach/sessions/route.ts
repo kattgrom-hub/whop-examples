@@ -1,30 +1,91 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
+import { upsertCoachEntry, getCompanyIdByUserId } from "@/lib/blob/coaches-index";
+import {
+  upsertSession,
+  removeSession,
+  type SessionIndexEntry,
+} from "@/lib/blob/sessions-index";
 
 const PLATFORM_COMPANY_ID = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || "";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
 
 async function findCoachCompanyId(client: ReturnType<typeof getWhopApi>, userId: string): Promise<string | null> {
+  // Fast path: check blob index first
+  const cached = await getCompanyIdByUserId(userId).catch(() => null);
+  if (cached) return cached;
+
+  // Slow path: scan Whop API and sync to blob
   const accounts = await client.companies.list({ parent_company_id: PLATFORM_COMPANY_ID });
   for await (const account of accounts) {
     const metadata = account.metadata as Record<string, string> | undefined;
-    if (account.owner_user?.id === userId || metadata?.user_id === userId) return account.id;
+    if (account.owner_user?.id === userId || metadata?.user_id === userId) {
+      let categories: string[] = [];
+      try { if (metadata?.categories) categories = JSON.parse(metadata.categories); } catch {}
+      await upsertCoachEntry(account.id, {
+        name: account.title || "",
+        plan: (metadata?.plan as "core" | "pro") || "core",
+        categories,
+      }, userId).catch(() => {}); // sync userId → companyId to blob
+      return account.id;
+    }
   }
   return null;
 }
 
 async function getOrCreateCoachCompany(client: ReturnType<typeof getWhopApi>, userId: string, userEmail?: string, userName?: string): Promise<string> {
-  let companyId = await findCoachCompanyId(client, userId);
-  if (!companyId) {
-    const res = await fetch(`${APP_URL}/api/coach/connected-account`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, email: userEmail || `${userId}@coach.local`, name: userName || "Coach" }),
+  const companyId = await findCoachCompanyId(client, userId);
+  if (companyId) return companyId;
+
+  // Create directly instead of internal fetch (avoids APP_URL mismatch on Vercel)
+  try {
+    const newAccount = await client.companies.create({
+      email: userEmail || `${userId}@coach.local`,
+      parent_company_id: PLATFORM_COMPANY_ID,
+      title: userName || `Coach ${userId.slice(0, 8)}`,
+      metadata: { user_id: userId, email: userEmail || "", plan: "core" },
     });
-    if (!res.ok) throw new Error((await res.json()).error || "Failed to create connected account");
-    companyId = (await res.json()).company.id;
+    await upsertCoachEntry(newAccount.id, {
+      name: newAccount.title || "",
+      plan: "core",
+      categories: [],
+    }, userId).catch(() => {});
+    return newAccount.id;
+  } catch (error) {
+    // If "already exists", the company is there but findCoachCompanyId missed it
+    // (e.g. owner_user.id differs from userId). Scan again and return first match by name.
+    const msg = error instanceof Error ? error.message : "";
+    if (msg.includes("same name") || msg.includes("already")) {
+      const accounts = await client.companies.list({ parent_company_id: PLATFORM_COMPANY_ID });
+      for await (const account of accounts) {
+        const meta = account.metadata as Record<string, string> | undefined;
+        if (account.owner_user?.id === userId || meta?.user_id === userId) return account.id;
+      }
+      // Still can't find by userId — return first account (single-coach scenario)
+      const retry = await client.companies.list({ parent_company_id: PLATFORM_COMPANY_ID });
+      for await (const account of retry) {
+        return account.id;
+      }
+    }
+    throw error;
   }
-  return companyId!;
+}
+
+async function getCoachInfo(client: ReturnType<typeof getWhopApi>, companyId: string): Promise<{ name: string; logo: string; categories: string[] }> {
+  try {
+    const company = await client.companies.retrieve(companyId);
+    const meta = company.metadata as Record<string, string> | undefined;
+    let categories: string[] = [];
+    try {
+      if (meta?.categories) categories = JSON.parse(meta.categories);
+    } catch {}
+    return {
+      name: company.title || "Coach",
+      logo: company.logo?.url || "",
+      categories,
+    };
+  } catch {
+    return { name: "Coach", logo: "", categories: [] };
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -40,6 +101,26 @@ export async function POST(request: NextRequest) {
     const product = await client.products.create({ company_id: coachCompanyId, title, description: JSON.stringify(metadata), visibility: "visible" });
     await client.plans.create({ company_id: coachCompanyId, product_id: product.id, plan_type: "one_time", initial_price: (price || 0), visibility: "visible", release_method: "buy_now" });
 
+    // Write to sessions index blob
+    const coachInfo = await getCoachInfo(client, coachCompanyId);
+    const blobEntry: SessionIndexEntry = {
+      id: product.id,
+      companyId: coachCompanyId,
+      coachName: coachInfo.name,
+      coachLogo: coachInfo.logo,
+      title,
+      description: description || "",
+      date,
+      time,
+      duration: duration || 60,
+      price: price || 0,
+      categories: coachInfo.categories,
+      visibility: "visible",
+    };
+    await upsertSession(blobEntry).catch((err) =>
+      console.error("Failed to update sessions index blob:", err),
+    );
+
     return NextResponse.json({ success: true, session: { id: product.id, title, description: description || "", date, time, duration: duration || 60, price: price || 0, status: "available" } });
   } catch (error) {
     return NextResponse.json({ error: `Failed to create session: ${error instanceof Error ? error.message : "Unknown"}` }, { status: 500 });
@@ -48,12 +129,34 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { sessionId, title, description, date, time, duration, price } = await request.json();
+    const { sessionId, title, description, date, time, duration, price, companyId } = await request.json();
     if (!sessionId) return NextResponse.json({ error: "sessionId required" }, { status: 400 });
 
     const client = getWhopApi();
     const metadata = { type: "coaching_session", title, description: description || "", date, time, duration: String(duration || 60), price: String(price || 0) };
     await client.products.update(sessionId, { title, description: JSON.stringify(metadata) });
+
+    // Update sessions index blob
+    if (companyId) {
+      const coachInfo = await getCoachInfo(client, companyId);
+      const blobEntry: SessionIndexEntry = {
+        id: sessionId,
+        companyId,
+        coachName: coachInfo.name,
+        coachLogo: coachInfo.logo,
+        title,
+        description: description || "",
+        date,
+        time,
+        duration: duration || 60,
+        price: price || 0,
+        categories: coachInfo.categories,
+        visibility: "visible",
+      };
+      await upsertSession(blobEntry).catch((err) =>
+        console.error("Failed to update sessions index blob:", err),
+      );
+    }
 
     return NextResponse.json({ success: true, session: { id: sessionId, title, description: description || "", date, time, duration: duration || 60, price: price || 0, status: "available" } });
   } catch (error) {
@@ -66,6 +169,12 @@ export async function DELETE(request: NextRequest) {
     const sessionId = new URL(request.url).searchParams.get("sessionId");
     if (!sessionId) return NextResponse.json({ error: "sessionId required" }, { status: 400 });
     await getWhopApi().products.update(sessionId, { visibility: "hidden" });
+
+    // Update sessions index blob
+    await removeSession(sessionId).catch((err) =>
+      console.error("Failed to update sessions index blob:", err),
+    );
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: `Failed to delete: ${error instanceof Error ? error.message : "Unknown"}` }, { status: 500 });
