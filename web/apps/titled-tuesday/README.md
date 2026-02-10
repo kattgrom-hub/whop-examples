@@ -15,7 +15,7 @@ Players and organizers are modeled as **child companies** under the platform's p
 - `companies.create()` — Register new player/organizer accounts
 - `companies.list({ parent_company_id })` — List all child accounts
 - `companies.retrieve(id)` — Get account details
-- `companies.update(id, { metadata })` — Update role or plan tier
+- `companies.update(id, { metadata })` — Update role
 
 ### Products (Tournaments)
 

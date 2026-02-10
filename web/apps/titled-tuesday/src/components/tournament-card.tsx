@@ -76,8 +76,6 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tournamentId: tournament.id,
-          entryFee: tournament.entryFee,
-          organizerId: tournament.organizerId,
         }),
       });
 
@@ -125,7 +123,6 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
               <WhopEmbeddedCheckout
                 planId={planId}
                 onSuccess={handleCheckoutSuccess}
-                onClose={() => setPlanId(null)}
               />
             </div>
           </div>

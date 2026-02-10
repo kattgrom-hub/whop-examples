@@ -1,4 +1,4 @@
-import { put, list, del } from "@vercel/blob";
+import { put, list } from "@vercel/blob";
 
 // ── Blob helpers ────────────────────────────────────────────────────────────
 
@@ -34,12 +34,6 @@ async function listBlobs<T>(prefix: string): Promise<T[]> {
   return items;
 }
 
-async function deleteBlob(path: string): Promise<void> {
-  const { blobs } = await list({ prefix: path, limit: 1 });
-  const blob = blobs.find((b) => b.pathname === path);
-  if (blob) await del(blob.url);
-}
-
 // ── Users ───────────────────────────────────────────────────────────────────
 
 interface UserRecord {
@@ -49,7 +43,6 @@ interface UserRecord {
   name?: string | null;
   profile_pic?: string | null;
   role: string;
-  plan_tier: string;
   whop_company_id?: string | null;
   created_at: string;
   updated_at: string;
@@ -73,7 +66,6 @@ export async function upsertUser(user: {
     name: user.name ?? existing?.name ?? null,
     profile_pic: user.profile_pic ?? existing?.profile_pic ?? null,
     role: user.role ?? existing?.role ?? "player",
-    plan_tier: existing?.plan_tier ?? "core",
     whop_company_id: user.whop_company_id ?? existing?.whop_company_id ?? null,
     created_at: existing?.created_at ?? now,
     updated_at: now,
@@ -95,25 +87,9 @@ export async function setUserRole(userId: string, role: string): Promise<void> {
   await writeBlob(`users/${userId}.json`, user);
 }
 
-export async function setUserPlanTier(userId: string, planTier: string): Promise<void> {
-  const user = await readBlob<UserRecord>(`users/${userId}.json`);
-  if (!user) return;
-  user.plan_tier = planTier;
-  user.updated_at = new Date().toISOString();
-  await writeBlob(`users/${userId}.json`, user);
-}
-
-export async function setUserCompanyId(userId: string, companyId: string): Promise<void> {
-  const user = await readBlob<UserRecord>(`users/${userId}.json`);
-  if (!user) return;
-  user.whop_company_id = companyId;
-  user.updated_at = new Date().toISOString();
-  await writeBlob(`users/${userId}.json`, user);
-}
-
 // ── Tournaments ─────────────────────────────────────────────────────────────
 
-export interface TournamentRow {
+interface TournamentRow {
   id: string;
   whop_plan_id: string | null;
   title: string;
@@ -223,7 +199,7 @@ export async function cancelTournament(id: string): Promise<void> {
 
 // ── Payout Requests ─────────────────────────────────────────────────────────
 
-export interface PayoutRequestRow {
+interface PayoutRequestRow {
   id: string;
   requester_id: string;
   requester_company_id: string;

@@ -98,15 +98,7 @@ function CallbackHandler() {
     );
   }
 
-  return (
-    <div className="min-h-[80vh] flex items-center justify-center px-6">
-      <div className="text-center">
-        <div className="spinner-lg spinner mx-auto mb-4"></div>
-        <h1 className="font-display italic text-xl text-text-primary mb-2">Signing you in...</h1>
-        <p className="text-text-secondary">Please wait while we complete authentication</p>
-      </div>
-    </div>
-  );
+  return null;
 }
 
 export default function AuthCallbackPage() {

@@ -96,14 +96,10 @@ export default function DashboardOverviewPage() {
       <h1 className="font-display italic text-2xl text-text-primary mb-6">Dashboard</h1>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 stagger-children">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 stagger-children">
         <div className="card p-5">
           <p className="text-sm text-text-secondary mb-1">Role</p>
           <p className="text-lg font-semibold text-text-primary capitalize">{role}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-sm text-text-secondary mb-1">Plan</p>
-          <p className="text-lg font-semibold text-text-primary capitalize">{meta.plan || "Core"}</p>
         </div>
         <div className="card p-5">
           <p className="text-sm text-text-secondary mb-1">Pending Requests</p>

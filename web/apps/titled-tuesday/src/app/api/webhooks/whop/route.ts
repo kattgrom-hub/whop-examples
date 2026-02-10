@@ -1,14 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setUserPlanTier } from "@/lib/db";
-
-const PRO_PLAN_IDS = [
-  process.env.WHOP_PLAN_PRO_MONTHLY,
-  process.env.WHOP_PLAN_PRO_YEARLY,
-].filter(Boolean);
-
-function isProPlan(planId: string): boolean {
-  return PRO_PLAN_IDS.includes(planId);
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,18 +17,10 @@ export async function POST(request: NextRequest) {
         break;
 
       case "membership.went_valid":
-        if (data.plan_id && isProPlan(data.plan_id) && data.user_id) {
-          await setUserPlanTier(data.user_id, "pro");
-          console.log(`Updated user ${data.user_id} plan to: pro`);
-        }
         console.log("Membership went valid:", data);
         break;
 
       case "membership.went_invalid":
-        if (data.plan_id && isProPlan(data.plan_id) && data.user_id) {
-          await setUserPlanTier(data.user_id, "core");
-          console.log(`Updated user ${data.user_id} plan to: core`);
-        }
         console.log("Membership went invalid:", data);
         break;
 

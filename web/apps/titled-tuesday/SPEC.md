@@ -32,7 +32,7 @@ Each record is stored as a JSON file in Vercel Blob at a deterministic path:
 
 | Blob prefix | Purpose | Key fields |
 |---|---|---|
-| `users/{id}.json` | User profiles, roles, plan tiers | `id` (Whop user ID), `role`, `plan_tier`, `whop_company_id` |
+| `users/{id}.json` | User profiles, roles | `id` (Whop user ID), `role`, `whop_company_id` |
 | `tournaments/{id}.json` | Tournament metadata | `id` (= Whop product ID), `whop_plan_id`, `title`, `date`, `entry_fee`, `prize_structure`, `status`, `results` |
 | `payout-requests/{id}.json` | Payout request lifecycle | `id` (req_xxx), `requester_id`, `amount`, `status`, `transfer_id`, `denial_reason` |
 
@@ -210,8 +210,6 @@ Platform retains its fee (the difference between total entry fees and total appr
 | Route | Page | Description |
 |---|---|---|
 | `/dashboard/tournaments` | Manage Tournaments | CRUD, view registrations, record results, transition status |
-| `/upgrade/pro` | Pro Upgrade | Redirects to Whop hosted checkout for Pro subscription |
-
 ### Admin Pages (embedded inside Whop dashboard)
 | Route | Page | Description |
 |---|---|---|
@@ -250,8 +248,6 @@ Platform retains its fee (the difference between total entry fees and total appr
 |---|---|---|
 | GET/POST/PATCH/DELETE | `/api/organizer/tournaments` | CRUD tournaments (Products on platform company) |
 | POST | `/api/organizer/tournaments/results` | Record results (placements + prize amounts) |
-| POST | `/api/organizer/plans` | Get checkout URL for Pro subscription |
-
 ### Payout Requests
 | Method | Route | Description |
 |---|---|---|
@@ -288,7 +284,7 @@ All app data lives in **Vercel Blob** (JSON document store). Financial operation
 
 Each entity is a JSON file at a deterministic path (`{type}/{id}.json`). All CRUD goes through `src/lib/db.ts` which wraps `@vercel/blob`'s `put`, `list`, and `del` functions.
 
-- **`users/{id}.json`** — Whop user ID as key, role (`player`/`organizer`), plan tier (`core`/`pro`), linked connected account ID
+- **`users/{id}.json`** — Whop user ID as key, role (`player`/`organizer`), linked connected account ID
 - **`tournaments/{id}.json`** — Whop product ID as key, all tournament metadata, `prize_structure`, `results`
 - **`payout-requests/{id}.json`** — `req_xxx` ID, requester info, amount, status (`pending` -> `approved` | `denied`), transfer ID on approval
 
@@ -309,21 +305,6 @@ Each entity is a JSON file at a deterministic path (`{type}/{id}.json`). All CRU
   "completedAt": "2025-03-15T23:45:00Z"
 }
 ```
-
----
-
-## Organizer Subscription Tiers
-
-| Plan | Price | Platform Fee | Billing |
-|---|---|---|---|
-| Core | Free | 8% per entry fee | N/A |
-| Pro Monthly | $19/mo | 5% per entry fee | 30 days |
-| Pro Yearly | $150/yr | 5% per entry fee | 365 days |
-
-The fee is **not** deducted via `application_fee_amount` (since all funds go to the platform anyway). Instead, the fee percentage determines how much of the entry fee pool the organizer can claim via payout requests. When an organizer submits a request, the app calculates their eligible amount as `totalEntryFees * (1 - feeRate)` minus any prizes owed.
-
-- Plan IDs stored in env vars: `WHOP_PLAN_CORE`, `WHOP_PLAN_PRO_MONTHLY`, `WHOP_PLAN_PRO_YEARLY`
-- Webhooks `membership.went_valid` / `membership.went_invalid` update `metadata.plan` on organizer's connected account
 
 ---
 
@@ -478,7 +459,7 @@ Identical to session-pro:
 | `client.companies.create()` | Create connected account (player or organizer) |
 | `client.companies.list({ parent_company_id })` | List all connected accounts |
 | `client.companies.retrieve(id)` | Get connected account details |
-| `client.companies.update(id, { metadata })` | Update role, plan tier |
+| `client.companies.update(id, { metadata })` | Update role |
 | **Tournaments** | |
 | `client.products.create()` | Create tournament (on platform company) |
 | `client.products.list({ company_id })` | List tournaments |
@@ -514,11 +495,6 @@ NEXT_PUBLIC_APP_URL=http://localhost:3002
 
 # Vercel Blob (auto-provisioned by Vercel Storage)
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxx
-
-# Organizer Plans (from scripts/setup-plans.ts)
-WHOP_PLAN_CORE=plan_xxxxx
-WHOP_PLAN_PRO_MONTHLY=plan_xxxxx
-WHOP_PLAN_PRO_YEARLY=plan_xxxxx
 ```
 
 ---
@@ -535,8 +511,7 @@ web/apps/titled-tuesday/
 │   │   │   ├── connected-account/route.ts
 │   │   │   ├── organizer/
 │   │   │   │   ├── tournaments/route.ts
-│   │   │   │   ├── tournaments/results/route.ts
-│   │   │   │   └── plans/route.ts
+│   │   │   │   └── tournaments/results/route.ts
 │   │   │   ├── payout-requests/route.ts
 │   │   │   ├── payout-requests/[id]/route.ts
 │   │   │   ├── admin/
@@ -566,8 +541,6 @@ web/apps/titled-tuesday/
 │   │   │   ├── page.tsx                    # Request queue
 │   │   │   ├── requests/[id]/page.tsx      # Request detail + approve/deny
 │   │   │   └── transfers/page.tsx          # Transfer audit log
-│   │   ├── upgrade/
-│   │   │   └── pro/page.tsx
 │   │   ├── tournaments/
 │   │   │   ├── page.tsx
 │   │   │   └── [id]/page.tsx
@@ -584,8 +557,6 @@ web/apps/titled-tuesday/
 │       ├── db.ts                          # Vercel Blob client + query helpers
 │       ├── whop-oauth.ts
 │       └── whop-sdk.ts
-├── scripts/
-│   └── setup-plans.ts
 ├── package.json
 ├── next.config.ts
 ├── tsconfig.json
@@ -605,7 +576,7 @@ web/apps/titled-tuesday/
 
 4. **Admin resolution inside Whop.** Admins approve/deny requests from the embedded `dashboard_path` view. Approval executes `client.transfers.create()` from platform to recipient. Idempotency keys prevent double-sends.
 
-5. **Fee is calculated, not deducted.** Platform fee (8% core / 5% pro) determines how much of the entry fee pool the organizer can claim, not a payment-time deduction.
+5. **Fee is calculated, not deducted.** Platform fee determines how much of the entry fee pool the organizer can claim, not a payment-time deduction.
 
 6. **Tournament capacity enforced server-side.** Checkout route checks membership count vs `maxPlayers`.
 

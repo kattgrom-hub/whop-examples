@@ -94,41 +94,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Organizer Plans */}
-      <section className="max-w-6xl mx-auto px-6 py-20 pb-32">
-        <h2 className="font-display italic text-3xl md:text-4xl text-center mb-16 text-text-primary">
-          Organizer Plans
-        </h2>
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto stagger-children">
-          <div className="card p-8">
-            <h3 className="text-lg font-semibold mb-1 text-text-primary">Core</h3>
-            <p className="font-display text-4xl text-text-primary mb-4">Free</p>
-            <p className="text-text-secondary mb-6">8% platform fee per entry fee</p>
-            <ul className="space-y-3 text-text-secondary text-sm">
-              <li className="flex items-center gap-2"><span className="text-amber-500">&#9632;</span> Create unlimited tournaments</li>
-              <li className="flex items-center gap-2"><span className="text-amber-500">&#9632;</span> Embedded checkout for entries</li>
-              <li className="flex items-center gap-2"><span className="text-amber-500">&#9632;</span> Payout request system</li>
-              <li className="flex items-center gap-2"><span className="text-amber-500">&#9632;</span> Withdraw to bank</li>
-            </ul>
-          </div>
-          <div className="card p-8" style={{ borderColor: "var(--color-amber-600)" }}>
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-text-primary">Pro</h3>
-              <span className="badge bg-amber-900/50 text-amber-400 border border-amber-700/30">Popular</span>
-            </div>
-            <p className="font-display text-4xl text-text-primary mb-1">
-              $19<span className="text-lg text-text-tertiary font-body font-normal">/mo</span>
-            </p>
-            <p className="text-sm text-text-tertiary mb-6">or $150/year (save 34%)</p>
-            <p className="text-text-secondary mb-6">5% platform fee per entry fee</p>
-            <ul className="space-y-3 text-text-secondary text-sm">
-              <li className="flex items-center gap-2"><span className="text-amber-500">&#9632;</span> Everything in Core</li>
-              <li className="flex items-center gap-2"><span className="text-amber-500">&#9632;</span> Reduced platform fee</li>
-              <li className="flex items-center gap-2"><span className="text-amber-500">&#9632;</span> Priority payout processing</li>
-            </ul>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
