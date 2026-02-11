@@ -1,8 +1,58 @@
 # Titled Tuesday
 
-Online chess tournament hosting platform built as a Whop App. Organizers create tournaments, players enter via embedded checkout, and all payouts flow through admin-approved transfer requests.
+Online chess tournament platform built on Whop. Organizers create tournaments, players enter via embedded checkout, and prize payouts flow through admin-approved transfers.
 
-**Stack:** Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, Whop SDK
+**Stack:** Next.js 15 (App Router) | React 19 | TypeScript | Tailwind CSS 4 | Whop SDK | Vercel Blob
+
+---
+
+## Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Users"
+        P[Player]
+        O[Organizer]
+        A[Admin]
+    end
+
+    subgraph "Next.js App"
+        Tourney["/tournaments — Browse Tournaments"]
+        PDash["/dashboard — Player Dashboard"]
+        ODash["/dashboard/tournaments — Organizer View"]
+        ADash["/admin — Admin Panel"]
+        API[API Routes]
+    end
+
+    subgraph "Whop Platform"
+        OAuth[Whop OAuth / OIDC]
+        SDK[Whop SDK]
+        Pay[Checkout & Payments]
+        Transfer[Transfers API]
+        Ledger[Ledger API]
+        Notif[Notifications API]
+    end
+
+    subgraph "Storage"
+        Blob[Vercel Blob<br/>Users, Tournaments,<br/>Payout Requests]
+    end
+
+    P --> Tourney
+    P --> PDash
+    O --> ODash
+    A --> ADash
+    Tourney --> API
+    PDash --> API
+    ODash --> API
+    ADash --> API
+    API --> SDK
+    SDK --> Pay
+    SDK --> Transfer
+    SDK --> Ledger
+    SDK --> Notif
+    SDK --> OAuth
+    API --> Blob
+```
 
 ---
 
@@ -10,88 +60,259 @@ Online chess tournament hosting platform built as a Whop App. Organizers create 
 
 ### Connected Accounts (Companies)
 
-Players and organizers are modeled as **child companies** under the platform's parent company. Created on first OAuth login via `client.companies.create()`. The `metadata.role` field distinguishes players from organizers.
+Every user gets a **child company** under the platform's parent company. Created lazily on first access via `companies.create()`. The user's role (player or organizer) is stored locally in Vercel Blob, not in company metadata (which is immutable after creation).
 
-- `companies.create()` — Register new player/organizer accounts
-- `companies.list({ parent_company_id })` — List all child accounts
-- `companies.retrieve(id)` — Get account details
-- `companies.update(id, { metadata })` — Update role
+- `companies.create()` — Register new player/organizer connected accounts
+- `companies.list({ parent_company_id })` — Find existing account by user
 
 ### Products (Tournaments)
 
-Each tournament is a **Product** on the platform company. Tournament data (title, date, entry fee, max players, status, results) is stored as JSON in the product's `description` field.
+Each tournament is a **Product** on the platform company. Tournament metadata (title, date, entry fee, max players, status, results) is stored in Vercel Blob alongside the Whop product ID.
 
-- `products.create()` — Create a tournament
-- `products.list({ company_id })` — List tournaments
-- `products.retrieve(id)` — Get tournament details
-- `products.update(id, { ... })` — Update status, record results
+- `products.create()` — Create a tournament product on the platform
+- `products.update()` — Update tournament details
 
 ### Plans (Entry Fees)
 
-Each tournament gets a **one-time Plan** for its entry fee price. The plan's `company_id` is set to the platform (not the organizer), so all funds land in the platform account.
+Each tournament gets a **one-time Plan** attached to its product. The plan's `company_id` is the platform company, so all entry fees land in the platform account — not the organizer's.
 
 - `plans.create()` — Create the entry fee plan for a tournament
 
 ### Checkout Configurations (Tournament Entry)
 
-Embedded checkout handles player registration. A checkout configuration is created server-side, then rendered client-side via `<WhopCheckoutEmbed>` from `@whop/checkout/react`.
+Embedded checkout handles player registration. A checkout configuration is created server-side (validating capacity and tournament status), then rendered client-side via `<WhopCheckoutEmbed>`.
 
-- `checkoutConfigurations.create()` — Generate a checkout session (validates capacity + tournament status)
+- `checkoutConfigurations.create()` — Generate a checkout session
 
 ### Memberships (Player Registration)
 
-A membership is created when an player completes checkout. Membership count = registered player count.
+A membership is created when a player completes checkout. Membership count equals registered player count, which determines the prize pool.
 
-- `memberships.list({ product_ids })` — Count players in a tournament, check registration
+- `memberships.list({ product_ids })` — Count players per tournament, check registration status
 
-### Transfers (Payouts)
+### Transfers (Prize Payouts)
 
-When an admin approves a payout request, the platform transfers funds to the recipient's connected account. Uses `idempotence_key` set to the request ID to prevent double-transfers.
+When an admin approves a payout request, the platform transfers prize money to the winner's connected account. Uses `idempotence_key` set to the payout request ID to prevent double-transfers.
 
-- `transfers.create()` — Execute platform-to-recipient transfer
+- `transfers.create()` — Execute platform-to-winner transfer
 - `transfers.list()` — Audit log of all transfers
 
 ### Ledger Accounts (Balance)
 
-The admin dashboard shows the platform's available balance before approving payouts.
+The admin panel checks the platform's available balance before approving any payout, ensuring sufficient funds exist.
 
 - `ledgerAccounts.retrieve(id)` — Get platform balance
 
 ### Notifications (Payout Alerts)
 
-When a user submits a payout request, a notification is fired to the Whop bell icon. The notification deep-links to the admin request detail page via `rest_path`.
+When a player submits a payout request, a push notification fires to the Whop dashboard bell icon. The notification deep-links to the admin request detail page via `rest_path`.
 
-- `notifications.create()` — Push notification with deep link to `/requests/[id]`
+- `notifications.create()` — Push notification with deep link to `/requests/{id}`
 
-### Access Tokens (Embedded Payouts)
+### Access Tokens & Account Links (Embedded Payouts)
 
-The withdrawal page uses Whop's embedded payout components (`@whop/embedded-components-react-js`) to show balance, initiate withdrawals, and view history. An access token scoped to the user's connected account is required.
+The withdrawal page uses Whop's embedded payout components (`BalanceElement`, `WithdrawButtonElement`, `WithdrawalsElement`) to show balance, initiate withdrawals, and view history. A hosted payout portal URL is available as a fallback.
 
 - `accessTokens.create({ company_id })` — Generate token for embedded payout UI
+- `accountLinks.create()` — Generate hosted payout portal URL
 
-### OAuth (Identity)
+### OAuth / OIDC (Identity)
 
-OAuth 2.0 with PKCE handles authentication. Scopes: `openid`, `profile`, `email`. Tokens and user info are stored in localStorage via a React context provider.
+Authentication via NextAuth v5 with Whop as an OIDC provider. Shared auth configuration from `@whop-examples/auth`.
 
-### Whop App Views
+---
 
-The app registers three views in the Whop Developer Dashboard:
+## Data Model
+
+```mermaid
+erDiagram
+    PLATFORM_COMPANY ||--o{ CONNECTED_ACCOUNT : "parent → child"
+    CONNECTED_ACCOUNT }o--|| USER : "owned by"
+    PLATFORM_COMPANY ||--o{ PRODUCT : "hosts"
+    PRODUCT ||--|| PLAN : "entry fee"
+    PLAN ||--o{ MEMBERSHIP : "purchased via"
+    MEMBERSHIP }o--|| USER : "registered by"
+    USER ||--o{ PAYOUT_REQUEST : "submits"
+    PAYOUT_REQUEST ||--o| TRANSFER : "fulfilled by"
+
+    PLATFORM_COMPANY {
+        string id "Top-level Whop company"
+        string role "Holds all entry fees"
+    }
+    CONNECTED_ACCOUNT {
+        string id "Child company per user"
+        json metadata "user_id, email"
+    }
+    USER {
+        string id "Whop user ID"
+        string role "player | organizer | admin"
+        string whop_company_id "Connected account ID"
+    }
+    PRODUCT {
+        string id "One per tournament"
+        string title "Tournament name"
+    }
+    PLAN {
+        string id
+        number initial_price "Entry fee"
+        string plan_type "one_time"
+    }
+    MEMBERSHIP {
+        string id "Represents a registration"
+        string user_id "Player who entered"
+    }
+    PAYOUT_REQUEST {
+        string id
+        string requester_id "User ID"
+        string requester_company_id "For transfer destination"
+        number amount "Prize amount"
+        string status "pending | approved | denied"
+        string tournament_id
+        number place "Finishing position"
+    }
+    TRANSFER {
+        string id "Whop transfer ID"
+        string origin_id "Platform company"
+        string destination_id "Winner company"
+        number amount "Prize payout"
+    }
+```
+
+**Blob storage paths:**
+
+| Entity | Path | Description |
+|--------|------|-------------|
+| Users | `users/{id}.json` | Role, connected account ID, profile |
+| Tournaments | `tournaments/{id}.json` | Metadata, status, results |
+| Payout Requests | `payout-requests/req_{id}.json` | Claim details, approval status |
+
+---
+
+## Setup
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/whopio/whop-examples.git
+cd whop-examples/web
+pnpm install
+```
+
+### 2. Configure environment variables
+
+```bash
+cp apps/titled-tuesday/.env.example apps/titled-tuesday/.env.local
+```
+
+Fill in your `.env.local`:
+
+```env
+# Whop API (server-side only)
+WHOP_API_KEY=sk_live_xxxxx
+
+# Whop App (public)
+NEXT_PUBLIC_WHOP_APP_ID=app_xxxxx
+NEXT_PUBLIC_WHOP_COMPANY_ID=biz_xxxxx
+NEXT_PUBLIC_APP_URL=http://localhost:3003
+
+# Vercel Blob
+BLOB_READ_WRITE_TOKEN=vercel_blob_xxxxx
+
+# NextAuth
+AUTH_SECRET=xxxxx
+
+# Whop OAuth (optional — only if using custom OIDC config)
+WHOP_CLIENT_SECRET=xxxxx
+```
+
+### 3. Configure your Whop app
+
+In the [Whop Developer Dashboard](https://whop.com/developer):
+
+1. Create a new app (or use an existing one)
+2. Add the redirect URI: `http://localhost:3003/api/auth/callback/whop`
+3. Register the app views (see [App Views](#app-views) below)
+4. Note your App ID, Company ID, and API key
+
+### 4. Start the dev server
+
+```bash
+pnpm --filter titled-tuesday dev
+```
+
+The app runs on `http://localhost:3003`.
+
+---
+
+## App Views
+
+Register these views in the Whop Developer Dashboard:
 
 | View | Path | Purpose |
 |------|------|---------|
 | Public site | `base_url` | Landing page, browse tournaments, sign up |
-| Customer hub | `experience_path` | Dashboard embedded in Whop hub |
-| Admin dashboard | `dashboard_path` | Approve payouts, embedded in Whop dashboard |
+| Customer hub | `experience_path` | Player dashboard embedded in Whop hub |
+| Admin dashboard | `dashboard_path` | Payout approval, embedded in Whop dashboard |
+
+The admin layout is minimal (no nav, no sidebar) — it is designed to be embedded inside the Whop dashboard iframe. Notifications deep-link via `rest_path` to `/requests/{id}`.
 
 ---
 
 ## User Flows
 
+### Key Flows
+
+```mermaid
+sequenceDiagram
+    actor Organizer
+    actor Player
+    actor Admin
+    participant App as Next.js App
+    participant Blob as Vercel Blob
+    participant Whop as Whop API
+
+    Note over Organizer,Whop: Tournament Creation
+    Organizer->>App: Create tournament (title, fee, prizes)
+    App->>Whop: products.create(company_id=PLATFORM)
+    App->>Whop: plans.create(entry_fee, one_time)
+    App->>Blob: Store tournament metadata
+    App-->>Organizer: Tournament created
+
+    Note over Player,Whop: Player Registration
+    Player->>App: Browse /tournaments
+    App->>Blob: List tournaments
+    Player->>App: Click "Enter Tournament"
+    App->>Whop: checkoutConfigurations.create()
+    Player->>Whop: Complete payment (entry fee)
+    Whop-->>Whop: Create Membership (= registration)
+
+    Note over Organizer,Whop: Results & Prizes
+    Organizer->>App: Record placements
+    App->>Whop: Count memberships (total entries)
+    App->>App: Calculate prize pool (entries x fee)
+    App->>Blob: Store results
+
+    Note over Player,Admin: Payout Flow
+    Player->>App: Request payout (prize claim)
+    App->>Whop: Send notification to admin
+    App->>Blob: Create payout request (pending)
+    Admin->>App: Review request in /admin
+    Admin->>App: Approve payout
+    App->>Whop: ledgerAccounts.retrieve() — check balance
+    App->>Whop: transfers.create(platform → winner)
+    App->>Blob: Mark request approved
+
+    Note over Player,Whop: Withdrawal
+    Player->>App: Visit /dashboard/withdrawals
+    App->>Whop: accountLinks.create(payouts_portal)
+    Player->>Whop: Withdraw to bank via Whop Portal
+```
+
 ### Player Signs Up
 
 1. Visit landing page, click "Sign In"
-2. Redirected to Whop OAuth (PKCE flow)
-3. On callback, connected account auto-created with `role: "player"`
+2. Redirected to Whop OAuth (OIDC via NextAuth)
+3. On first access, connected account auto-created with `role: "player"`
 4. Redirected to `/tournaments`
 
 ### Player Enters a Tournament
@@ -101,52 +322,109 @@ The app registers three views in the Whop Developer Dashboard:
 3. Click "Enter Tournament" — embedded checkout modal opens
 4. Server validates tournament is `upcoming` and has capacity
 5. Player completes payment via `<WhopCheckoutEmbed>`
-6. All funds land in the platform account (not the organizer)
+6. All funds land in the platform account
 7. Membership created = player registered
-8. Redirected to success page
 
 ### Player Requests Payout
 
-1. Visit `/dashboard/payouts`, see claimable amounts
-2. Click "Request Payout" for a specific tournament result
-3. Request stored in dedicated payout requests product
-4. Whop notification fires to admin's bell icon
+1. Visit `/dashboard/payouts`, see claimable prize amounts
+2. Click "Request Payout" for a tournament result
+3. Payout request stored in Vercel Blob (`payout-requests/req_{id}.json`)
+4. Push notification fires to admin's Whop dashboard bell icon
 5. Request status: `pending`
 
 ### Player Withdraws to Bank
 
 1. Visit `/dashboard/withdrawals`
 2. Embedded payout components show balance, withdraw button, and history
-3. Withdraw funds from connected account to bank
-
-### Organizer Signs Up
-
-1. Visit `/become-organizer`
-2. If not logged in, complete OAuth flow first
-3. Connected account metadata updated: `role: "organizer"`
-4. Redirected to `/dashboard/tournaments`
+3. Click withdraw to transfer funds from connected account to bank
 
 ### Organizer Creates a Tournament
 
 1. Visit `/dashboard/tournaments`, click "Create Tournament"
 2. Fill form: name, description, date, time, entry fee, max players
-3. Server creates Product on platform + one-time Plan for entry fee
+3. Server creates Product on platform company + one-time Plan for entry fee
 4. Tournament appears in public browse listing
-
-### Organizer Manages Tournaments
-
-1. View tournaments at `/dashboard/tournaments`
-2. Status transitions: `upcoming` → `in_progress` → `completed`
-3. Record results (placements and prize amounts)
-4. Cancel tournaments (soft delete)
 
 ### Admin Approves Payout
 
-1. Notification appears in Whop dashboard bell
-2. Click notification → opens `/admin/requests/[id]` inside Whop
-3. View requester info, amount, tournament, platform balance
-4. Click "Approve" → transfer executed from platform to recipient
-5. Recipient can now withdraw from their connected account
+1. Notification appears in Whop dashboard bell icon
+2. Click notification — opens `/admin/requests/{id}` inside Whop iframe
+3. View requester info, amount, tournament details, platform balance
+4. Click "Approve" — balance checked, transfer executed from platform to winner
+5. Winner can now withdraw from their connected account
+
+---
+
+## Money Flow
+
+```mermaid
+flowchart TB
+    subgraph "Entry Fees"
+        P1["Player 1 pays $20"]
+        P2["Player 2 pays $20"]
+        P3["Player 3 pays $20"]
+        PN["... N players"]
+    end
+
+    subgraph "Prize Pool"
+        PLAT["Platform Company<br/>holds $20 x N"]
+        POOL["Prize Pool = Entry Fee x Total Entries"]
+    end
+
+    subgraph "Prize Distribution (via Transfers API)"
+        T1["1st Place: 50% of pool"]
+        T2["2nd Place: 30% of pool"]
+        T3["3rd Place: 20% of pool"]
+    end
+
+    subgraph "Payout Approval"
+        REQ[Player submits<br/>payout request]
+        ADMIN[Admin reviews<br/>& approves]
+        XFER[transfers.create<br/>Platform → Winner]
+    end
+
+    subgraph "Withdrawal"
+        CA[Winner's Connected Account<br/>receives transfer]
+        PORTAL[Whop Payout Portal]
+        BANK[Winner's Bank Account]
+    end
+
+    P1 & P2 & P3 & PN --> PLAT
+    PLAT --> POOL
+    POOL --> T1 & T2 & T3
+    T1 & T2 & T3 --> REQ
+    REQ --> ADMIN
+    ADMIN --> XFER
+    XFER --> CA
+    CA --> PORTAL
+    PORTAL --> BANK
+```
+
+**Key difference from Masterclass:** In Masterclass, payments go directly to instructor connected accounts with an `application_fee`. In Titled Tuesday, **all** entry fees go to the platform company, and prize payouts are manual transfers approved by an admin. The platform keeps the implicit margin (entry fees collected minus prizes distributed).
+
+---
+
+## API Routes
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/auth/[...nextauth]` | GET/POST | NextAuth handler (Whop OIDC) |
+| `/api/connected-account` | GET/POST/PATCH | Find, create, or update connected accounts |
+| `/api/tournaments` | GET | List tournaments with membership counts |
+| `/api/tournaments/[id]` | GET | Get tournament details |
+| `/api/checkout` | POST | Create checkout config (validates capacity + status) |
+| `/api/organizer/tournaments` | POST/GET/PATCH/DELETE | Tournament CRUD (organizer only) |
+| `/api/organizer/tournaments/results` | POST | Record placements and prize amounts |
+| `/api/payout-requests` | GET/POST | List or create payout requests + notification |
+| `/api/payout-requests/[id]` | GET | Get payout request details |
+| `/api/admin/payout-requests/approve` | POST | Check balance + execute transfer |
+| `/api/admin/payout-requests/deny` | POST | Deny with reason |
+| `/api/admin/transfers` | GET | Transfer audit log |
+| `/api/admin/balance` | GET | Platform balance |
+| `/api/payouts/token` | GET | Access token for embedded payout components |
+| `/api/payouts/portal` | GET | Hosted payout portal URL |
+| `/api/webhooks/whop` | POST | Webhook handler (logging only) |
 
 ---
 
@@ -160,32 +438,20 @@ If another app is already running on your configured port, Next.js silently incr
 
 ### 2. OAuth redirect URI must be registered
 
-The OAuth code can be perfect, but if the redirect URI (`http://localhost:3003/auth/callback`) isn't registered in the Whop Developer Dashboard, the flow silently fails. This is a config step, not a code fix.
+The OAuth code can be perfect, but if the redirect URI (`http://localhost:3003/api/auth/callback/whop`) isn't registered in the Whop Developer Dashboard, the flow silently fails. This is a config step, not a code fix.
 
-### 3. Connected accounts must be eagerly created
+### 3. Company metadata is not updatable after creation
 
-Pages that call `GET /api/connected-account` will spin forever with "Setting up your account..." if the account doesn't exist yet. The fix is to auto-create the connected account on first access (POST fallback) rather than assuming it already exists. Every page that needs the account should handle the 404 case.
+The `become-organizer` flow originally tried to update the connected account's `metadata.role` via the SDK. This fails — `metadata` is not updatable after creation. **Workaround:** Store user roles in Vercel Blob (`users/{id}.json`) instead of relying on company metadata.
 
-### 4. Company metadata is not updatable after creation
+### 4. Membership errors can silently skip tournaments
 
-The `become-organizer` flow originally tried to update the connected account's `metadata.role` via the SDK. This fails in multiple ways:
-- `CompanyUpdateParams` doesn't include `metadata` in its types
-- Casting around the types and calling the raw API returns **400: metadata is not updatable after creation**
-- **Workaround:** Store roles in a local JSON file (`data/users.json`) instead of relying on company metadata
+The tournament listing calls `memberships.list({ product_ids })` to get player counts. If this throws (e.g., invalid product, permissions) and the error is caught in a broad `try/catch`, tournaments silently disappear from the list. **Fix:** Isolate the membership count in its own `try/catch` so a failure only zeroes out the count, not the entire tournament.
 
-### 5. Membership errors can silently skip tournaments
+### 5. Checkout requires exact parameter shape
 
-The tournament listing calls `memberships.list({ product_ids })` to get player counts. If this throws (e.g., invalid product, permissions), and it's inside a `try/catch` that wraps the entire product processing, every tournament silently gets `continue`'d past — the list appears empty. **Fix:** Isolate the membership count in its own `try/catch` so a failure only zeroes out the count, not the entire tournament.
+Creating a checkout configuration requires `mode: "payment"` with an inline `plan` object. The SDK types don't surface all required fields — when in doubt, match a working example exactly rather than trusting the TypeScript types.
 
-### 6. Checkout requires exact parameter shape
-
-Creating a checkout configuration went through three broken attempts:
-- Inline `plan` with `company_id` inside → failed
-- `plan_id` approach → "company_id required"
-- `plan_id` + top-level `company_id` via type cast → SDK stripped it
-
-The working pattern uses `mode: "payment"` with an inline `plan` object (matching the session-pro example app's exact shape). The SDK types don't surface all required fields — when in doubt, match a working example exactly.
-
-### The common thread
+### 6. The common thread
 
 The Whop SDK types don't always match the API's actual requirements. Metadata isn't updatable after creation (but nothing warns you). `company_id` is required for checkout but not in the types. `memberships.list` can fail silently. Most bugs came from assuming the TypeScript types told the full story. When something doesn't work, check the raw API behavior, not just the types.

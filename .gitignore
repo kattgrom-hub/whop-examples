@@ -37,3 +37,4 @@ yarn-debug.log*
 yarn-error.log*
 # Ignore claude settings but keep skills
 .claude/settings.local.json
+.env*.local
