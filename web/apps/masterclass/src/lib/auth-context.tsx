@@ -1,9 +1,11 @@
 "use client";
 
-import { SessionProvider, useSession, signOut } from "next-auth/react";
-import type { ReactNode } from "react";
+import { useSession } from "next-auth/react";
+export { AuthProvider } from "@whop-examples/auth/client";
+export { type WhopUser } from "@whop-examples/auth/client";
+import { useAuth as useBaseAuth } from "@whop-examples/auth/client";
 
-interface WhopUserInfo {
+interface MasterclassUser {
   id: string;
   username: string;
   email: string;
@@ -12,47 +14,26 @@ interface WhopUserInfo {
   companyId: string;
 }
 
-interface AuthContextType {
-  user: WhopUserInfo | null;
-  tokens: { access_token: string } | null;
+interface MasterclassAuthContextType {
+  user: MasterclassUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: () => void;
   logout: () => void;
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
-}
+export function useAuth(): MasterclassAuthContextType {
+  const base = useBaseAuth();
+  const { data: session } = useSession();
 
-export function useAuth(): AuthContextType {
-  const { data: session, status } = useSession();
-
-  const user: WhopUserInfo | null =
-    status === "authenticated" && session?.user
-      ? {
-          id: session.user.id,
-          username: session.user.username || "",
-          email: session.user.email || "",
-          profile_pic_url: session.user.profile_pic_url || session.user.image || undefined,
-          name: session.user.name || undefined,
-          companyId: session.user.companyId || "",
-        }
-      : null;
-
-  const tokens =
-    status === "authenticated" && session?.accessToken
-      ? { access_token: session.accessToken }
-      : null;
+  const user: MasterclassUser | null = base.user
+    ? {
+        ...base.user,
+        companyId: (session?.user as unknown as { companyId?: string })?.companyId || "",
+      }
+    : null;
 
   return {
+    ...base,
     user,
-    tokens,
-    isLoading: status === "loading",
-    isAuthenticated: status === "authenticated",
-    login: () => {},
-    logout: () => {
-      signOut({ callbackUrl: "/" });
-    },
   };
 }
