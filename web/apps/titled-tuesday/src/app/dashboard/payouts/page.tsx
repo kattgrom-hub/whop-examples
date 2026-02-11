@@ -2,21 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import {
-  AddPayoutMethodElement,
-  Elements,
-  PayoutsSession,
-} from "@whop/embedded-components-react-js";
-import { loadWhopElements } from "@whop/embedded-components-vanilla-js";
-
-const elements = loadWhopElements();
-
-const appearance = {
-  theme: {
-    appearance: "dark" as const,
-    grayColor: "slate" as const,
-  },
-};
 
 interface PayoutRequest {
   id: string;
@@ -192,8 +177,6 @@ export default function PayoutsPage() {
     );
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3003";
-
   return (
     <div>
       <h1 className="font-display italic text-2xl text-text-primary mb-8">Payouts</h1>
@@ -232,34 +215,21 @@ export default function PayoutsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-text-tertiary mb-6">No payout methods added yet. Add one below to receive payouts.</p>
+            <div className="mb-6">
+              <p className="text-text-tertiary mb-3">No payout methods added yet.</p>
+              <button
+                onClick={async () => {
+                  const res = await fetch(`/api/payouts/portal?companyId=${connectedAccount.id}`);
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                }}
+                className="px-5 py-2.5 bg-amber-600 text-text-inverse rounded-xl hover:bg-amber-500 transition-all duration-200 font-semibold hover:-translate-y-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]"
+              >
+                Add Payout Method
+              </button>
+            </div>
           )}
 
-          {/* Add Payout Method embed */}
-          <Elements appearance={appearance} elements={elements}>
-            <PayoutsSession
-              token={() =>
-                fetch(`/api/payouts/token?companyId=${connectedAccount.id}`)
-                  .then((res) => res.json())
-                  .then((data) => data.token)
-              }
-              companyId={connectedAccount.id}
-              redirectUrl={`${appUrl}/dashboard/payouts`}
-            >
-              <AddPayoutMethodElement
-                fallback={
-                  <div className="flex items-center justify-center py-8">
-                    <div className="spinner" />
-                  </div>
-                }
-                options={{
-                  onComplete: () => {
-                    fetchPayoutMethods(connectedAccount.id);
-                  },
-                }}
-              />
-            </PayoutsSession>
-          </Elements>
         </div>
       )}
 
