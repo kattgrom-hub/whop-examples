@@ -1,7 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import {
+  AddPayoutMethodElement,
+  Elements,
+  PayoutsSession,
+} from "@whop/embedded-components-react-js";
+import { loadWhopElements } from "@whop/embedded-components-vanilla-js";
+
+const elements = loadWhopElements();
+
+const appearance = {
+  theme: {
+    appearance: "dark" as const,
+    grayColor: "slate" as const,
+  },
+};
 
 interface PayoutRequest {
   id: string;
@@ -21,10 +36,33 @@ interface ConnectedAccount {
   metadata: Record<string, string>;
 }
 
+interface PayoutMethod {
+  id: string;
+  nickname: string | null;
+  currency: string;
+  is_default: boolean;
+  account_reference: string | null;
+  institution_name: string | null;
+  destination: {
+    category: string;
+    country_code: string;
+    name: string;
+  } | null;
+}
+
+const categoryLabels: Record<string, string> = {
+  crypto: "Crypto",
+  rtp: "Instant Transfer",
+  next_day_bank: "Bank (Next Day)",
+  bank_wire: "Bank Wire",
+  digital_wallet: "Digital Wallet",
+};
+
 export default function PayoutsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const [connectedAccount, setConnectedAccount] = useState<ConnectedAccount | null>(null);
   const [requests, setRequests] = useState<PayoutRequest[]>([]);
+  const [payoutMethods, setPayoutMethods] = useState<PayoutMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,19 +72,29 @@ export default function PayoutsPage() {
   const [amount, setAmount] = useState("");
   const [tournamentTitle, setTournamentTitle] = useState("");
 
+  const fetchPayoutMethods = useCallback(async (companyId: string) => {
+    try {
+      const res = await fetch(`/api/payout-methods?companyId=${companyId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPayoutMethods(data.methods || []);
+      }
+    } catch {
+      // payout methods may not be available yet
+    }
+  }, []);
+
   useEffect(() => {
     if (!user || authLoading) { setLoading(false); return; }
 
     async function init() {
       try {
-        // Try to get existing connected account
         const getRes = await fetch(`/api/connected-account?userId=${user!.id}`);
 
         let accountData = null;
         if (getRes.ok) {
           accountData = await getRes.json();
         } else if (getRes.status === 404) {
-          // Auto-create connected account
           const createRes = await fetch("/api/connected-account", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -61,9 +109,11 @@ export default function PayoutsPage() {
           }
         }
 
-        if (accountData?.company) setConnectedAccount(accountData.company);
+        if (accountData?.company) {
+          setConnectedAccount(accountData.company);
+          await fetchPayoutMethods(accountData.company.id);
+        }
 
-        // Fetch payout requests
         const reqRes = await fetch(`/api/payout-requests?userId=${user!.id}`);
         const reqData = reqRes.ok ? await reqRes.json() : { requests: [] };
         setRequests(reqData.requests || []);
@@ -75,7 +125,7 @@ export default function PayoutsPage() {
     }
 
     init();
-  }, [user, authLoading]);
+  }, [user, authLoading, fetchPayoutMethods]);
 
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +161,6 @@ export default function PayoutsPage() {
       setAmount("");
       setTournamentTitle("");
 
-      // Refresh requests
       const updated = await fetch(`/api/payout-requests?userId=${user.id}`).then((r) => r.json());
       setRequests(updated.requests || []);
     } catch (err) {
@@ -124,7 +173,7 @@ export default function PayoutsPage() {
   if (authLoading || loading) {
     return (
       <div>
-        <h1 className="font-display italic text-2xl text-text-primary mb-8">Payout Requests</h1>
+        <h1 className="font-display italic text-2xl text-text-primary mb-8">Payouts</h1>
         <div className="flex items-center justify-center py-20">
           <div className="spinner" />
         </div>
@@ -135,19 +184,86 @@ export default function PayoutsPage() {
   if (!user) {
     return (
       <div>
-        <h1 className="font-display italic text-2xl text-text-primary mb-8">Payout Requests</h1>
+        <h1 className="font-display italic text-2xl text-text-primary mb-8">Payouts</h1>
         <div className="card p-8 text-center">
-          <p className="text-text-secondary">Sign in to manage payout requests.</p>
+          <p className="text-text-secondary">Sign in to manage payouts.</p>
         </div>
       </div>
     );
   }
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3003";
+
   return (
     <div>
-      <h1 className="font-display italic text-2xl text-text-primary mb-8">Payout Requests</h1>
+      <h1 className="font-display italic text-2xl text-text-primary mb-8">Payouts</h1>
 
-      {/* Submit New Request */}
+      {/* Payout Methods */}
+      {connectedAccount && (
+        <div className="card p-6 mb-8">
+          <h2 className="font-display italic text-lg text-text-primary mb-4">Your Payout Methods</h2>
+
+          {payoutMethods.length > 0 ? (
+            <div className="space-y-3 mb-6">
+              {payoutMethods.map((method) => (
+                <div key={method.id} className="flex items-center justify-between p-4 bg-surface-overlay rounded-xl border border-border-subtle">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-surface-base flex items-center justify-center text-text-tertiary text-lg">
+                      {method.destination?.category === "crypto" ? "\u20BF" :
+                       method.destination?.category === "digital_wallet" ? "\u26A1" : "\u{1F3E6}"}
+                    </div>
+                    <div>
+                      <p className="font-medium text-text-primary">
+                        {method.institution_name || method.nickname || categoryLabels[method.destination?.category || ""] || "Payout Method"}
+                      </p>
+                      <p className="text-sm text-text-tertiary">
+                        {method.account_reference && `\u2022\u2022\u2022\u2022 ${method.account_reference}`}
+                        {!method.account_reference && (categoryLabels[method.destination?.category || ""] || method.destination?.category)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {method.is_default && (
+                      <span className="badge bg-amber-900/30 text-amber-400 border border-amber-700/30">Default</span>
+                    )}
+                    <p className="text-xs text-text-tertiary mt-1 uppercase">{method.currency}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-text-tertiary mb-6">No payout methods added yet. Add one below to receive payouts.</p>
+          )}
+
+          {/* Add Payout Method embed */}
+          <Elements appearance={appearance} elements={elements}>
+            <PayoutsSession
+              token={() =>
+                fetch(`/api/payouts/token?companyId=${connectedAccount.id}`)
+                  .then((res) => res.json())
+                  .then((data) => data.token)
+              }
+              companyId={connectedAccount.id}
+              redirectUrl={`${appUrl}/dashboard/payouts`}
+            >
+              <AddPayoutMethodElement
+                fallback={
+                  <div className="flex items-center justify-center py-8">
+                    <div className="spinner" />
+                  </div>
+                }
+                options={{
+                  onComplete: () => {
+                    fetchPayoutMethods(connectedAccount.id);
+                  },
+                }}
+              />
+            </PayoutsSession>
+          </Elements>
+        </div>
+      )}
+
+      {/* Submit Payout Request */}
       <div className="card p-6 mb-8">
         <h2 className="font-display italic text-lg text-text-primary mb-4">Submit Payout Request</h2>
 

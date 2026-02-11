@@ -9,7 +9,6 @@ const playerNavItems = [
   { href: "/dashboard", label: "Overview", icon: "~" },
   { href: "/dashboard/history", label: "History", icon: "#" },
   { href: "/dashboard/payouts", label: "Payouts", icon: "$" },
-  { href: "/dashboard/withdrawals", label: "Withdrawals", icon: ">" },
 ];
 
 const organizerNavItems = [

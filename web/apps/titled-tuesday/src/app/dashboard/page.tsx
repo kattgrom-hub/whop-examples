@@ -123,10 +123,6 @@ export default function DashboardOverviewPage() {
             <p className="text-sm text-text-secondary">Create and manage your tournaments</p>
           </Link>
         )}
-        <Link href="/dashboard/withdrawals" className="card card-lift p-5">
-          <h3 className="font-semibold text-text-primary mb-1"><span className="text-amber-500">&#9632;</span> Withdrawals</h3>
-          <p className="text-sm text-text-secondary">Withdraw your balance to bank</p>
-        </Link>
       </div>
 
       {/* Recent Requests */}
