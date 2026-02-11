@@ -1,9 +1,17 @@
 import { put, list } from "@vercel/blob";
 
+// ── Write-through cache ────────────────────────────────────────────────────
+// Vercel Blob public URLs return 403 from localhost (platform firewall).
+// This cache ensures reads work locally while staying transparent in production.
+
+const blobCache = new Map<string, string>();
+
 // ── Blob helpers ────────────────────────────────────────────────────────────
 
 async function writeBlob(path: string, data: unknown): Promise<void> {
-  await put(path, JSON.stringify(data), {
+  const json = JSON.stringify(data);
+  blobCache.set(path, json);
+  await put(path, json, {
     access: "public",
     addRandomSuffix: false,
     allowOverwrite: true,
@@ -12,6 +20,10 @@ async function writeBlob(path: string, data: unknown): Promise<void> {
 }
 
 async function readBlob<T>(path: string): Promise<T | null> {
+  // Check write-through cache first (handles localhost 403)
+  const cached = blobCache.get(path);
+  if (cached) return JSON.parse(cached) as T;
+
   const { blobs } = await list({ prefix: path, limit: 1 });
   const blob = blobs.find((b) => b.pathname === path);
   if (!blob) return null;
@@ -19,11 +31,13 @@ async function readBlob<T>(path: string): Promise<T | null> {
   if (!res.ok) return null;
   const contentType = res.headers.get("content-type") || "";
   if (!contentType.includes("application/json")) return null;
-  return res.json() as Promise<T>;
+  const data = await res.json() as T;
+  blobCache.set(path, JSON.stringify(data));
+  return data;
 }
 
 async function listBlobs<T>(prefix: string): Promise<T[]> {
-  const allBlobs: { url: string }[] = [];
+  const allBlobs: { url: string; pathname: string }[] = [];
   let cursor: string | undefined;
   do {
     const result = await list({ prefix, cursor });
@@ -34,11 +48,19 @@ async function listBlobs<T>(prefix: string): Promise<T[]> {
   const items: T[] = [];
   await Promise.all(
     allBlobs.map(async (b) => {
+      // Check cache first
+      const cached = blobCache.get(b.pathname);
+      if (cached) {
+        items.push(JSON.parse(cached) as T);
+        return;
+      }
       const r = await fetch(b.url);
       if (!r.ok) return;
       const ct = r.headers.get("content-type") || "";
       if (!ct.includes("application/json")) return;
-      items.push(await r.json() as T);
+      const data = await r.json() as T;
+      blobCache.set(b.pathname, JSON.stringify(data));
+      items.push(data);
     })
   );
   return items;

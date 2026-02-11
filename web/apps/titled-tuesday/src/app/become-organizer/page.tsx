@@ -37,7 +37,7 @@ export default function BecomeOrganizerPage() {
         });
       }
 
-      router.push("/dashboard/tournaments");
+      window.location.href = "/dashboard/tournaments";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upgrade account");
     } finally {
