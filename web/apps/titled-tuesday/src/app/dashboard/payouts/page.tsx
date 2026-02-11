@@ -225,7 +225,7 @@ export default function PayoutsPage() {
                 }}
                 className="px-5 py-2.5 bg-amber-600 text-text-inverse rounded-xl hover:bg-amber-500 transition-all duration-200 font-semibold hover:-translate-y-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]"
               >
-                Add Payout Method
+                Manage Payouts
               </button>
             </div>
           )}
