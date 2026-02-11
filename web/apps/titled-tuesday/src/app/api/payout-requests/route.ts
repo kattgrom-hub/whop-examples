@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
         subtitle,
         rest_path: `/requests/${requestId}`,
       });
-    } catch (notifError) {
-      console.error("Failed to send notification:", notifError);
+    } catch {
+      // Notification delivery is best-effort
     }
 
     return NextResponse.json({ success: true, request: newRequest });

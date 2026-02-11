@@ -6,6 +6,7 @@ async function writeBlob(path: string, data: unknown): Promise<void> {
   await put(path, JSON.stringify(data), {
     access: "public",
     addRandomSuffix: false,
+    allowOverwrite: true,
     contentType: "application/json",
   });
 }
@@ -14,13 +15,15 @@ async function readBlob<T>(path: string): Promise<T | null> {
   const { blobs } = await list({ prefix: path, limit: 1 });
   const blob = blobs.find((b) => b.pathname === path);
   if (!blob) return null;
-  const res = await fetch(blob.downloadUrl);
+  const res = await fetch(blob.url);
   if (!res.ok) return null;
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) return null;
   return res.json() as Promise<T>;
 }
 
 async function listBlobs<T>(prefix: string): Promise<T[]> {
-  const allBlobs: { downloadUrl: string }[] = [];
+  const allBlobs: { url: string }[] = [];
   let cursor: string | undefined;
   do {
     const result = await list({ prefix, cursor });
@@ -28,8 +31,15 @@ async function listBlobs<T>(prefix: string): Promise<T[]> {
     cursor = result.hasMore ? result.cursor : undefined;
   } while (cursor);
 
-  const items = await Promise.all(
-    allBlobs.map((b) => fetch(b.downloadUrl).then((r) => r.json() as Promise<T>))
+  const items: T[] = [];
+  await Promise.all(
+    allBlobs.map(async (b) => {
+      const r = await fetch(b.url);
+      if (!r.ok) return;
+      const ct = r.headers.get("content-type") || "";
+      if (!ct.includes("application/json")) return;
+      items.push(await r.json() as T);
+    })
   );
   return items;
 }
@@ -72,6 +82,10 @@ export async function upsertUser(user: {
   };
   await writeBlob(`users/${user.id}.json`, record);
   return record;
+}
+
+export async function getUser(userId: string): Promise<UserRecord | null> {
+  return readBlob<UserRecord>(`users/${userId}.json`);
 }
 
 export async function getUserRole(userId: string): Promise<string> {
