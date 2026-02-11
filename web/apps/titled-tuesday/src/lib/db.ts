@@ -116,11 +116,12 @@ export async function getUserRole(userId: string): Promise<string> {
 }
 
 export async function setUserRole(userId: string, role: string): Promise<void> {
+  const now = new Date().toISOString();
   const user = await readBlob<UserRecord>(`users/${userId}.json`);
-  if (!user) return;
-  user.role = role;
-  user.updated_at = new Date().toISOString();
-  await writeBlob(`users/${userId}.json`, user);
+  const record: UserRecord = user
+    ? { ...user, role, updated_at: now }
+    : { id: userId, username: `user_${userId.slice(-6)}`, email: "", role, created_at: now, updated_at: now };
+  await writeBlob(`users/${userId}.json`, record);
 }
 
 // ── Tournaments ─────────────────────────────────────────────────────────────
