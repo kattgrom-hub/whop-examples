@@ -18,10 +18,53 @@ export async function POST(request: NextRequest) {
 
     const client = getWhopApi();
 
-    // Check platform balance
+    // Hard gate 1: Check KYC / verification status via ledger account
+    const ledgerAccount = await client.ledgerAccounts.retrieve(payoutRequest.requester_company_id);
+
+    const verificationStatus = ledgerAccount.payout_account_details?.latest_verification?.status;
+    const approvalStatus = ledgerAccount.payments_approval_status;
+
+    if (approvalStatus === "rejected") {
+      return NextResponse.json(
+        { error: "User's account has been rejected. They cannot receive payouts." },
+        { status: 400 }
+      );
+    }
+
+    if (approvalStatus === "pending") {
+      return NextResponse.json(
+        { error: "User's account is pending approval. They must complete onboarding first." },
+        { status: 400 }
+      );
+    }
+
+    if (verificationStatus && !["verified", "approved"].includes(verificationStatus)) {
+      return NextResponse.json(
+        { error: `User's KYC verification status is "${verificationStatus}". They must complete verification before payout.` },
+        { status: 400 }
+      );
+    }
+
+    // Hard gate 2: User MUST have a default payout method
+    const methods = [];
+    for await (const method of await client.payoutMethods.list({
+      company_id: payoutRequest.requester_company_id,
+    })) {
+      methods.push(method);
+    }
+    const defaultMethod = methods.find((m) => m.is_default);
+
+    if (!defaultMethod) {
+      return NextResponse.json(
+        { error: "User has no payout method set up. They must add a payout method before approval." },
+        { status: 400 }
+      );
+    }
+
+    // Hard gate 3: Check platform balance
     try {
-      const ledger = await client.ledgerAccounts.retrieve(PLATFORM_COMPANY_ID);
-      const usdBalance = ledger.balances?.find((b: { currency: string }) => b.currency === "usd");
+      const platformLedger = await client.ledgerAccounts.retrieve(PLATFORM_COMPANY_ID);
+      const usdBalance = platformLedger.balances?.find((b) => b.currency === "usd");
       const available = usdBalance?.balance ?? 0;
       if (available < payoutRequest.amount) {
         return NextResponse.json({ error: "Insufficient platform balance" }, { status: 400 });
@@ -30,7 +73,7 @@ export async function POST(request: NextRequest) {
       console.warn("Could not check platform balance:", balanceError);
     }
 
-    // Execute transfer
+    // Step 1: Transfer funds from platform to user's ledger
     const transfer = await client.transfers.create({
       amount: payoutRequest.amount,
       currency: "usd",
@@ -45,10 +88,25 @@ export async function POST(request: NextRequest) {
       idempotence_key: requestId,
     });
 
+    // Step 2: Create withdrawal to user's default payout method
+    // Amount in major units (dollars) for withdrawals API
+    const amountDollars = payoutRequest.amount / 100;
+
+    const withdrawal = await client.withdrawals.create({
+      company_id: payoutRequest.requester_company_id,
+      amount: amountDollars,
+      currency: "usd",
+      payout_method_id: defaultMethod.id,
+    });
+
     // Update request status in DB
     await approvePayoutRequest(requestId, transfer.id, adminUserId);
 
-    return NextResponse.json({ success: true, transfer: { id: transfer.id } });
+    return NextResponse.json({
+      success: true,
+      transfer: { id: transfer.id },
+      withdrawal: { id: withdrawal.id },
+    });
   } catch (error) {
     console.error("Approve error:", error);
     return NextResponse.json(

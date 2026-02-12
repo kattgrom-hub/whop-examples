@@ -29,6 +29,22 @@ interface Balance {
   pending_balance: number;
 }
 
+interface PayoutReadiness {
+  approvalStatus: string | null;
+  verification: {
+    status: string;
+    errorCode: string | null;
+    errorReason: string | null;
+  } | null;
+  hasPayoutMethod: boolean;
+  defaultMethod: {
+    id: string;
+    institution_name: string | null;
+    account_reference: string | null;
+    destination: { category: string; name: string } | null;
+  } | null;
+}
+
 export default function AdminRequestDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -36,6 +52,8 @@ export default function AdminRequestDetailPage() {
 
   const [request, setRequest] = useState<PayoutRequest | null>(null);
   const [balances, setBalances] = useState<Balance[]>([]);
+  const [readiness, setReadiness] = useState<PayoutReadiness | null>(null);
+  const [readinessLoading, setReadinessLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +67,22 @@ export default function AdminRequestDetailPage() {
       .then(([reqData, balanceData]) => {
         setRequest(reqData.request || null);
         setBalances(balanceData.balances || []);
+
+        // Fetch payout readiness for the requester
+        if (reqData.request?.requesterCompanyId) {
+          fetch(`/api/admin/payout-readiness?companyId=${reqData.request.requesterCompanyId}`)
+            .then((r) => r.json())
+            .then((data) => setReadiness(data))
+            .catch(() => {})
+            .finally(() => setReadinessLoading(false));
+        } else {
+          setReadinessLoading(false);
+        }
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        setError(err.message);
+        setReadinessLoading(false);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -117,6 +149,14 @@ export default function AdminRequestDetailPage() {
 
   const usdBalance = balances.find((b) => b.currency === "usd");
 
+  const kycOk = readiness && (
+    readiness.approvalStatus === "approved" || readiness.approvalStatus === "monitoring"
+  ) && (
+    !readiness.verification || ["verified", "approved"].includes(readiness.verification.status)
+  );
+  const methodOk = readiness?.hasPayoutMethod && readiness?.defaultMethod;
+  const payoutReady = !readinessLoading && kycOk && methodOk;
+
   return (
     <div>
       <Link href="/admin" className="group text-text-secondary hover:text-text-primary transition-colors mb-6 inline-flex items-center gap-1">
@@ -171,6 +211,54 @@ export default function AdminRequestDetailPage() {
         </div>
       </div>
 
+      {/* Payout Readiness */}
+      {request.status === "pending" && (
+        <div className={`card p-6 mb-6 border ${payoutReady ? "border-green-800/30" : "border-yellow-800/30"}`}>
+          <p className="text-sm text-text-tertiary mb-3">Payout Readiness</p>
+          {readinessLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="spinner" style={{ width: 16, height: 16 }} />
+              <span className="text-text-secondary text-sm">Checking user&apos;s account...</span>
+            </div>
+          ) : readiness ? (
+            <div className="space-y-3">
+              {/* KYC Status */}
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${kycOk ? "bg-green-400" : "bg-yellow-400"}`} />
+                <span className="text-sm text-text-primary font-medium">KYC Verification</span>
+                <span className={`text-sm ${kycOk ? "text-green-400" : "text-yellow-400"}`}>
+                  {kycOk ? "Verified" : (
+                    readiness.verification
+                      ? `${readiness.verification.status}${readiness.verification.errorReason ? ` \u2014 ${readiness.verification.errorReason}` : ""}`
+                      : `Account ${readiness.approvalStatus || "not onboarded"}`
+                  )}
+                </span>
+              </div>
+
+              {/* Payout Method Status */}
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${methodOk ? "bg-green-400" : "bg-yellow-400"}`} />
+                <span className="text-sm text-text-primary font-medium">Payout Method</span>
+                <span className={`text-sm ${methodOk ? "text-green-400" : "text-yellow-400"}`}>
+                  {methodOk && readiness.defaultMethod
+                    ? `${readiness.defaultMethod.institution_name || readiness.defaultMethod.destination?.name || "Set up"}${readiness.defaultMethod.account_reference ? ` (\u2022\u2022\u2022\u2022 ${readiness.defaultMethod.account_reference})` : ""}`
+                    : "No payout method"
+                  }
+                </span>
+              </div>
+
+              {!payoutReady && (
+                <p className="text-sm text-text-tertiary mt-2">
+                  User must complete all checks before you can approve this request.
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-text-secondary">Could not check readiness.</p>
+          )}
+        </div>
+      )}
+
       {/* Platform Balance */}
       {usdBalance && (
         <div className="card p-6 mb-6">
@@ -189,11 +277,20 @@ export default function AdminRequestDetailPage() {
 
           <button
             onClick={handleApprove}
-            disabled={acting}
-            className="w-full py-3 bg-amber-600 text-text-inverse rounded-xl hover:bg-amber-500 transition-all duration-200 font-semibold hover:-translate-y-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] disabled:opacity-50"
+            disabled={acting || !payoutReady}
+            className="w-full py-3 bg-amber-600 text-text-inverse rounded-xl hover:bg-amber-500 transition-all duration-200 font-semibold hover:-translate-y-0.5 shadow-[0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:hover:translate-y-0"
           >
-            {acting ? "Processing..." : `Approve & Transfer $${(request.amount / 100).toFixed(2)}`}
+            {acting ? "Processing..." : !payoutReady ? "Cannot Approve \u2014 User Not Ready" : `Approve & Pay Out $${(request.amount / 100).toFixed(2)}`}
           </button>
+
+          <a
+            href={`https://whop.com/dashboard/payments/?query=${encodeURIComponent(request.requesterCompanyId)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-3 bg-surface-overlay text-text-primary border border-border-default rounded-xl hover:bg-surface-elevated hover:border-border-strong transition-all duration-200 font-medium text-center block"
+          >
+            Open in Whop Dashboard &rarr;
+          </a>
 
           <div className="flex gap-3">
             <input

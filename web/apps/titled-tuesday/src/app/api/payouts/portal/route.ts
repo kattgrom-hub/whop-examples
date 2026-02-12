@@ -18,9 +18,9 @@ export async function GET(request: NextRequest) {
 
     const portalResponse = await client.accountLinks.create({
       company_id: companyId,
-      refresh_url: `${appUrl}/dashboard/withdrawals`,
-      return_url: `${appUrl}/dashboard/withdrawals`,
-      use_case: "payouts_portal",
+      refresh_url: `${appUrl}/dashboard/payouts`,
+      return_url: `${appUrl}/dashboard/payouts`,
+      use_case: "account_onboarding",
     });
 
     return NextResponse.json({
