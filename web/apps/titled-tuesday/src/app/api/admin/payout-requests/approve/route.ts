@@ -88,7 +88,10 @@ export async function POST(request: NextRequest) {
       idempotence_key: requestId,
     });
 
-    // Step 2: Create withdrawal to user's default payout method
+    // Step 2: Mark approved in DB immediately so retries won't re-trigger the flow
+    await approvePayoutRequest(requestId, transfer.id, adminUserId);
+
+    // Step 3: Create withdrawal to user's default payout method
     // Amount in major units (dollars) for withdrawals API
     const amountDollars = payoutRequest.amount / 100;
 
@@ -97,10 +100,8 @@ export async function POST(request: NextRequest) {
       amount: amountDollars,
       currency: "usd",
       payout_method_id: defaultMethod.id,
+      idempotence_key: `withdrawal_${requestId}`,
     });
-
-    // Update request status in DB
-    await approvePayoutRequest(requestId, transfer.id, adminUserId);
 
     return NextResponse.json({
       success: true,

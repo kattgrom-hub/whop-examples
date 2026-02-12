@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
     if (!requesterId || !requesterCompanyId || !amount || !reason) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+    if (typeof amount !== "number" || !Number.isInteger(amount) || amount <= 0) {
+      return NextResponse.json({ error: "Amount must be a positive integer (cents)" }, { status: 400 });
+    }
     if (!PLATFORM_COMPANY_ID) return NextResponse.json({ error: "Platform not configured" }, { status: 500 });
 
     const requestId = `req_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
