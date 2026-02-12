@@ -166,6 +166,16 @@ export default function PayoutsPage() {
     init();
   }, [user, authLoading, fetchPayoutMethods, fetchAccountStatus]);
 
+  // Poll account status every 5 seconds
+  useEffect(() => {
+    if (!connectedAccount) return;
+    const interval = setInterval(() => {
+      fetchAccountStatus(connectedAccount.id);
+      fetchPayoutMethods(connectedAccount.id);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [connectedAccount, fetchAccountStatus, fetchPayoutMethods]);
+
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !connectedAccount) return;
