@@ -83,7 +83,8 @@ export async function POST(request: NextRequest) {
         visibility: "hidden",
         release_method: "buy_now",
         // Platform fee: 8% for core instructors, 5% for pro instructors
-        application_fee_amount: applicationFee,
+        // Only include application fee for paid classes (Whop requires fee > 0 and < total)
+        ...(applicationFee > 0 && { application_fee_amount: applicationFee }),
       },
     });
 
