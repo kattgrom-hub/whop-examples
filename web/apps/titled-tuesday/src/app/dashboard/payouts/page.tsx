@@ -434,25 +434,19 @@ export default function PayoutsPage() {
               </div>
             )}
 
-            {/* Fullscreen Add Payout Method Modal */}
+            {/* Add Payout Method Modal */}
             {showAddMethod && (
               <div className="fixed inset-0 z-50 bg-surface-base flex flex-col">
-                <div className="flex items-center justify-between p-6 border-b border-border-subtle shrink-0">
-                  <h2 className="font-display italic text-lg text-text-primary">Add Payout Method</h2>
-                  <button
-                    onClick={() => setShowAddMethod(false)}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-overlay transition-colors text-text-tertiary hover:text-text-primary"
-                  >
-                    &times;
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-8">
-                  <div className="border border-border-default rounded-xl overflow-hidden h-full [&>div]:h-full [&>div>iframe]:h-full">
+                <div className="flex-1 overflow-y-auto">
+                  <div className="h-full [&>div]:h-full [&>div>iframe]:h-full">
                     <AddPayoutMethodElement
                       options={{
                         onComplete: () => {
                           setShowAddMethod(false);
                           fetchPayoutMethods(connectedAccount.id);
+                        },
+                        onClose: () => {
+                          setShowAddMethod(false);
                         },
                       }}
                       fallback={
