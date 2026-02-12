@@ -4,6 +4,7 @@ import { getInstructorEntry } from "@/lib/blob/instructors-index";
 import {
   upsertClass,
   removeClass,
+  readClassesIndex,
   type ClassIndexEntry,
 } from "@/lib/blob/classes-index";
 
@@ -110,17 +111,21 @@ export async function GET(request: NextRequest) {
     const client = getWhopApi();
     const instructorCompanyId = companyIdParam;
 
-    // Get available classes
-    const availableSessions: { id: string; title: string; description: string; date: string; time: string; duration: number; price: number; status: "available" }[] = [];
-    for await (const product of await client.products.list({ company_id: instructorCompanyId })) {
-      const full = await client.products.retrieve(product.id);
-      if (full.visibility !== "visible" || (!full.description?.startsWith('{"type":"masterclass"') && !full.description?.startsWith('{"type":"coaching_session"'))) continue;
-      try {
-        const m = JSON.parse(full.description);
-        availableSessions.push({ id: full.id, title: m.title || full.title, description: m.description || "", date: m.date || "", time: m.time || "", duration: parseInt(m.duration || "60"), price: parseFloat(m.price || "0"), status: "available" });
-      } catch { continue; }
-    }
-    availableSessions.sort((a, b) => new Date(`${a.date} ${a.time}`).getTime() - new Date(`${b.date} ${b.time}`).getTime());
+    // Get available classes from blob cache (avoids N+1 Whop API calls)
+    const classesIndex = await readClassesIndex();
+    const availableSessions = (classesIndex?.classes ?? [])
+      .filter((c) => c.companyId === instructorCompanyId && c.visibility === "visible")
+      .map((c) => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        date: c.date,
+        time: c.time,
+        duration: c.duration,
+        price: c.price,
+        status: "available" as const,
+      }))
+      .sort((a, b) => new Date(`${a.date} ${a.time}`).getTime() - new Date(`${b.date} ${b.time}`).getTime());
 
     // Get booked classes
     const bookedSessions: { id: string; title: string; learnerName: string; learnerEmail: string; learnerAvatar: string; date: string; time: string; duration: number; amount: number; status: "upcoming" | "completed" | "cancelled" }[] = [];

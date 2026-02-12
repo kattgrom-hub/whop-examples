@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
 import { persistWebhookEvent } from "@/lib/blob/webhook-events";
 import { updateInstructorEntry } from "@/lib/blob/instructors-index";
+import { removeClass } from "@/lib/blob/classes-index";
 
 // Pro plan IDs from environment
 const PRO_PLAN_IDS = [
@@ -80,6 +81,16 @@ export async function POST(request: NextRequest) {
             await updateInstructorEntry(companyId, { plan: "pro" }).catch(() => {});
           }
         }
+
+        // Class was booked - hide it from browse
+        const metadata = data.metadata as Record<string, string> | undefined;
+        if (metadata?.type === "masterclass" && data.product_id) {
+          await removeClass(data.product_id).catch((err) =>
+            console.error("Failed to hide booked class from browse:", err)
+          );
+          console.log("Class booked, hidden from browse:", data.product_id);
+        }
+
         console.log("Membership went valid:", data.id);
         break;
       }
