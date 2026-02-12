@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPayoutRequest } from "@/lib/db";
+import { getPayoutRequest, formatPayoutRequest } from "@/lib/db";
 
 export async function GET(
   _request: NextRequest,
@@ -12,7 +12,7 @@ export async function GET(
     if (!payoutRequest) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
-    return NextResponse.json({ request: payoutRequest });
+    return NextResponse.json({ request: formatPayoutRequest(payoutRequest) });
   } catch (error) {
     return NextResponse.json(
       { error: `Failed: ${error instanceof Error ? error.message : "Unknown"}` },

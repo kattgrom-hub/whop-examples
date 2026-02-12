@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
-import { createPayoutRequest, listPayoutRequests } from "@/lib/db";
+import { createPayoutRequest, listPayoutRequests, formatPayoutRequest } from "@/lib/db";
 
 const PLATFORM_COMPANY_ID = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || "";
 
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const requests = await listPayoutRequests(all ? undefined : (userId || undefined));
-    return NextResponse.json({ requests });
+    return NextResponse.json({ requests: requests.map(formatPayoutRequest) });
   } catch (error) {
     return NextResponse.json(
       { error: `Failed: ${error instanceof Error ? error.message : "Unknown"}` },
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       // Notification delivery is best-effort
     }
 
-    return NextResponse.json({ success: true, request: newRequest });
+    return NextResponse.json({ success: true, request: formatPayoutRequest(newRequest) });
   } catch (error) {
     return NextResponse.json(
       { error: `Failed: ${error instanceof Error ? error.message : "Unknown"}` },

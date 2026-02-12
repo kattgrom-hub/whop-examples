@@ -284,7 +284,7 @@ export default function AdminRequestDetailPage() {
           </button>
 
           <a
-            href={`https://whop.com/dashboard/payments/?query=${encodeURIComponent(request.requesterCompanyId)}`}
+            href={`https://whop.com/dashboard/${request.requesterCompanyId}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full py-3 bg-surface-overlay text-text-primary border border-border-default rounded-xl hover:bg-surface-elevated hover:border-border-strong transition-all duration-200 font-medium text-center block"

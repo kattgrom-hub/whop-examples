@@ -317,3 +317,24 @@ export async function denyPayoutRequest(id: string, reason?: string, adminUserId
   req.resolved_by = adminUserId ?? "admin";
   await writeBlob(`payout-requests/${id}.json`, req);
 }
+
+export function formatPayoutRequest(r: PayoutRequestRow) {
+  return {
+    id: r.id,
+    requesterId: r.requester_id,
+    requesterCompanyId: r.requester_company_id,
+    requesterName: r.requester_name,
+    amount: r.amount,
+    currency: r.currency,
+    reason: r.reason,
+    tournamentId: r.tournament_id,
+    tournamentTitle: r.tournament_title,
+    place: r.place,
+    status: r.status,
+    transferId: r.transfer_id,
+    resolvedAt: r.resolved_at,
+    resolvedBy: r.resolved_by,
+    denialReason: r.denial_reason,
+    createdAt: r.created_at,
+  };
+}
