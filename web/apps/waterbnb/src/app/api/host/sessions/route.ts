@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
     const { companyId, userName, userAvatar, title, description, location, boatType, capacity, pricePerTrip, availableDates } = await request.json();
     if (!companyId || !title || !location) return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     if (!PLATFORM_COMPANY_ID) return NextResponse.json({ error: "Platform not configured" }, { status: 500 });
+    if (title.length > 40) return NextResponse.json({ error: "Boat name must be 40 characters or fewer" }, { status: 400 });
 
     const hostCompanyId = companyId;
 
@@ -40,9 +41,7 @@ export async function POST(request: NextRequest) {
       categories: host?.categories || [],
       visibility: "visible",
     };
-    await upsertBoat(blobEntry).catch((err) =>
-      console.error("Failed to update boats index blob:", err),
-    );
+    await upsertBoat(blobEntry);
 
     return NextResponse.json({ success: true, listing: { id: product.id, title, description: description || "", location, boatType: boatType || "Sailboat", capacity: capacity || 6, pricePerTrip: pricePerTrip || 0, availableDates: availableDates || [], status: "available" } });
   } catch (error) {
@@ -82,9 +81,7 @@ export async function PATCH(request: NextRequest) {
         categories: host?.categories || [],
         visibility: "visible",
       };
-      await upsertBoat(blobEntry).catch((err) =>
-        console.error("Failed to update boats index blob:", err),
-      );
+      await upsertBoat(blobEntry);
     }
 
     return NextResponse.json({ success: true, listing: { id: listingId, title, description: description || "", location, boatType: boatType || "Sailboat", capacity: capacity || 6, pricePerTrip: pricePerTrip || 0, availableDates: availableDates || [], status: "available" } });
@@ -99,9 +96,7 @@ export async function DELETE(request: NextRequest) {
     if (!listingId) return NextResponse.json({ error: "listingId required" }, { status: 400 });
     await getWhopApi().products.update(listingId, { visibility: "hidden" });
 
-    await removeBoat(listingId).catch((err) =>
-      console.error("Failed to update boats index blob:", err),
-    );
+    await removeBoat(listingId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

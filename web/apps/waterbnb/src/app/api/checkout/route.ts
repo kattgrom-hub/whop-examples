@@ -11,7 +11,8 @@ const FEE_RATES = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { hostId, hostName, price, reservationDate, productId, boatId, boatTitle } = body;
+    const { hostId, hostName, price, reservationDate, productId: rawProductId, boatId, boatTitle } = body;
+    const productId = rawProductId || boatId;
 
     if (!hostId) {
       return NextResponse.json(

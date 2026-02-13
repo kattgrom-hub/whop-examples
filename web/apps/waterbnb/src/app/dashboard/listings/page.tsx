@@ -108,6 +108,7 @@ function ListingModal({
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             placeholder="Boat name"
             required
+            maxLength={40}
             className="w-full px-4 py-2 bg-white border border-[#DDDDDD] rounded-lg focus:outline-none focus:border-[#222222] text-[#222222]"
           />
           <textarea
