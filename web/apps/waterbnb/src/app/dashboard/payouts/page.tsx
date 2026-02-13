@@ -15,7 +15,7 @@ const elements = loadWhopElements();
 
 const appearance = {
   theme: {
-    appearance: "light" as const,
+    appearance: "dark" as const,
     grayColor: "slate" as const,
   },
 };
@@ -25,12 +25,9 @@ export default function PayoutsPage() {
 
   if (authLoading) {
     return (
-      <div>
-        <h1 className="text-2xl font-bold mb-8 text-[#222222]">Payouts</h1>
-        <div className="bg-white rounded-xl border border-[#DDDDDD] p-6">
-          <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 spinner-airbnb rounded-full animate-spin" />
-          </div>
+      <div className="bg-[#F7F7F7] rounded-xl border border-[#DDDDDD] p-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 spinner-ocean rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -38,22 +35,18 @@ export default function PayoutsPage() {
 
   if (!user) {
     return (
-      <div>
-        <h1 className="text-2xl font-bold mb-8 text-[#222222]">Payouts</h1>
-        <div className="bg-white rounded-xl border border-[#DDDDDD] p-6">
-          <div className="text-center py-8">
-            <div className="text-4xl mb-4">🔒</div>
-            <h2 className="text-xl font-semibold mb-2 text-[#222222]">Sign In Required</h2>
-            <p className="text-[#717171] mb-6">
-              Please sign in to access your payout dashboard.
-            </p>
-            <Link
-              href="/auth/login?redirect=/dashboard/payouts"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold"
-            >
-              Sign In
-            </Link>
-          </div>
+      <div className="bg-[#F7F7F7] rounded-xl border border-[#DDDDDD] p-6">
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>Sign in required</h2>
+          <p className="text-[#717171] mb-6">
+            Please sign in to access your earnings dashboard.
+          </p>
+          <Link
+            href="/auth/login?redirect=/dashboard/payouts"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF385C] text-[#222222] rounded-lg hover:bg-[#D70466] transition-colors font-semibold"
+          >
+            Sign in
+          </Link>
         </div>
       </div>
     );
@@ -62,9 +55,7 @@ export default function PayoutsPage() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3002";
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6 text-[#222222]">Payouts</h1>
-
+    <div className="space-y-6">
       <Elements appearance={appearance} elements={elements}>
         <PayoutsSession
           token={() =>
@@ -76,29 +67,36 @@ export default function PayoutsPage() {
           redirectUrl={`${appUrl}/dashboard/payouts`}
         >
           <div className="space-y-4">
-            <BalanceElement
-              fallback={
-                <div className="flex items-center justify-center h-[100px]">
-                  <div className="w-6 h-6 border-2 spinner-airbnb rounded-full animate-spin" />
-                </div>
-              }
-            />
+            <div className="bg-[#F7F7F7] rounded-xl border border-[#DDDDDD] p-6">
+              <BalanceElement
+                fallback={
+                  <div className="flex items-center justify-center h-[100px]">
+                    <div className="w-6 h-6 border-2 spinner-ocean rounded-full animate-spin" />
+                  </div>
+                }
+              />
+            </div>
 
-            <WithdrawButtonElement
-              fallback={
-                <div className="flex items-center justify-center h-[50px]">
-                  <div className="w-6 h-6 border-2 spinner-airbnb rounded-full animate-spin" />
-                </div>
-              }
-            />
+            <div className="bg-[#F7F7F7] rounded-xl border border-[#DDDDDD] p-6">
+              <WithdrawButtonElement
+                fallback={
+                  <div className="flex items-center justify-center h-[50px]">
+                    <div className="w-6 h-6 border-2 spinner-ocean rounded-full animate-spin" />
+                  </div>
+                }
+              />
+            </div>
 
-            <WithdrawalsElement
-              fallback={
-                <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 spinner-airbnb rounded-full animate-spin" />
-                </div>
-              }
-            />
+            <div className="bg-[#F7F7F7] rounded-xl border border-[#DDDDDD] p-6">
+              <h3 className="text-sm font-medium text-[#717171] uppercase tracking-wide mb-4">Withdrawal history</h3>
+              <WithdrawalsElement
+                fallback={
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-6 h-6 border-2 spinner-ocean rounded-full animate-spin" />
+                  </div>
+                }
+              />
+            </div>
           </div>
         </PayoutsSession>
       </Elements>

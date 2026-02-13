@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
-const navItems = [
-  { href: "/dashboard", label: "Overview", icon: "📊" },
-  { href: "/dashboard/listings", label: "Boats", icon: "⛵" },
-  { href: "/dashboard/payouts", label: "Payouts", icon: "💰" },
-  { href: "/messages", label: "Messages", icon: "💬" },
+const tabs = [
+  { href: "/dashboard", label: "Today", exact: true },
+  { href: "/dashboard/listings", label: "Listings" },
+  { href: "/dashboard/payouts", label: "Earnings" },
+  { href: "/dashboard/profile", label: "Profile" },
+  { href: "/messages", label: "Messages" },
 ];
 
 export default function DashboardLayout({
@@ -16,54 +18,46 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const displayName = user?.name || user?.username || "Host";
+  const firstName = displayName.split(" ")[0];
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex gap-8">
-          {/* Sidebar */}
-          <aside className="w-64 flex-shrink-0">
-            <div className="rounded-xl p-4 border border-[#DDDDDD] sticky top-24 bg-white">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#EBEBEB]">
-                <img
-                  src="https://api.dicebear.com/9.x/notionists/svg?seed=host"
-                  alt="Host"
-                  className="w-12 h-12 rounded-full bg-[#EBEBEB]"
-                />
-                <div>
-                  <p className="font-semibold text-[#222222]">Your Dashboard</p>
-                  <p className="text-sm text-[#717171]">Host Portal</p>
-                </div>
-              </div>
-              <nav className="space-y-1">
-                {navItems.map((item) => {
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== "/dashboard" &&
-                      pathname.startsWith(item.href));
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                        isActive
-                          ? "bg-[#F7F7F7] text-[#222222] font-medium"
-                          : "text-[#717171] hover:bg-[#F7F7F7] hover:text-[#222222]"
-                      }`}
-                    >
-                      <span>{item.icon}</span>
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-          </aside>
-
-          {/* Main content */}
-          <main className="flex-1 min-w-0">{children}</main>
+      {/* Dashboard header with tabs */}
+      <div className="border-b border-[#DDDDDD] bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex items-center justify-between pt-6 pb-2">
+            <h1 className="text-2xl font-bold">
+              Welcome, {firstName}
+            </h1>
+          </div>
+          <nav className="flex gap-1 -mb-px overflow-x-auto">
+            {tabs.map((tab) => {
+              const isActive = tab.exact
+                ? pathname === tab.href
+                : pathname.startsWith(tab.href);
+              return (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                    isActive
+                      ? "border-white text-[#222222]"
+                      : "border-transparent text-[#717171] hover:text-[#222222] hover:border-gray-600"
+                  }`}
+                >
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </div>
+
+      {/* Main content */}
+      <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
     </div>
   );
 }
