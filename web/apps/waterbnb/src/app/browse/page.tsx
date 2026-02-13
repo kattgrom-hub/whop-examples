@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BrowseGrid } from "@/components/browse-grid";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,9 @@ export default async function BrowsePage() {
 
   return (
     <main className="pb-8">
-      <BrowseGrid boats={boats} />
+      <Suspense>
+        <BrowseGrid boats={boats} />
+      </Suspense>
     </main>
   );
 }

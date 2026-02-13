@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BoatCard } from "@/components/boat-card";
 
@@ -30,20 +31,35 @@ const CATEGORIES = [
 
 export function BrowseGrid({ boats }: { boats: BoatItem[] }) {
   const [activeCategory, setActiveCategory] = useState("All");
+  const searchParams = useSearchParams();
 
-  const filtered =
-    activeCategory === "All"
-      ? boats
-      : boats.filter(
-          (b) => b.boatType.toLowerCase() === activeCategory.toLowerCase()
-        );
+  const whereQuery = searchParams.get("where")?.toLowerCase() || "";
+  const dateQuery = searchParams.get("date") || "";
+  const guestsQuery = parseInt(searchParams.get("guests") || "", 10);
+
+  const filtered = boats.filter((b) => {
+    if (activeCategory !== "All" && b.boatType.toLowerCase() !== activeCategory.toLowerCase()) {
+      return false;
+    }
+    if (whereQuery && !b.location.toLowerCase().includes(whereQuery)) {
+      return false;
+    }
+    if (dateQuery && !b.availableDates.some((d) => d.includes(dateQuery))) {
+      return false;
+    }
+    if (!isNaN(guestsQuery) && guestsQuery > 0 && b.capacity < guestsQuery) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <>
       {/* Category filter bar - sticky below nav */}
       <div className="sticky top-[65px] z-40 bg-white border-b border-[#DDDDDD]">
         <div className="max-w-[2520px] mx-auto px-6 md:px-10 xl:px-20">
-          <div className="flex items-center justify-center gap-8 overflow-x-auto py-4 scrollbar-hide">
+          <div className="overflow-x-auto py-4 scrollbar-hide">
+          <div className="flex items-center gap-8 w-fit mx-auto">
             {CATEGORIES.map((cat) => {
               const active = activeCategory === cat.label;
               return (
@@ -63,6 +79,7 @@ export function BrowseGrid({ boats }: { boats: BoatItem[] }) {
                 </button>
               );
             })}
+          </div>
           </div>
         </div>
       </div>

@@ -11,7 +11,12 @@ export function SearchBar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/browse");
+    const params = new URLSearchParams();
+    if (where.trim()) params.set("where", where.trim());
+    if (date.trim()) params.set("date", date.trim());
+    if (guests.trim()) params.set("guests", guests.trim());
+    const qs = params.toString();
+    router.push(qs ? `/browse?${qs}` : "/browse");
   };
 
   return (
