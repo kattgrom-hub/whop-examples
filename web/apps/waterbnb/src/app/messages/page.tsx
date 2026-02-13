@@ -24,6 +24,9 @@ const appearance = {
     appearance: "dark" as const,
     grayColor: "slate" as const,
   },
+  variables: {
+    "--color-background": "#1A1A1A",
+  },
 };
 
 export default function MessagesPage() {
