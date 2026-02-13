@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { BoatCard } from "@/components/boat-card";
+import { BrowseGrid } from "@/components/browse-grid";
 
 export const dynamic = "force-dynamic";
 
@@ -42,36 +41,8 @@ export default async function BrowsePage() {
   const boats = await getBoats();
 
   return (
-    <main className="py-12 px-6">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 text-[#222222]">Available Boats</h1>
-        <p className="text-[#717171] mb-8">
-          Browse boats from local hosts and pick a date
-        </p>
-
-        {/* Results */}
-        <p className="text-[#717171] mb-6">
-          {boats.length} boat{boats.length !== 1 && "s"} available
-        </p>
-
-        {boats.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-[#DDDDDD]">
-            <p className="text-[#717171] mb-2">No boats available yet.</p>
-            <p className="text-[#717171] text-sm">
-              Be the first to list a boat!{" "}
-              <Link href="/dashboard/listings" className="text-[#FF385C] hover:underline">
-                Create one →
-              </Link>
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {boats.map((boat) => (
-              <BoatCard key={boat.id} boat={boat} />
-            ))}
-          </div>
-        )}
-      </div>
+    <main className="pb-8">
+      <BrowseGrid boats={boats} />
     </main>
   );
 }
