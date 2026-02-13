@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm turbo build",
+  "installCommand": "pnpm install --filter=winners-club...",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
+}

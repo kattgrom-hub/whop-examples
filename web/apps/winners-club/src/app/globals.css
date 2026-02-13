@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --whop-black: #0a0a0a;
+  --whop-card: #111111;
+  --whop-card-elevated: #1a1a1a;
+  --gold: #F59E0B;
+  --gold-light: #FBBF24;
+  --gold-dark: #D97706;
+  --gold-hover: #E5A00D;
+  --obsidian: #0A0A0A;
+  --obsidian-card: #1A1A1A;
+  --obsidian-border: #2A2A2A;
+  --obsidian-surface: #111111;
+}
+
+body {
+  background-color: var(--obsidian);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Bold headings */
+h1, h2 {
+  font-family: 'Oswald', 'Impact', Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Gold button */
+.btn-gold {
+  background-color: var(--gold);
+  color: #0A0A0A;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.btn-gold:hover {
+  background-color: var(--gold-dark);
+}
+
+.btn-gold:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--obsidian-border);
+}
+
+/* Gold gradient text */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FBBF24, #F59E0B, #D97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gold spinner */
+.spinner-gold {
+  border-color: rgba(245, 158, 11, 0.3);
+  border-top-color: var(--gold);
+}
+
+/* Gold glow on hover */
+.gold-glow:hover {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+}
+
+/* Subtle gold border glow */
+.gold-border-glow {
+  border-color: var(--obsidian-border);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gold-border-glow:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.08);
+}

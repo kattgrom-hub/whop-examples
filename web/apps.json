@@ -11,6 +11,17 @@
     "previewImage": "preview.png"
   },
   {
+    "slug": "winners-club",
+    "name": "Winners Club",
+    "description": "Sports betting community — follow tipsters, buy pick packages, tipsters get paid via Whop Payouts",
+    "category": "Sports",
+    "status": "built",
+    "demoUrl": "https://winners-club.vercel.app",
+    "stack": ["Next.js", "Tailwind"],
+    "integrations": ["Checkout", "Payouts", "OAuth", "Forums"],
+    "previewImage": "preview.png"
+  },
+  {
     "slug": "waterbnb",
     "name": "Waterbnb",
     "description": "Boat rental marketplace — rent boats from local hosts with embedded chat, hosts get paid via Whop Payouts",
