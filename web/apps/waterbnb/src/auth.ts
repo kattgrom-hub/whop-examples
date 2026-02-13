@@ -78,6 +78,11 @@ async function ensureConnectedAccount(
 }
 
 export const { auth, handlers, signIn, signOut } = createWhopAuth({
+  scopes: [
+    "dms:read",
+    "dms:message:manage",
+    "dms:channel:manage",
+  ],
   callbacks: {
     async jwt({ token, user, account }) {
       if (user && account) {

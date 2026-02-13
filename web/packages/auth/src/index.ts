@@ -35,11 +35,23 @@ export interface WhopAuthOptions {
   pages?: {
     signIn?: string;
   };
+  scopes?: string[];
 }
 
 export function createWhopAuth(options?: WhopAuthOptions) {
+  const provider = options?.scopes?.length
+    ? {
+        ...whopProvider,
+        authorization: {
+          params: {
+            scope: ["openid", "profile", "email", ...options.scopes].join(" "),
+          },
+        },
+      }
+    : whopProvider;
+
   return NextAuth({
-    providers: [whopProvider],
+    providers: [provider],
     callbacks: {
       async jwt(params) {
         const { token, user, account } = params;
