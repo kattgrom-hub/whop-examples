@@ -41,9 +41,9 @@ export function BrowseGrid({ boats }: { boats: BoatItem[] }) {
   return (
     <>
       {/* Category filter bar - sticky below nav */}
-      <div className="sticky top-[65px] z-40 bg-[#0A0A0A] border-b border-[#2A2A2A]">
+      <div className="sticky top-[65px] z-40 bg-white border-b border-[#DDDDDD]">
         <div className="max-w-[2520px] mx-auto px-6 md:px-10 xl:px-20">
-          <div className="flex items-center gap-8 overflow-x-auto py-4 scrollbar-hide">
+          <div className="flex items-center justify-center gap-8 overflow-x-auto py-4 scrollbar-hide">
             {CATEGORIES.map((cat) => {
               const active = activeCategory === cat.label;
               return (
@@ -52,8 +52,8 @@ export function BrowseGrid({ boats }: { boats: BoatItem[] }) {
                   onClick={() => setActiveCategory(cat.label)}
                   className={`flex flex-col items-center gap-2 min-w-fit pb-2 border-b-2 transition-all ${
                     active
-                      ? "border-white text-white"
-                      : "border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600"
+                      ? "border-[#222222] text-[#222222]"
+                      : "border-transparent text-[#717171] hover:text-[#222222] hover:border-[#DDDDDD]"
                   }`}
                 >
                   <cat.icon active={active} />
@@ -107,7 +107,7 @@ export function BrowseGrid({ boats }: { boats: BoatItem[] }) {
 
       {/* Show map button - floating at bottom center */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-        <button className="flex items-center gap-2 px-5 py-3 bg-[#1A1A1A] text-white text-sm font-semibold rounded-full border border-[#2A2A2A] hover:bg-[#222222] transition-colors shadow-lg shadow-black/40">
+        <button className="flex items-center gap-2 px-5 py-3 bg-[#222222] text-white text-sm font-semibold rounded-full hover:bg-[#000000] transition-colors shadow-lg shadow-black/20">
           Show map
           <svg
             width="16"
