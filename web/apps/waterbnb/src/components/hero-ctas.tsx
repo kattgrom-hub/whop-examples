@@ -10,14 +10,14 @@ export function HeroCTAs() {
     <div className="flex gap-4 justify-center">
       <Link
         href="/browse"
-        className="px-6 py-3 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors font-semibold"
+        className="px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold"
       >
         Find a Boat
       </Link>
       {!isAuthenticated && (
         <Link
           href="/become-a-host"
-          className="px-6 py-3 bg-[#1A1A1A]/80 backdrop-blur-sm text-white rounded-lg hover:bg-[#2A2A2A] transition-colors font-medium border border-[#2A2A2A] hover:border-[#0077B6]/30"
+          className="px-6 py-3 bg-white text-[#222222] rounded-lg hover:bg-[#F7F7F7] transition-colors font-medium border border-[#DDDDDD] hover:border-[#222222]"
         >
           Become a Host
         </Link>

@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased text-white min-h-screen bg-[#0A0A0A]">
+      <body className="antialiased text-[#222222] min-h-screen bg-[#F7F7F7]">
         <AuthProvider>
           <Nav />
           {children}

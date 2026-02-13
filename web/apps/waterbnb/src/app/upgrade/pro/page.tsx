@@ -56,15 +56,15 @@ export default function UpgradeProPage() {
 
   if (status === "error") {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-6">
+      <div className="min-h-screen flex items-center justify-center px-6">
         <div className="max-w-md w-full text-center">
-          <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-white mb-2">Something went wrong</h1>
-          <p className="text-gray-400 mb-6">{error}</p>
+          <h1 className="text-xl font-bold text-[#222222] mb-2">Something went wrong</h1>
+          <p className="text-[#717171] mb-6">{error}</p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => {
@@ -72,13 +72,13 @@ export default function UpgradeProPage() {
                 setError("");
                 window.location.reload();
               }}
-              className="px-4 py-2 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors text-sm font-semibold"
+              className="px-4 py-2 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors text-sm font-semibold"
             >
               Try Again
             </button>
             <Link
               href="/dashboard"
-              className="px-4 py-2 bg-[#1A1A1A] text-white rounded-lg hover:bg-[#2A2A2A] transition-colors text-sm font-medium"
+              className="px-4 py-2 bg-[#F7F7F7] text-[#222222] rounded-lg hover:bg-[#EBEBEB] transition-colors text-sm font-medium border border-[#DDDDDD]"
             >
               Go to Dashboard
             </Link>
@@ -89,10 +89,10 @@ export default function UpgradeProPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center px-6">
+    <div className="min-h-screen flex items-center justify-center px-6">
       <div className="text-center">
-        <div className="w-8 h-8 border-2 spinner-ocean rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-400">Setting up your Pro account...</p>
+        <div className="w-8 h-8 border-2 spinner-airbnb rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[#717171]">Setting up your Pro account...</p>
       </div>
     </div>
   );

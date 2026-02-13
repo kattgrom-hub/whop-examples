@@ -1,80 +1,59 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --whop-black: #0a0a0a;
-  --whop-card: #111111;
-  --whop-card-elevated: #1a1a1a;
-  --ocean: #0077B6;
-  --ocean-light: #00B4D8;
-  --ocean-dark: #023E8A;
-  --ocean-hover: #005F8A;
-  --obsidian: #0A0A0A;
-  --obsidian-card: #1A1A1A;
-  --obsidian-border: #2A2A2A;
-  --obsidian-surface: #111111;
+  --airbnb-pink: #FF385C;
+  --airbnb-pink-dark: #E31C5F;
+  --airbnb-pink-hover: #D70466;
+  --airbnb-black: #222222;
+  --airbnb-gray-dark: #484848;
+  --airbnb-gray: #717171;
+  --airbnb-gray-light: #B0B0B0;
+  --airbnb-border: #DDDDDD;
+  --airbnb-bg: #F7F7F7;
+  --airbnb-card: #FFFFFF;
+  --airbnb-surface: #FFFFFF;
 }
 
 body {
-  background-color: var(--obsidian);
+  background-color: var(--airbnb-bg);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--airbnb-black);
 }
 
-/* Serif headings */
-h1, h2 {
-  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-}
-
-/* Ocean button */
-.btn-ocean {
-  background-color: var(--ocean);
+/* Primary button */
+.btn-primary {
+  background-color: var(--airbnb-pink);
   color: #FFFFFF;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
-.btn-ocean:hover {
-  background-color: var(--ocean-dark);
+.btn-primary:hover {
+  background-color: var(--airbnb-pink-hover);
 }
 
-.btn-ocean:disabled {
+.btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Glass card */
-.glass-card {
-  background: rgba(26, 26, 26, 0.8);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--obsidian-border);
+/* Spinner */
+.spinner-airbnb {
+  border-color: rgba(255, 56, 92, 0.3);
+  border-top-color: var(--airbnb-pink);
 }
 
-/* Ocean gradient text */
-.text-ocean-gradient {
-  background: linear-gradient(135deg, #00B4D8, #0077B6, #023E8A);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Card hover */
+.card-hover:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* Ocean spinner */
-.spinner-ocean {
-  border-color: rgba(0, 119, 182, 0.3);
-  border-top-color: var(--ocean);
+/* Card border hover */
+.card-border-hover {
+  border-color: var(--airbnb-border);
+  transition: box-shadow 0.3s ease;
 }
 
-/* Ocean glow on hover */
-.ocean-glow:hover {
-  box-shadow: 0 0 20px rgba(0, 119, 182, 0.15);
-}
-
-/* Subtle ocean border glow */
-.ocean-border-glow {
-  border-color: var(--obsidian-border);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.ocean-border-glow:hover {
-  border-color: rgba(0, 119, 182, 0.4);
-  box-shadow: 0 0 15px rgba(0, 119, 182, 0.08);
+.card-border-hover:hover {
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
 }

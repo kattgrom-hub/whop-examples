@@ -11,16 +11,16 @@ export function Nav() {
   if (pathname.startsWith("/auth")) return null;
 
   return (
-    <nav className="border-b border-[#2A2A2A] bg-[#0A0A0A]/80 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-[#DDDDDD] bg-white sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-xl font-bold text-[#0077B6]" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+          <Link href="/" className="text-xl font-bold text-[#FF385C]">
             Waterbnb
           </Link>
           <Link
             href="/browse"
             className={`hidden md:block transition-colors ${
-              pathname === "/browse" ? "text-[#0077B6]" : "text-gray-400 hover:text-[#0077B6]"
+              pathname === "/browse" ? "text-[#222222] font-medium" : "text-[#717171] hover:text-[#222222]"
             }`}
           >
             Browse
@@ -28,13 +28,13 @@ export function Nav() {
         </div>
         <div className="flex items-center gap-4">
           {isLoading ? (
-            <div className="w-8 h-8 border-2 spinner-ocean rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 spinner-airbnb rounded-full animate-spin" />
           ) : isAuthenticated && user ? (
             <>
               <Link
                 href="/messages"
                 className={`transition-colors ${
-                  pathname === "/messages" ? "text-[#0077B6]" : "text-gray-400 hover:text-[#0077B6]"
+                  pathname === "/messages" ? "text-[#222222] font-medium" : "text-[#717171] hover:text-[#222222]"
                 }`}
               >
                 Messages
@@ -42,26 +42,26 @@ export function Nav() {
               <Link
                 href="/dashboard"
                 className={`transition-colors ${
-                  pathname.startsWith("/dashboard") ? "text-[#0077B6]" : "text-gray-400 hover:text-[#0077B6]"
+                  pathname.startsWith("/dashboard") ? "text-[#222222] font-medium" : "text-[#717171] hover:text-[#222222]"
                 }`}
               >
                 Dashboard
               </Link>
-              <div className="w-8 h-8 rounded-full bg-[#0077B6] flex items-center justify-center text-white text-sm font-medium">
+              <div className="w-8 h-8 rounded-full bg-[#222222] flex items-center justify-center text-white text-sm font-medium">
                 {user.name?.[0] || user.username?.[0] || "U"}
               </div>
-              <button onClick={logout} className="text-gray-400 hover:text-white transition-colors text-sm">
+              <button onClick={logout} className="text-[#717171] hover:text-[#222222] transition-colors text-sm">
                 Log out
               </button>
             </>
           ) : (
             <>
-              <Link href="/auth/login" className="text-gray-400 hover:text-white transition-colors">
+              <Link href="/auth/login" className="text-[#717171] hover:text-[#222222] transition-colors">
                 Log in
               </Link>
               <Link
                 href="/become-a-host"
-                className="px-4 py-2 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors font-semibold"
+                className="px-4 py-2 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold"
               >
                 Become a Host
               </Link>

@@ -88,18 +88,18 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
     <>
       {/* Checkout Modal */}
       {planId && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] rounded-2xl border border-[#2A2A2A] w-full max-w-md max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-[#2A2A2A] flex-shrink-0">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl border border-[#DDDDDD] w-full max-w-md max-h-[90vh] flex flex-col shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b border-[#DDDDDD] flex-shrink-0">
               <div>
-                <h3 className="font-semibold">{boat.title}</h3>
-                <p className="text-sm text-gray-400">
+                <h3 className="font-semibold text-[#222222]">{boat.title}</h3>
+                <p className="text-sm text-[#717171]">
                   {formatDate(selectedDate)} · ${boat.pricePerTrip}
                 </p>
               </div>
               <button
                 onClick={handleCloseCheckout}
-                className="p-2 rounded-lg hover:bg-[#2A2A2A] transition-colors text-gray-400"
+                className="p-2 rounded-lg hover:bg-[#F7F7F7] transition-colors text-[#717171]"
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 5l10 10M15 5l-10 10" />
@@ -118,30 +118,30 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
       )}
 
       {/* Boat Card */}
-      <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] p-6 hover:border-[#0077B6]/30 transition-all ocean-glow">
+      <div className="bg-white rounded-xl border border-[#DDDDDD] p-6 transition-all card-border-hover">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <img
               src={hostAvatar}
               alt={hostName}
-              className="w-10 h-10 rounded-full bg-[#2A2A2A]"
+              className="w-10 h-10 rounded-full bg-[#EBEBEB]"
             />
-            <span className="text-sm text-gray-400">{hostName}</span>
+            <span className="text-sm text-[#717171]">{hostName}</span>
           </div>
-          <span className="text-xl font-bold text-[#0077B6]">
+          <span className="text-xl font-bold text-[#222222]">
             {boat.pricePerTrip === 0 ? "Free" : `$${boat.pricePerTrip}`}
           </span>
         </div>
 
-        <h3 className="font-semibold text-lg mb-2">{boat.title}</h3>
+        <h3 className="font-semibold text-lg mb-2 text-[#222222]">{boat.title}</h3>
 
         {boat.description && (
-          <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+          <p className="text-[#717171] text-sm mb-4 line-clamp-2">
             {boat.description}
           </p>
         )}
 
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
+        <div className="flex items-center gap-4 text-sm text-[#717171] mb-2">
           <span className="flex items-center gap-1.5">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M7 1v12M1 7c0-2 3-4 6-4s6 2 6 4" />
@@ -158,11 +158,11 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
         </div>
 
         <div className="flex items-center gap-2 mb-4">
-          <span className="px-2 py-1 bg-[#0077B6]/15 text-[#00B4D8] text-xs rounded-full font-medium">
+          <span className="px-2 py-1 bg-[#F7F7F7] text-[#484848] text-xs rounded-full font-medium border border-[#EBEBEB]">
             {boat.boatType}
           </span>
           {nextAvailable && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-[#717171]">
               {sortedDates.length} date{sortedDates.length !== 1 ? "s" : ""} available
             </span>
           )}
@@ -174,7 +174,7 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
             <select
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-3 py-2 bg-[#111111] border border-[#2A2A2A] rounded-lg text-white text-sm focus:outline-none focus:border-[#0077B6]"
+              className="w-full px-3 py-2 bg-white border border-[#DDDDDD] rounded-lg text-[#222222] text-sm focus:outline-none focus:border-[#222222]"
             >
               <option value="">Select a date</option>
               {sortedDates.map((d) => (
@@ -183,17 +183,17 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
             </select>
           </div>
         ) : (
-          <p className="text-gray-500 text-sm mb-4">No dates available</p>
+          <p className="text-[#717171] text-sm mb-4">No dates available</p>
         )}
 
         {error && (
-          <p className="text-red-400 text-sm mb-3">{error}</p>
+          <p className="text-red-500 text-sm mb-3">{error}</p>
         )}
 
         <button
           onClick={handleReserve}
           disabled={isLoading || !selectedDate}
-          className="w-full py-3 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>

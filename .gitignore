@@ -30,6 +30,9 @@ dist
 .DS_Store
 Thumbs.db
 
+# Build info
+tsconfig.tsbuildinfo
+
 # Debug
 npm-debug.log*
 pnpm-debug.log*

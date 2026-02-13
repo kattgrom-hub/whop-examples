@@ -15,7 +15,7 @@ const elements = loadWhopElements();
 
 const appearance = {
   theme: {
-    appearance: "dark" as const,
+    appearance: "light" as const,
     grayColor: "slate" as const,
   },
 };
@@ -26,10 +26,10 @@ export default function PayoutsPage() {
   if (authLoading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-8">Payouts</h1>
-        <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] p-6">
+        <h1 className="text-2xl font-bold mb-8 text-[#222222]">Payouts</h1>
+        <div className="bg-white rounded-xl border border-[#DDDDDD] p-6">
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 spinner-ocean rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 spinner-airbnb rounded-full animate-spin" />
           </div>
         </div>
       </div>
@@ -39,17 +39,17 @@ export default function PayoutsPage() {
   if (!user) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-8">Payouts</h1>
-        <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] p-6">
+        <h1 className="text-2xl font-bold mb-8 text-[#222222]">Payouts</h1>
+        <div className="bg-white rounded-xl border border-[#DDDDDD] p-6">
           <div className="text-center py-8">
             <div className="text-4xl mb-4">🔒</div>
-            <h2 className="text-xl font-semibold mb-2">Sign In Required</h2>
-            <p className="text-gray-400 mb-6">
+            <h2 className="text-xl font-semibold mb-2 text-[#222222]">Sign In Required</h2>
+            <p className="text-[#717171] mb-6">
               Please sign in to access your payout dashboard.
             </p>
             <Link
               href="/auth/login?redirect=/dashboard/payouts"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors font-semibold"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold"
             >
               Sign In
             </Link>
@@ -63,7 +63,7 @@ export default function PayoutsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Payouts</h1>
+      <h1 className="text-2xl font-bold mb-6 text-[#222222]">Payouts</h1>
 
       <Elements appearance={appearance} elements={elements}>
         <PayoutsSession
@@ -79,7 +79,7 @@ export default function PayoutsPage() {
             <BalanceElement
               fallback={
                 <div className="flex items-center justify-center h-[100px]">
-                  <div className="w-6 h-6 border-2 spinner-ocean rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 spinner-airbnb rounded-full animate-spin" />
                 </div>
               }
             />
@@ -87,7 +87,7 @@ export default function PayoutsPage() {
             <WithdrawButtonElement
               fallback={
                 <div className="flex items-center justify-center h-[50px]">
-                  <div className="w-6 h-6 border-2 spinner-ocean rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 spinner-airbnb rounded-full animate-spin" />
                 </div>
               }
             />
@@ -95,7 +95,7 @@ export default function PayoutsPage() {
             <WithdrawalsElement
               fallback={
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-6 h-6 border-2 spinner-ocean rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 spinner-airbnb rounded-full animate-spin" />
                 </div>
               }
             />

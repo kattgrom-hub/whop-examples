@@ -60,11 +60,11 @@ export default function BecomeAHostPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] py-16 px-6">
+    <div className="min-h-screen py-16 px-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Start Hosting Today</h1>
-          <p className="text-gray-400">Choose the plan that works for you</p>
+          <h1 className="text-4xl font-bold text-[#222222] mb-4">Start Hosting Today</h1>
+          <p className="text-[#717171]">Choose the plan that works for you</p>
         </div>
 
         {/* Plan Selection */}
@@ -75,15 +75,15 @@ export default function BecomeAHostPage() {
               onClick={() => setSelectedPlan(key)}
               className={`text-left p-6 rounded-2xl border-2 transition-all ${
                 selectedPlan === key
-                  ? "border-[#0077B6] bg-[#0077B6]/10"
-                  : "border-[#2A2A2A] bg-[#111111] hover:border-[#3A3A3A]"
+                  ? "border-[#222222] bg-white shadow-md"
+                  : "border-[#DDDDDD] bg-white hover:border-[#B0B0B0]"
               }`}
             >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-semibold text-white">{plan.name}</span>
+                <span className="text-lg font-semibold text-[#222222]">{plan.name}</span>
                 {selectedPlan === key && (
-                  <span className="w-5 h-5 rounded-full bg-[#0077B6] flex items-center justify-center">
-                    <svg className="w-3 h-3 text-[#0A0A0A]" fill="currentColor" viewBox="0 0 20 20">
+                  <span className="w-5 h-5 rounded-full bg-[#222222] flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </span>
@@ -91,19 +91,19 @@ export default function BecomeAHostPage() {
               </div>
 
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-3xl font-bold text-white">${plan.price}</span>
-                <span className="text-gray-400">/month</span>
-                <span className="text-gray-500 mx-1">+</span>
-                <span className="text-xl font-bold text-white">{plan.fee}%</span>
-                <span className="text-gray-400">fee</span>
+                <span className="text-3xl font-bold text-[#222222]">${plan.price}</span>
+                <span className="text-[#717171]">/month</span>
+                <span className="text-[#B0B0B0] mx-1">+</span>
+                <span className="text-xl font-bold text-[#222222]">{plan.fee}%</span>
+                <span className="text-[#717171]">fee</span>
               </div>
 
-              <p className="text-gray-400 text-sm mb-4">{plan.description}</p>
+              <p className="text-[#717171] text-sm mb-4">{plan.description}</p>
 
               <ul className="space-y-2">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-gray-300">
-                    <span className="text-[#0077B6]">&#10003;</span> {feature}
+                  <li key={feature} className="flex items-center gap-2 text-sm text-[#484848]">
+                    <span className="text-[#FF385C]">&#10003;</span> {feature}
                   </li>
                 ))}
               </ul>
@@ -115,11 +115,11 @@ export default function BecomeAHostPage() {
         <div className="text-center">
           <button
             onClick={handleStart}
-            className="px-8 py-3 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors font-semibold"
+            className="px-8 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold"
           >
             {selectedPlan === "core" ? "Get Started Free" : "Start with Pro — $15/mo"}
           </button>
-          <p className="text-gray-500 text-sm mt-4">
+          <p className="text-[#717171] text-sm mt-4">
             {selectedPlan === "core"
               ? "No credit card required"
               : "Cancel anytime"}
@@ -127,7 +127,7 @@ export default function BecomeAHostPage() {
         </div>
 
         <div className="text-center mt-8">
-          <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+          <Link href="/" className="text-[#717171] hover:text-[#222222] transition-colors">
             ← Back to home
           </Link>
         </div>
@@ -135,32 +135,32 @@ export default function BecomeAHostPage() {
 
       {/* Welcome Modal */}
       {showWelcome && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-6">
-          <div className="bg-[#111111] rounded-2xl border border-[#2A2A2A] max-w-md w-full p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
+          <div className="bg-white rounded-2xl border border-[#DDDDDD] max-w-md w-full p-8 text-center shadow-xl">
+            <h2 className="text-2xl font-bold text-[#222222] mb-3">
               {selectedPlan === "core" ? "Welcome!" : "Upgrade to Pro"}
             </h2>
-            <p className="text-gray-400 mb-2">
+            <p className="text-[#717171] mb-2">
               {selectedPlan === "core"
                 ? "Sign in with Whop to set up your profile and start earning."
                 : "Sign in with Whop, then complete your Pro subscription."}
             </p>
-            <div className="bg-[#1A1A1A] rounded-lg p-4 mb-6">
-              <div className="flex items-center justify-center gap-2 text-white">
+            <div className="bg-[#F7F7F7] rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-center gap-2 text-[#222222]">
                 <span className="font-semibold">{PLANS[selectedPlan].name}</span>
-                <span className="text-gray-400">•</span>
+                <span className="text-[#717171]">•</span>
                 <span>${PLANS[selectedPlan].price}/mo + {PLANS[selectedPlan].fee}% fee</span>
               </div>
             </div>
             <button
               onClick={handleContinue}
-              className="w-full py-3 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors font-semibold mb-3"
+              className="w-full py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold mb-3"
             >
               Continue with Whop
             </button>
             <button
               onClick={() => setShowWelcome(false)}
-              className="text-gray-500 hover:text-white text-sm"
+              className="text-[#717171] hover:text-[#222222] text-sm"
             >
               Maybe later
             </button>

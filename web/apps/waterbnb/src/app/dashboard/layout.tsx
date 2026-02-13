@@ -23,16 +23,16 @@ export default function DashboardLayout({
         <div className="flex gap-8">
           {/* Sidebar */}
           <aside className="w-64 flex-shrink-0">
-            <div className="rounded-xl p-4 border border-[#2A2A2A] sticky top-24 bg-[#111111]">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#2A2A2A]">
+            <div className="rounded-xl p-4 border border-[#DDDDDD] sticky top-24 bg-white">
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#EBEBEB]">
                 <img
                   src="https://api.dicebear.com/9.x/notionists/svg?seed=host"
                   alt="Host"
-                  className="w-12 h-12 rounded-full bg-[#2A2A2A]"
+                  className="w-12 h-12 rounded-full bg-[#EBEBEB]"
                 />
                 <div>
-                  <p className="font-semibold">Your Dashboard</p>
-                  <p className="text-sm text-gray-400">Host Portal</p>
+                  <p className="font-semibold text-[#222222]">Your Dashboard</p>
+                  <p className="text-sm text-[#717171]">Host Portal</p>
                 </div>
               </div>
               <nav className="space-y-1">
@@ -47,8 +47,8 @@ export default function DashboardLayout({
                       href={item.href}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                         isActive
-                          ? "bg-[#0077B6]/15 text-[#0077B6] border border-[#0077B6]/20"
-                          : "text-gray-400 hover:bg-[#1A1A1A] hover:text-white"
+                          ? "bg-[#F7F7F7] text-[#222222] font-medium"
+                          : "text-[#717171] hover:bg-[#F7F7F7] hover:text-[#222222]"
                       }`}
                     >
                       <span>{item.icon}</span>

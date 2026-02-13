@@ -18,16 +18,16 @@ function LoginForm() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
       <div className="w-full max-w-md">
-        <div className="bg-[#1A1A1A] rounded-xl p-8 border border-[#2A2A2A]">
+        <div className="bg-white rounded-xl p-8 border border-[#DDDDDD] shadow-sm">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold mb-2">Welcome to Waterbnb</h1>
-            <p className="text-gray-400">Sign in to reserve boats or manage your listings</p>
+            <h1 className="text-2xl font-bold mb-2 text-[#222222]">Welcome to Waterbnb</h1>
+            <p className="text-[#717171]">Sign in to reserve boats or manage your listings</p>
           </div>
 
           <div className="space-y-4">
             <button
               onClick={handleWhopLogin}
-              className="w-full py-4 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors font-semibold flex items-center justify-center gap-3"
+              className="w-full py-4 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
@@ -36,15 +36,15 @@ function LoginForm() {
             </button>
           </div>
 
-          <p className="text-center text-gray-500 text-sm mt-6">
+          <p className="text-center text-[#717171] text-sm mt-6">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>
 
         {!isAuthenticated && (
-          <p className="text-center text-gray-400 mt-6">
+          <p className="text-center text-[#717171] mt-6">
             Want to become a host?{" "}
-            <Link href="/become-a-host" className="text-[#0077B6] hover:text-[#023E8A]">
+            <Link href="/become-a-host" className="text-[#FF385C] hover:text-[#D70466]">
               Apply here
             </Link>
           </p>
@@ -58,7 +58,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 spinner-ocean rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 spinner-airbnb rounded-full animate-spin" />
       </div>
     }>
       <LoginForm />

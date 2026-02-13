@@ -80,34 +80,34 @@ function ProfileContent() {
     }
   };
 
-  if (isLoading) return <div className="flex justify-center py-12"><div className="w-8 h-8 border-2 spinner-ocean rounded-full animate-spin" /></div>;
+  if (isLoading) return <div className="flex justify-center py-12"><div className="w-8 h-8 border-2 spinner-airbnb rounded-full animate-spin" /></div>;
 
   const avatarUrl = user?.profile_pic_url || `https://api.dicebear.com/9.x/notionists/svg?seed=${user?.id || "host"}`;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-8">Profile</h1>
+      <h1 className="text-2xl font-bold mb-8 text-[#222222]">Profile</h1>
 
       {success && (
-        <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400">{success}</div>
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">{success}</div>
       )}
       {error && (
-        <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400">{error}</div>
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">{error}</div>
       )}
 
-      <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] p-6">
+      <div className="bg-white rounded-xl border border-[#DDDDDD] p-6">
         {/* Avatar */}
-        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-[#2A2A2A]">
+        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-[#EBEBEB]">
           <img
             src={avatarUrl}
             alt="Profile"
-            className="w-20 h-20 rounded-full bg-[#2A2A2A]"
+            className="w-20 h-20 rounded-full bg-[#EBEBEB]"
           />
           <div>
-            <p className="font-semibold text-lg">{name || "Your Name"}</p>
-            <p className="text-gray-400 text-sm">{user?.email}</p>
+            <p className="font-semibold text-lg text-[#222222]">{name || "Your Name"}</p>
+            <p className="text-[#717171] text-sm">{user?.email}</p>
             {profile?.plan && (
-              <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs ${profile.plan === "pro" ? "bg-[#0077B6]/20 text-[#00B4D8]" : "bg-[#2A2A2A] text-gray-400"}`}>
+              <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs ${profile.plan === "pro" ? "bg-[#FF385C]/10 text-[#FF385C]" : "bg-[#F7F7F7] text-[#717171]"}`}>
                 {profile.plan === "pro" ? "Pro" : "Core"} Plan
               </span>
             )}
@@ -116,31 +116,31 @@ function ProfileContent() {
 
         {/* Name */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+          <label className="block text-sm font-medium text-[#484848] mb-2">Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your display name"
-            className="w-full px-4 py-2 bg-[#111111] border border-[#2A2A2A] rounded-lg focus:outline-none focus:border-[#0077B6] text-white"
+            className="w-full px-4 py-2 bg-white border border-[#DDDDDD] rounded-lg focus:outline-none focus:border-[#222222] text-[#222222]"
           />
         </div>
 
         {/* Bio */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-300 mb-2">Bio</label>
+          <label className="block text-sm font-medium text-[#484848] mb-2">Bio</label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Tell guests about yourself and your boats..."
             rows={4}
-            className="w-full px-4 py-2 bg-[#111111] border border-[#2A2A2A] rounded-lg focus:outline-none focus:border-[#0077B6] resize-none text-white"
+            className="w-full px-4 py-2 bg-white border border-[#DDDDDD] rounded-lg focus:outline-none focus:border-[#222222] resize-none text-[#222222]"
           />
         </div>
 
         {/* Categories */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-2">Boat Types</label>
+          <label className="block text-sm font-medium text-[#484848] mb-2">Boat Types</label>
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (
               <button
@@ -149,8 +149,8 @@ function ProfileContent() {
                 onClick={() => toggleCategory(cat)}
                 className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                   categories.includes(cat)
-                    ? "bg-[#0077B6] text-white font-semibold"
-                    : "bg-[#2A2A2A] text-gray-400 hover:bg-[#3A3A3A] hover:text-white"
+                    ? "bg-[#222222] text-white font-semibold"
+                    : "bg-[#F7F7F7] text-[#717171] hover:bg-[#EBEBEB] hover:text-[#222222] border border-[#DDDDDD]"
                 }`}
               >
                 {cat}
@@ -163,7 +163,7 @@ function ProfileContent() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="px-6 py-3 bg-[#0077B6] text-white rounded-lg hover:bg-[#023E8A] transition-colors disabled:opacity-50 font-semibold"
+          className="px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors disabled:opacity-50 font-semibold"
         >
           {isSaving ? "Saving..." : "Save Profile"}
         </button>
@@ -173,5 +173,5 @@ function ProfileContent() {
 }
 
 export default function ProfilePage() {
-  return <Suspense fallback={<div className="flex justify-center py-12"><div className="w-8 h-8 border-2 spinner-ocean rounded-full animate-spin" /></div>}><ProfileContent /></Suspense>;
+  return <Suspense fallback={<div className="flex justify-center py-12"><div className="w-8 h-8 border-2 spinner-airbnb rounded-full animate-spin" /></div>}><ProfileContent /></Suspense>;
 }
