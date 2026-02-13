@@ -9,5 +9,16 @@
     "stack": ["Next.js", "Tailwind"],
     "integrations": ["Checkout", "Payouts", "OAuth"],
     "previewImage": "preview.png"
+  },
+  {
+    "slug": "waterbnb",
+    "name": "Waterbnb",
+    "description": "Boat rental marketplace — rent boats from local hosts with embedded chat, hosts get paid via Whop Payouts",
+    "category": "Marketplace",
+    "status": "built",
+    "demoUrl": "https://waterbnb.vercel.app",
+    "stack": ["Next.js", "Tailwind"],
+    "integrations": ["Checkout", "Payouts", "OAuth", "Chat"],
+    "previewImage": "preview.png"
   }
 ]

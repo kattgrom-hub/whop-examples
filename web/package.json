@@ -4,8 +4,9 @@
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "build": "turbo build",
-    "dev": "echo 'Use: pnpm dev:masterclass (or cd into apps/[app] and run pnpm dev)'",
+    "dev": "echo 'Use: pnpm dev:masterclass or pnpm dev:waterbnb (or cd into apps/[app] and run pnpm dev)'",
     "dev:masterclass": "turbo dev --filter=masterclass",
+    "dev:waterbnb": "turbo dev --filter=waterbnb",
     "lint": "turbo lint"
   },
   "devDependencies": {
