@@ -1,4 +1,4 @@
-import { put, list } from "@vercel/blob";
+import { storeWrite, storeList } from "./storage";
 
 /**
  * Webhook Event Persistence
@@ -59,12 +59,7 @@ export async function persistWebhookEvent(
 
   const pathname = `webhooks/${eventType}/${record.eventId}.json`;
 
-  await put(pathname, JSON.stringify(record), {
-    access: "public",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
+  await storeWrite(pathname, JSON.stringify(record));
 
   return record;
 }
@@ -76,14 +71,5 @@ export async function listWebhookEvents(
   eventType: string,
   limit = 100
 ): Promise<{ pathname: string; url: string; uploadedAt: Date }[]> {
-  const result = await list({
-    prefix: `webhooks/${eventType}/`,
-    limit,
-  });
-
-  return result.blobs.map((b) => ({
-    pathname: b.pathname,
-    url: b.url,
-    uploadedAt: b.uploadedAt,
-  }));
+  return storeList(`webhooks/${eventType}/`, limit);
 }

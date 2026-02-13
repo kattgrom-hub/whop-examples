@@ -1,4 +1,4 @@
-import { put, head } from "@vercel/blob";
+import { storeRead, storeWrite } from "./storage";
 
 const BLOB_PATH = "hosts/index.json";
 
@@ -20,11 +20,9 @@ export interface HostsIndex {
  */
 export async function readHostsIndex(): Promise<HostsIndex | null> {
   try {
-    const meta = await head(BLOB_PATH);
-    if (!meta) return null;
-    const res = await fetch(meta.url);
-    if (!res.ok) return null;
-    return (await res.json()) as HostsIndex;
+    const raw = await storeRead(BLOB_PATH);
+    if (!raw) return null;
+    return JSON.parse(raw) as HostsIndex;
   } catch {
     return null;
   }
@@ -37,12 +35,8 @@ export async function writeHostsIndex(
   index: HostsIndex
 ): Promise<void> {
   index.updatedAt = new Date().toISOString();
-  await put(BLOB_PATH, JSON.stringify(index), {
-    access: "public",
-    addRandomSuffix: false,
-    allowOverwrite: true,
+  await storeWrite(BLOB_PATH, JSON.stringify(index), {
     cacheControlMaxAge: 60,
-    contentType: "application/json",
   });
 }
 

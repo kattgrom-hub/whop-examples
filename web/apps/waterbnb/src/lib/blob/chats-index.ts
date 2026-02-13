@@ -1,4 +1,4 @@
-import { put, head } from "@vercel/blob";
+import { storeRead, storeWrite } from "./storage";
 
 const BLOB_PATH = "chats/index.json";
 
@@ -21,10 +21,9 @@ export interface ChatsIndex {
  */
 export async function readChatsIndex(): Promise<ChatsIndex | null> {
   try {
-    const meta = await head(BLOB_PATH);
-    const res = await fetch(meta.url);
-    if (!res.ok) return null;
-    return (await res.json()) as ChatsIndex;
+    const raw = await storeRead(BLOB_PATH);
+    if (!raw) return null;
+    return JSON.parse(raw) as ChatsIndex;
   } catch {
     return null;
   }
@@ -34,12 +33,7 @@ export async function readChatsIndex(): Promise<ChatsIndex | null> {
  * Write the chats index to Vercel Blob Storage.
  */
 export async function writeChatsIndex(index: ChatsIndex): Promise<void> {
-  await put(BLOB_PATH, JSON.stringify(index), {
-    access: "public",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    contentType: "application/json",
-  });
+  await storeWrite(BLOB_PATH, JSON.stringify(index));
 }
 
 /**
