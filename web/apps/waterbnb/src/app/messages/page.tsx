@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import {
@@ -27,6 +28,7 @@ const appearance = {
 
 export default function MessagesPage() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
+  const { data: session } = useSession();
   const [channelId, setChannelId] = useState<string>();
 
   const handleDmsEvent = useCallback((event: DmsListElementEvent) => {
@@ -50,6 +52,13 @@ export default function MessagesPage() {
       channelId,
     };
   }, [channelId]);
+
+  // Stable token callback using the OAuth access token from the session.
+  // Chat components require an OAuth token with DM scopes (dms:read, etc.),
+  // not a server-generated access token from accessTokens.create().
+  const getToken = useCallback(async () => {
+    return session?.accessToken ?? "";
+  }, [session?.accessToken]);
 
   if (authLoading) {
     return (
@@ -84,13 +93,7 @@ export default function MessagesPage() {
 
         <div className="bg-[#1A1A1A] rounded-xl border border-[#2A2A2A] overflow-hidden" style={{ height: "calc(100vh - 200px)" }}>
           <Elements appearance={appearance} elements={elements}>
-            <ChatSession
-              token={() =>
-                fetch(`/api/chat/token?userId=${user.id}`)
-                  .then((res) => res.json())
-                  .then((data) => data.token)
-              }
-            >
+            <ChatSession token={getToken}>
               <div className="flex h-full">
                 <div className="w-80 border-r border-[#2A2A2A] overflow-y-auto">
                   <DmsListElement
