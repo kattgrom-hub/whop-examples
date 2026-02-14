@@ -59,7 +59,7 @@ export function BrowseGrid({ boats }: { boats: BoatItem[] }) {
       <div className="sticky top-[65px] z-40 bg-white border-b border-[#DDDDDD]">
         <div className="max-w-[2520px] mx-auto px-6 md:px-10 xl:px-20">
           <div className="overflow-x-auto py-4 scrollbar-hide">
-          <div className="flex items-center gap-8 w-fit mx-auto">
+          <div className="flex items-center justify-center gap-8">
             {CATEGORIES.map((cat) => {
               const active = activeCategory === cat.label;
               return (
