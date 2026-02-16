@@ -58,12 +58,11 @@ export default function MessagesPage() {
   // accessTokens.create() server-side. Embedded components require this
   // token format, not the raw OAuth access token.
   const getToken = useCallback(async () => {
-    if (!user?.id) return "";
-    const res = await fetch(`/api/chat/token?userId=${user.id}`);
+    const res = await fetch("/api/chat/token");
     if (!res.ok) return "";
     const data = await res.json();
     return data.token ?? "";
-  }, [user?.id]);
+  }, []);
 
   if (authLoading) {
     return (

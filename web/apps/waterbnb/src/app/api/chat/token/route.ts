@@ -1,30 +1,46 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getWhopApi } from "@/lib/whop-sdk";
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 /**
  * Generate an access token for embedded chat.
- * Uses user_id to create a chat-scoped token.
+ * Uses the caller's OAuth access token to create a short-lived
+ * component token via the Whop API directly (the SDK doesn't support
+ * OAuth-based auth, and user access tokens require OAuth, not API key).
  */
-export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
+export async function GET() {
+  const session = await auth();
 
-  if (!userId) {
+  if (!session?.accessToken) {
     return NextResponse.json(
-      { error: "userId is required" },
-      { status: 400 }
+      { error: "Not authenticated" },
+      { status: 401 }
     );
   }
 
   try {
-    const client = getWhopApi();
-
-    const tokenResponse = await client.accessTokens.create({
-      user_id: userId,
+    const res = await fetch("https://api.whop.com/api/v1/access_tokens", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
     });
 
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Whop access token API error:", res.status, err);
+      return NextResponse.json(
+        { error: "Failed to generate access token" },
+        { status: res.status }
+      );
+    }
+
+    const data = await res.json();
+
     return NextResponse.json({
-      token: tokenResponse.token,
-      expiresAt: tokenResponse.expires_at,
+      token: data.token,
+      expiresAt: data.expires_at,
     });
   } catch (error) {
     console.error("Failed to create chat access token:", error);
