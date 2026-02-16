@@ -252,7 +252,7 @@ export default function PayoutsPage() {
   }
 
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3003";
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5003";
 
   // Derive KYC status
   const kycOk = accountStatus && (

@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3003";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5003";
     const client = getWhopApi();
 
     // Fetch tournament from DB

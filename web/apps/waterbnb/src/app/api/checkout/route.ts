@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3002";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5002";
 
     const client = getWhopApi();
 

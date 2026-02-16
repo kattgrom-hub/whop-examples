@@ -17,7 +17,7 @@ interface ClassItem {
 }
 
 async function getPickPackages(): Promise<ClassItem[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3003";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5004";
 
   try {
     const response = await fetch(`${baseUrl}/api/classes`, {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import {
@@ -31,7 +30,6 @@ const appearance = {
 
 export default function MessagesPage() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
-  const { data: session } = useSession();
   const [channelId, setChannelId] = useState<string>();
 
   const handleDmsEvent = useCallback((event: DmsListElementEvent) => {
@@ -56,12 +54,16 @@ export default function MessagesPage() {
     };
   }, [channelId]);
 
-  // Stable token callback using the OAuth access token from the session.
-  // Chat components require an OAuth token with DM scopes (dms:read, etc.),
-  // not a server-generated access token from accessTokens.create().
+  // Fetch a short-lived access token from our API route, which calls
+  // accessTokens.create() server-side. Embedded components require this
+  // token format, not the raw OAuth access token.
   const getToken = useCallback(async () => {
-    return session?.accessToken ?? "";
-  }, [session?.accessToken]);
+    if (!user?.id) return "";
+    const res = await fetch(`/api/chat/token?userId=${user.id}`);
+    if (!res.ok) return "";
+    const data = await res.json();
+    return data.token ?? "";
+  }, [user?.id]);
 
   if (authLoading) {
     return (
@@ -85,14 +87,6 @@ export default function MessagesPage() {
             Sign In
           </Link>
         </div>
-      </div>
-    );
-  }
-
-  if (!session?.accessToken) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 spinner-ocean rounded-full animate-spin" />
       </div>
     );
   }

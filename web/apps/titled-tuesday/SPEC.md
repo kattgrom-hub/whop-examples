@@ -491,7 +491,7 @@ WHOP_API_KEY=sk_live_xxxxx
 # Whop App (public)
 NEXT_PUBLIC_WHOP_APP_ID=app_xxxxx
 NEXT_PUBLIC_WHOP_COMPANY_ID=biz_xxxxx
-NEXT_PUBLIC_APP_URL=http://localhost:3002
+NEXT_PUBLIC_APP_URL=http://localhost:5003
 
 # Vercel Blob (auto-provisioned by Vercel Storage)
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxx

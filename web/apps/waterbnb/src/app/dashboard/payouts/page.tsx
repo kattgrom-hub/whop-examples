@@ -52,7 +52,7 @@ export default function PayoutsPage() {
     );
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3002";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5002";
 
   return (
     <div className="space-y-6">

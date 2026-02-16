@@ -18,7 +18,7 @@ interface BoatItem {
 }
 
 async function getBoats(): Promise<BoatItem[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3002";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5002";
 
   try {
     const response = await fetch(`${baseUrl}/api/boats`, {

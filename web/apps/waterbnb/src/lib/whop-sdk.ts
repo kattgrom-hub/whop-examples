@@ -29,7 +29,7 @@ export const whopConfig = {
   appId: process.env.NEXT_PUBLIC_WHOP_APP_ID || "",
   companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || "",
   redirectUri:
-    (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3002") + "/auth/callback",
+    (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5002") + "/auth/callback",
 };
 
 // OAuth scopes needed for the app

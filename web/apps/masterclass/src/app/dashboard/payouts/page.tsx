@@ -59,7 +59,7 @@ export default function PayoutsPage() {
     );
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5001";
 
   return (
     <div>

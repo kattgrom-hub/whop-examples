@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     const client = getWhopApi();
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3003";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5003";
 
     const portalResponse = await client.accountLinks.create({
       company_id: companyId,

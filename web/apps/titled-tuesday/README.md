@@ -213,7 +213,7 @@ WHOP_API_KEY=sk_live_xxxxx
 # Whop App (public)
 NEXT_PUBLIC_WHOP_APP_ID=app_xxxxx
 NEXT_PUBLIC_WHOP_COMPANY_ID=biz_xxxxx
-NEXT_PUBLIC_APP_URL=http://localhost:3003
+NEXT_PUBLIC_APP_URL=http://localhost:5003
 
 # Vercel Blob
 BLOB_READ_WRITE_TOKEN=vercel_blob_xxxxx
@@ -230,7 +230,7 @@ WHOP_CLIENT_SECRET=xxxxx
 In the [Whop Developer Dashboard](https://whop.com/developer):
 
 1. Create a new app (or use an existing one)
-2. Add the redirect URI: `http://localhost:3003/api/auth/callback/whop`
+2. Add the redirect URI: `http://localhost:5003/api/auth/callback/whop`
 3. Register the app views (see [App Views](#app-views) below)
 4. Note your App ID, Company ID, and API key
 
@@ -240,7 +240,7 @@ In the [Whop Developer Dashboard](https://whop.com/developer):
 pnpm --filter titled-tuesday dev
 ```
 
-The app runs on `http://localhost:3003`.
+The app runs on `http://localhost:5003`.
 
 ---
 
@@ -438,7 +438,7 @@ If another app is already running on your configured port, Next.js silently incr
 
 ### 2. OAuth redirect URI must be registered
 
-The OAuth code can be perfect, but if the redirect URI (`http://localhost:3003/api/auth/callback/whop`) isn't registered in the Whop Developer Dashboard, the flow silently fails. This is a config step, not a code fix.
+The OAuth code can be perfect, but if the redirect URI (`http://localhost:5003/api/auth/callback/whop`) isn't registered in the Whop Developer Dashboard, the flow silently fails. This is a config step, not a code fix.
 
 ### 3. Company metadata is not updatable after creation
 

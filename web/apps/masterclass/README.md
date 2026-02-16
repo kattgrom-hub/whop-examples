@@ -167,7 +167,7 @@ pnpm install
 3. Note your **App ID** (this is the OAuth `client_id`) and **API Key**
 4. Set the authorized redirect URI:
    ```
-   http://localhost:3001/api/auth/callback/whop
+   http://localhost:5001/api/auth/callback/whop
    ```
 
 ### 3. Configure environment variables
@@ -181,7 +181,7 @@ AUTH_SECRET=any_random_string_for_nextauth
 BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
 NEXT_PUBLIC_WHOP_APP_ID=your_whop_app_id
 NEXT_PUBLIC_WHOP_COMPANY_ID=your_whop_company_id
-NEXT_PUBLIC_APP_URL=http://localhost:3001
+NEXT_PUBLIC_APP_URL=http://localhost:5001
 
 # Optional — needed for Pro tier features
 WHOP_CLIENT_SECRET=your_whop_client_secret
@@ -217,7 +217,7 @@ cd web/apps/masterclass
 pnpm dev
 ```
 
-The app runs on [http://localhost:3001](http://localhost:3001).
+The app runs on [http://localhost:5001](http://localhost:5001).
 
 ## App Views
 

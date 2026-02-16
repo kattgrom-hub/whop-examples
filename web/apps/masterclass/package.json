@@ -4,9 +4,9 @@
   "private": true,
   "packageManager": "pnpm@10.28.2",
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -p 5001",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "next start -p 5001",
     "lint": "next lint"
   },
   "dependencies": {
