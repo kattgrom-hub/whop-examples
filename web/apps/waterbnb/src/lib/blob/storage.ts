@@ -15,8 +15,19 @@ if (!hasBlobToken) {
   );
 }
 
-// In-memory fallback
-const memoryStore = new Map<string, { content: string; uploadedAt: Date }>();
+// In-memory fallback — use globalThis so the Map is shared across all Next.js
+// route-handler bundles (each route.ts is compiled into its own bundle and gets
+// its own copy of module-level variables, which breaks cross-route persistence).
+const globalKey = "__waterbnb_memoryStore" as const;
+type MemoryEntry = { content: string; uploadedAt: Date };
+
+function getMemoryStore(): Map<string, MemoryEntry> {
+  const g = globalThis as unknown as Record<string, Map<string, MemoryEntry>>;
+  if (!g[globalKey]) {
+    g[globalKey] = new Map();
+  }
+  return g[globalKey];
+}
 
 /**
  * Read a JSON blob by pathname. Returns null if not found.
@@ -32,7 +43,7 @@ export async function storeRead(pathname: string): Promise<string | null> {
       return null;
     }
   }
-  return memoryStore.get(pathname)?.content ?? null;
+  return getMemoryStore().get(pathname)?.content ?? null;
 }
 
 /**
@@ -55,7 +66,7 @@ export async function storeWrite(
     });
     return;
   }
-  memoryStore.set(pathname, { content: body, uploadedAt: new Date() });
+  getMemoryStore().set(pathname, { content: body, uploadedAt: new Date() });
 }
 
 /**
@@ -74,7 +85,7 @@ export async function storeList(
     }));
   }
   const entries: { pathname: string; url: string; uploadedAt: Date }[] = [];
-  for (const [key, value] of memoryStore.entries()) {
+  for (const [key, value] of getMemoryStore().entries()) {
     if (key.startsWith(prefix)) {
       entries.push({
         pathname: key,
