@@ -99,9 +99,10 @@ export default function MessagesPage() {
           <Elements appearance={appearance} elements={elements}>
             <ChatSession token={getToken}>
               <div className="flex h-full">
-                <div className="w-80 border-r border-[#DDDDDD] overflow-y-auto">
+                <div className="w-80 h-full border-r border-[#DDDDDD] overflow-y-auto">
                   <DmsListElement
                     options={dmsOptions}
+                    style={{ height: "100%" }}
                     fallback={
                       <div className="flex items-center justify-center py-12">
                         <div className="w-6 h-6 border-2 spinner-airbnb rounded-full animate-spin" />
