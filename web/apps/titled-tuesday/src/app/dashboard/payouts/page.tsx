@@ -363,6 +363,7 @@ export default function PayoutsPage() {
                       const key =
                         method.account_reference ||
                         method.institution_name ||
+                        method.nickname ||
                         method.id;
                       const group = groups.get(key) || [];
                       group.push(method);
