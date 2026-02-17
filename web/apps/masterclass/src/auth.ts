@@ -90,22 +90,6 @@ export const { auth, handlers, signIn, signOut } = createWhopAuth({
         token.companyId = companyId || "";
       }
 
-      // Backfill: existing sessions with missing companyId
-      if (!token.companyId && token.id) {
-        if (token.email) {
-          const companyId = await ensureConnectedAccount(
-            token.id as string,
-            token.email,
-            token.name as string,
-            token.profile_pic_url as string,
-          );
-          if (companyId) token.companyId = companyId;
-        } else {
-          const companyId = await findConnectedAccount(token.id as string);
-          if (companyId) token.companyId = companyId;
-        }
-      }
-
       return token;
     },
     session({ session, token }) {
