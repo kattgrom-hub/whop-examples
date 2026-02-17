@@ -95,8 +95,12 @@ export async function POST(request: NextRequest) {
             const hostCompanyId = data.company_id as string;
             const guestUserId = data.user_id as string;
 
-            // Look up host's userId from hosts-index
-            const hostUserId = await getUserIdByCompanyId(hostCompanyId);
+            // Resolve host's userId: try local cache first, fall back to API
+            let hostUserId = await getUserIdByCompanyId(hostCompanyId);
+            if (!hostUserId) {
+              const company = await client.companies.retrieve(hostCompanyId);
+              hostUserId = company.owner_user?.id ?? null;
+            }
 
             if (hostUserId && guestUserId) {
               const dmChannel = await client.dmChannels.create({
@@ -116,6 +120,8 @@ export async function POST(request: NextRequest) {
               });
 
               console.log(`DM channel created: ${dmChannel.id} for ${metadata.title}`);
+            } else {
+              console.warn(`Skipped DM creation: could not resolve host userId for company ${hostCompanyId}`);
             }
           } catch (chatErr) {
             console.error("Failed to create DM channel:", chatErr);
