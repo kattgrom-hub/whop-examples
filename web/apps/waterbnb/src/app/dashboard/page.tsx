@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useMode } from "@/lib/mode-context";
 
 interface ReservedBoat {
   id: string;
@@ -51,6 +52,16 @@ const isThisWeek = (d: string) => {
 };
 
 export default function DashboardPage() {
+  const { mode } = useMode();
+
+  if (mode === "traveling") {
+    return <TravelingDashboard />;
+  }
+
+  return <HostingDashboard />;
+}
+
+function HostingDashboard() {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<ReservedBoat[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -323,5 +334,132 @@ function QuickLink({
       <p className="font-medium group-hover:text-[#222222] transition-colors">{title}</p>
       <p className="text-sm text-[#717171] mt-1">{description}</p>
     </Link>
+  );
+}
+
+interface TravelReservation {
+  id: string;
+  title: string;
+  hostName: string;
+  hostAvatar: string;
+  date: string;
+  location: string;
+  status: "upcoming" | "completed" | "cancelled";
+}
+
+function TravelingDashboard() {
+  const { user } = useAuth();
+  const [reservations, setReservations] = useState<TravelReservation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return setIsLoading(false);
+    fetch(`/api/guest/reservations?userId=${user.id}`)
+      .then((res) => (res.ok ? res.json() : { reservations: [] }))
+      .then((data) => setReservations(data.reservations || []))
+      .finally(() => setIsLoading(false));
+  }, [user?.id]);
+
+  const upcoming = reservations.filter((r) => r.status === "upcoming");
+  const past = reservations.filter((r) => r.status !== "upcoming");
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-8 h-8 border-2 spinner-ocean rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Browse prompt */}
+      <section>
+        <Link
+          href="/browse"
+          className="block p-6 bg-gradient-to-r from-[#FF385C] to-[#D70466] rounded-xl text-white hover:opacity-95 transition-opacity"
+        >
+          <h2 className="text-xl font-bold mb-1">Find your next adventure</h2>
+          <p className="text-white/80 text-sm">Browse boats from local hosts</p>
+        </Link>
+      </section>
+
+      {/* Upcoming trips */}
+      <section>
+        <h2 className="text-lg font-semibold mb-4" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+          Upcoming trips
+        </h2>
+        {upcoming.length === 0 ? (
+          <div className="bg-[#F7F7F7] rounded-xl border border-[#DDDDDD] p-8 text-center">
+            <p className="text-[#717171] mb-4">No upcoming trips</p>
+            <Link href="/browse" className="text-[#FF385C] hover:text-[#D70466] underline font-medium">
+              Browse boats
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {upcoming.map((r) => (
+              <div key={r.id} className="bg-[#F7F7F7] rounded-xl border border-[#DDDDDD] p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <img src={r.hostAvatar} alt="" className="w-10 h-10 rounded-full bg-[#EBEBEB]" />
+                  <div>
+                    <p className="font-medium">{r.title}</p>
+                    <p className="text-sm text-[#717171]">
+                      {formatDate(r.date)} &middot; {r.location}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/messages"
+                  className="px-3 py-1.5 text-sm border border-[#DDDDDD] rounded-lg hover:bg-[#EBEBEB] transition-colors"
+                >
+                  Message Host
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Past trips */}
+      {past.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+              Past trips
+            </h2>
+            <Link href="/dashboard/reservations" className="text-sm text-[#FF385C] hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-5 bg-[#F7F7F7] rounded-xl border border-[#DDDDDD]">
+              <p className="text-sm text-[#717171] mb-1">Total trips</p>
+              <p className="text-2xl font-semibold">{reservations.length}</p>
+            </div>
+            <div className="p-5 bg-[#F7F7F7] rounded-xl border border-[#DDDDDD]">
+              <p className="text-sm text-[#717171] mb-1">Completed</p>
+              <p className="text-2xl font-semibold">{past.filter((r) => r.status === "completed").length}</p>
+            </div>
+            <div className="p-5 bg-[#F7F7F7] rounded-xl border border-[#DDDDDD]">
+              <p className="text-sm text-[#717171] mb-1">Upcoming</p>
+              <p className="text-2xl font-semibold">{upcoming.length}</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Quick links */}
+      <section>
+        <h2 className="text-lg font-semibold mb-4" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+          Resources
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <QuickLink href="/browse" title="Browse boats" description="Find your next boat trip" />
+          <QuickLink href="/dashboard/reservations" title="My reservations" description="View all your bookings" />
+          <QuickLink href="/dashboard/profile" title="Edit profile" description="Update your information" />
+        </div>
+      </section>
+    </div>
   );
 }

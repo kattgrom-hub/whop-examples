@@ -3,11 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useMode } from "@/lib/mode-context";
 
-const tabs = [
+const hostingTabs = [
   { href: "/dashboard", label: "Today", exact: true },
   { href: "/dashboard/listings", label: "Listings" },
   { href: "/dashboard/payouts", label: "Earnings" },
+  { href: "/dashboard/profile", label: "Profile" },
+  { href: "/messages", label: "Messages" },
+];
+
+const travelingTabs = [
+  { href: "/dashboard", label: "Browse", exact: true },
+  { href: "/dashboard/reservations", label: "My Reservations" },
   { href: "/dashboard/profile", label: "Profile" },
   { href: "/messages", label: "Messages" },
 ];
@@ -19,9 +27,12 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { mode, toggleMode } = useMode();
 
   const displayName = user?.name || user?.username || "Host";
   const firstName = displayName.split(" ")[0];
+
+  const tabs = mode === "hosting" ? hostingTabs : travelingTabs;
 
   return (
     <div className="min-h-screen">
@@ -32,6 +43,12 @@ export default function DashboardLayout({
             <h1 className="text-2xl font-bold">
               Welcome, {firstName}
             </h1>
+            <button
+              onClick={toggleMode}
+              className="px-4 py-2 text-sm font-medium border border-[#222222] rounded-full hover:bg-[#222222] hover:text-white transition-colors"
+            >
+              Switch to {mode === "hosting" ? "Traveling" : "Hosting"}
+            </button>
           </div>
           <nav className="flex gap-1 -mb-px overflow-x-auto">
             {tabs.map((tab) => {
