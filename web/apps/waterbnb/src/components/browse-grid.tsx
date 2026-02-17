@@ -122,23 +122,6 @@ export function BrowseGrid({ boats }: { boats: BoatItem[] }) {
         )}
       </div>
 
-      {/* Show map button - floating at bottom center */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-        <button className="flex items-center gap-2 px-5 py-3 bg-[#222222] text-white text-sm font-semibold rounded-full hover:bg-[#000000] transition-colors shadow-lg shadow-black/20">
-          Show map
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <path d="M1 3.5v10l4.5-2.5 5 2.5 4.5-2.5v-10l-4.5 2.5-5-2.5L1 3.5z" />
-            <path d="M5.5 1v10M10.5 3v10" />
-          </svg>
-        </button>
-      </div>
     </>
   );
 }
