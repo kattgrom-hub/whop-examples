@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     // The membership will be created under the instructor's connected account
     const checkoutConfig = await client.checkoutConfigurations.create({
       mode: "payment",
-      redirect_url: `${appUrl}/dashboard/sessions?success=true&instructor=${instructorId}`,
+      redirect_url: `${appUrl}/dashboard/sessions?success=true`,
       metadata: {
         instructor_id: instructorId,
         instructor_name: instructorName || "",
