@@ -9,9 +9,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const client = getWhopApi();
+    const seen = new Set<string>();
     const methods = [];
     for await (const method of await client.payoutMethods.list({ company_id: companyId })) {
-      methods.push(method);
+      if (!seen.has(method.id)) {
+        seen.add(method.id);
+        methods.push(method);
+      }
     }
     return NextResponse.json({ methods });
   } catch (error) {

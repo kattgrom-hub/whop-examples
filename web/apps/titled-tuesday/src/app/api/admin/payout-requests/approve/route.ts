@@ -46,11 +46,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Hard gate 2: User MUST have a default payout method
+    const seen = new Set<string>();
     const methods = [];
     for await (const method of await client.payoutMethods.list({
       company_id: payoutRequest.requester_company_id,
     })) {
-      methods.push(method);
+      if (!seen.has(method.id)) {
+        seen.add(method.id);
+        methods.push(method);
+      }
     }
     const defaultMethod = methods.find((m) => m.is_default);
 
@@ -100,7 +104,6 @@ export async function POST(request: NextRequest) {
       amount: amountDollars,
       currency: "usd",
       payout_method_id: defaultMethod.id,
-      idempotence_key: `withdrawal_${requestId}`,
     });
 
     return NextResponse.json({

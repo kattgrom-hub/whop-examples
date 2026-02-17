@@ -15,16 +15,20 @@ export async function GET(request: NextRequest) {
     const verification = ledger.payout_account_details?.latest_verification;
     const approvalStatus = ledger.payments_approval_status;
 
-    // Get payout methods
+    // Get payout methods (deduplicate by ID)
+    const seen = new Set<string>();
     const methods = [];
     for await (const method of await client.payoutMethods.list({ company_id: companyId })) {
-      methods.push({
-        id: method.id,
-        is_default: method.is_default,
-        institution_name: method.institution_name,
-        account_reference: method.account_reference,
-        destination: method.destination,
-      });
+      if (!seen.has(method.id)) {
+        seen.add(method.id);
+        methods.push({
+          id: method.id,
+          is_default: method.is_default,
+          institution_name: method.institution_name,
+          account_reference: method.account_reference,
+          destination: method.destination,
+        });
+      }
     }
     const defaultMethod = methods.find((m) => m.is_default);
 
