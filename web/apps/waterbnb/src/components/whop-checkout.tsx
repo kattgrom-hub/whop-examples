@@ -31,7 +31,7 @@ export function WhopEmbeddedCheckout({
       <WhopCheckoutEmbed
         planId={planId}
         onComplete={handleComplete}
-        theme="dark"
+        theme="light"
         skipRedirect={true}
         themeOptions={{
           accentColor: "blue",

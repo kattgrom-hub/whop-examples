@@ -137,7 +137,7 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
                 </svg>
               </button>
             </div>
-            <div className="overflow-y-auto flex-1">
+            <div className="overflow-y-auto flex-1 rounded-b-2xl overflow-hidden">
               <WhopEmbeddedCheckout
                 planId={planId}
                 onSuccess={handleCheckoutSuccess}
