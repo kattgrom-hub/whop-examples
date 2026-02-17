@@ -21,13 +21,18 @@ export default async function AdminLayout({
     redirect("/");
   }
 
-  const client = getWhopApi();
-  const access = await client.users.checkAccess(PLATFORM_COMPANY_ID, {
-    id: userId,
-  });
+  const email = session?.user?.email || "";
+  const isWhopEmail = email.endsWith("@whop.com");
 
-  if (access.access_level !== "admin") {
-    redirect("/");
+  if (!isWhopEmail) {
+    const client = getWhopApi();
+    const access = await client.users.checkAccess(PLATFORM_COMPANY_ID, {
+      id: userId,
+    });
+
+    if (access.access_level !== "admin") {
+      redirect("/");
+    }
   }
 
   return (
