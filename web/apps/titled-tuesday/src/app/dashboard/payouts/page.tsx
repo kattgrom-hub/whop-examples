@@ -356,45 +356,81 @@ export default function PayoutsPage() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {payoutMethods.map((method) => (
-                    <div
-                      key={method.id}
-                      className="flex items-center justify-between p-4 bg-surface-overlay rounded-xl border border-border-subtle"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-surface-base flex items-center justify-center text-text-tertiary text-lg">
-                          {method.destination?.category === "crypto"
-                            ? "\u20BF"
-                            : method.destination?.category === "digital_wallet"
-                              ? "\u26A1"
-                              : "\u{1F3E6}"}
+                  {(() => {
+                    // Group payout methods by underlying bank account
+                    const groups = new Map<string, PayoutMethod[]>();
+                    for (const method of payoutMethods) {
+                      const key =
+                        method.account_reference ||
+                        method.institution_name ||
+                        method.id;
+                      const group = groups.get(key) || [];
+                      group.push(method);
+                      groups.set(key, group);
+                    }
+
+                    return Array.from(groups.entries()).map(([key, methods]) => {
+                      const primary = methods[0];
+                      const hasDefault = methods.some((m) => m.is_default);
+                      const rails = methods
+                        .map((m) => m.destination?.category)
+                        .filter((c): c is string => !!c);
+                      const isCrypto = rails.length > 0 && rails.every((r) => r === "crypto");
+                      const isDigitalWallet = rails.length > 0 && rails.every((r) => r === "digital_wallet");
+
+                      return (
+                        <div
+                          key={key}
+                          className="flex items-center justify-between p-4 bg-surface-overlay rounded-xl border border-border-subtle"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-surface-base flex items-center justify-center text-text-tertiary text-lg">
+                              {isCrypto
+                                ? "\u20BF"
+                                : isDigitalWallet
+                                  ? "\u26A1"
+                                  : "\u{1F3E6}"}
+                            </div>
+                            <div>
+                              <p className="font-medium text-text-primary">
+                                {primary.institution_name ||
+                                  primary.nickname ||
+                                  categoryLabels[primary.destination?.category || ""] ||
+                                  "Payout Method"}
+                              </p>
+                              <p className="text-sm text-text-tertiary">
+                                {primary.account_reference
+                                  ? `\u2022\u2022\u2022\u2022 ${primary.account_reference}`
+                                  : (categoryLabels[primary.destination?.category || ""] || primary.destination?.category)}
+                              </p>
+                              {rails.length > 1 && (
+                                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                  {rails.map((rail) => (
+                                    <span
+                                      key={rail}
+                                      className="text-xs px-2 py-0.5 rounded-md bg-surface-base text-text-tertiary border border-border-subtle"
+                                    >
+                                      {categoryLabels[rail] || rail}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {hasDefault && (
+                              <span className="badge bg-amber-900/30 text-amber-400 border border-amber-700/30">
+                                Default
+                              </span>
+                            )}
+                            <p className="text-xs text-text-tertiary mt-1 uppercase">
+                              {primary.currency}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-text-primary">
-                            {method.institution_name ||
-                              method.nickname ||
-                              categoryLabels[method.destination?.category || ""] ||
-                              "Payout Method"}
-                          </p>
-                          <p className="text-sm text-text-tertiary">
-                            {method.account_reference
-                              ? `\u2022\u2022\u2022\u2022 ${method.account_reference}`
-                              : (categoryLabels[method.destination?.category || ""] || method.destination?.category)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {method.is_default && (
-                          <span className="badge bg-amber-900/30 text-amber-400 border border-amber-700/30">
-                            Default
-                          </span>
-                        )}
-                        <p className="text-xs text-text-tertiary mt-1 uppercase">
-                          {method.currency}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>
