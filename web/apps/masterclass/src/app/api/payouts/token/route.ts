@@ -1,16 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getWhopApi } from "@/lib/whop-sdk";
 
 /**
  * Generate an access token for the embedded payout portal.
  * This token grants temporary access to the payout portal for a specific company (instructor's connected account).
  */
-export async function GET(request: NextRequest) {
-  const companyId = request.nextUrl.searchParams.get("companyId");
+export async function GET() {
+  const session = await auth();
+
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const companyId = (session.user as unknown as { companyId?: string })?.companyId;
 
   if (!companyId) {
     return NextResponse.json(
-      { error: "companyId is required" },
+      { error: "No connected account found" },
       { status: 400 }
     );
   }

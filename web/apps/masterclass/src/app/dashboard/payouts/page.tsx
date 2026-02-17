@@ -68,7 +68,7 @@ export default function PayoutsPage() {
       <Elements appearance={appearance} elements={elements}>
         <PayoutsSession
           token={() =>
-            fetch(`/api/payouts/token?companyId=${user.companyId}`)
+            fetch(`/api/payouts/token`)
               .then((res) => res.json())
               .then((data) => data.token)
           }
