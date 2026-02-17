@@ -2,14 +2,11 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useAuth } from "@/lib/auth-context";
 
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
-  const { isAuthenticated } = useAuth();
 
   const handleWhopLogin = () => {
     signIn("whop", { callbackUrl: redirect });
@@ -41,14 +38,6 @@ function LoginForm() {
           </p>
         </div>
 
-        {!isAuthenticated && (
-          <p className="text-center text-[#717171] mt-6">
-            Want to become a host?{" "}
-            <Link href="/become-a-host" className="text-[#FF385C] hover:text-[#D70466]">
-              Apply here
-            </Link>
-          </p>
-        )}
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ export default function Home() {
               href="/dashboard/listings"
               className="px-8 py-3.5 border border-[#222222] text-[#222222] rounded-lg hover:bg-[#F7F7F7] transition-colors font-semibold text-lg"
             >
-              Become a Host
+              List Your Boat
             </Link>
           </div>
         </div>

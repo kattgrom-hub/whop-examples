@@ -55,17 +55,12 @@ export function Nav() {
               </button>
             </>
           ) : (
-            <>
-              <Link href="/auth/login" className="text-[#717171] hover:text-[#222222] transition-colors">
-                Log in
-              </Link>
-              <Link
-                href="/become-a-host"
-                className="px-4 py-2 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold"
-              >
-                Become a Host
-              </Link>
-            </>
+            <Link
+              href="/auth/login"
+              className="px-4 py-2 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] transition-colors font-semibold"
+            >
+              Log in
+            </Link>
           )}
         </div>
       </div>
