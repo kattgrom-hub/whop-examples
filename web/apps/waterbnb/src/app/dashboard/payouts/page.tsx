@@ -15,7 +15,7 @@ const elements = loadWhopElements();
 
 const appearance = {
   theme: {
-    appearance: "dark" as const,
+    appearance: "light" as const,
     grayColor: "slate" as const,
   },
 };
