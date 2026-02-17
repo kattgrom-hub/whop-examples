@@ -19,7 +19,7 @@ Masterclass is **entirely stateless** — there is no Postgres, no ORM, no migra
 | **Session Details** | Product `description` (JSON string) | `type`, `title`, `description`, `date`, `time`, `duration`, `price` | JSON-encoded in the `description` field, prefixed with `{"type":"coaching_session"`. This is a hack — Whop products don't have custom structured metadata fields, so the description is overloaded |
 | **Session Pricing** | Plan | `id`, `plan_type: "one_time"`, `initial_price`, `product_id`, `company_id` | Created alongside each product. Whop Plans handle pricing, checkout, and payment splitting |
 | **Booking** | Membership | `id`, `user.*`, `created_at`, `canceled_at`, `metadata.*` | When a student purchases a session, Whop creates a membership. The membership IS the booking record |
-| **Booking Details** | Membership metadata | `coach_id`, `coach_name`, `time_slot`, `date`, `time`, `title`, `session_plan_id`, `type`, `duration` | Booking context passed through checkout metadata → membership metadata |
+| **Booking Details** | Vercel Blob (`bookings/by-user/{userId}.json`) | `id`, `userId`, `instructorId`, `instructorName`, `title`, `date`, `time`, `timeSlot`, `duration`, `type` | Persisted by webhook on `membership.went_valid`. Enables direct lookup by user without scanning all instructor companies |
 | **Checkout** | Checkout Configuration | `purchase_url`, `plan.id`, `metadata.*` | Whop handles the entire payment flow. Platform fee (8% core / 5% pro) set via `application_fee_amount` |
 | **Coach Payouts** | Access Tokens + Account Links | temporary tokens/URLs | No local storage — generates ephemeral tokens for Whop's embedded payout components |
 | **Coach Plan Tier** | Company metadata `plan` field | `"core"` or `"pro"` | Updated by webhook when coach subscribes/unsubscribes to Pro plan |
@@ -183,23 +183,37 @@ A lightweight map for resolving userId → companyId without scanning all compan
 
 **Updated on**: Coach creation, profile update, plan tier change (webhook).
 
-#### 4. Booking Details — Whop Membership Metadata (keep as-is)
+#### 4. Booking Records — Vercel Blob: `bookings/by-user/{userId}.json`
 
-| Field | Type | Purpose |
-|---|---|---|
-| `type` | string | `"coaching_session"` — discriminator for filtering |
-| `title` | string | Session title at time of booking |
-| `coach_id` | string | Coach's company ID |
-| `coach_name` | string | Coach display name at time of booking |
-| `date` | string | Session date |
-| `time` | string | Session time |
-| `time_slot` | string | Full timestamp |
-| `duration` | string | Session duration |
-| `session_plan_id` | string | Original session/plan ID |
+Per-user booking records persisted by the webhook handler on `membership.went_valid`.
 
-**Why Whop Metadata**: Booking data flows through checkout → membership metadata automatically. Contains user context (PII-adjacent). Memberships are Whop's source of truth for purchase records. The metadata propagation from checkout config to membership is a Whop feature we should keep using.
+```json
+{
+  "updatedAt": "2026-02-10T16:00:00Z",
+  "bookings": [
+    {
+      "id": "mem_abc",
+      "userId": "user_xyz",
+      "instructorId": "biz_xyz",
+      "instructorName": "Coach Mike",
+      "title": "Advanced Techniques",
+      "date": "2026-03-15",
+      "time": "10:00",
+      "timeSlot": "2026-03-15 10:00",
+      "duration": 60,
+      "type": "masterclass",
+      "productId": "prod_abc",
+      "createdAt": "2026-02-10T16:00:00Z"
+    }
+  ]
+}
+```
 
-**N+1 for student bookings**: `GET /api/learner/bookings` still scans all companies. This can be improved by using the coaches index blob to get all companyIds, then batch the membership queries — but the fundamental issue (Whop doesn't support cross-company membership queries) remains. For now, this is acceptable given the expected scale.
+**Why Vercel Blob**: Eliminates the N+1 scan of all instructor companies when loading a user's bookings. `GET /api/learner/bookings` now does **1 blob read** instead of 1 + N membership list calls. Booking data (instructor name, session title, time) is non-PII.
+
+**Updated on**: `membership.went_valid` webhook when `metadata.type === "masterclass"`.
+
+**Dropped fields**: `session_plan_id` was written to checkout metadata but never read — removed.
 
 #### 5. Webhook Event Log — Vercel Blob: `webhooks/{eventType}/{eventId}.json`
 
@@ -241,7 +255,7 @@ The `plan` field on company metadata (`"core"` | `"pro"`) is updated by the webh
 | `GET /api/classes` (browse) | 1 + N(coaches) + M(products) + M(retrieves) | **1 blob read** |
 | `GET /api/instructor/sessions` | 1 companies.list scan + P retrieves | 1 blob read (coaches index) + 1 `companies.retrieve` + filtered blob read |
 | `GET /api/instructor/profile` | 1 companies.list scan + 1 retrieve | 1 blob read (coaches index) + 1 `companies.retrieve` |
-| `GET /api/learner/bookings` | 1 + N(coaches) membership queries | 1 blob read (coaches index) + K `memberships.list` calls (K = coaches with bookings) |
+| `GET /api/learner/bookings` | 1 + N(coaches) membership queries | **1 blob read** (bookings index per user) |
 | `POST /api/checkout` | 1 `companies.retrieve` | No change (already direct) |
 
 For a platform with 50 coaches averaging 5 sessions each, the browse page goes from ~300 API calls to **1 blob read**.

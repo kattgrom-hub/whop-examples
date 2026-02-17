@@ -11,7 +11,7 @@ const FEE_RATES = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { coachId, coachName, price, timeSlot, productId, sessionId, sessionTitle } = body;
+    const { coachId, coachName, price, timeSlot, productId, sessionTitle } = body;
 
     // coachId is the connected account company ID (kept for backward compat)
     const instructorId = coachId;
@@ -71,7 +71,6 @@ export async function POST(request: NextRequest) {
         date: date,
         time: time,
         title: sessionTitle || "Masterclass",
-        session_plan_id: sessionId || "",
         type: "masterclass",
       },
       plan: {
