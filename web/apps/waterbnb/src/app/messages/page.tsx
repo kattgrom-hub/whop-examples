@@ -42,6 +42,7 @@ export default function MessagesPage() {
 
   const dmsOptions: DmsListElementOptions = useMemo(() => {
     return {
+      companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID,
       selectedChannel: channelId,
       onEvent: handleDmsEvent,
     };

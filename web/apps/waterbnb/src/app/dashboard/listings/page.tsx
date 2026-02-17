@@ -7,6 +7,31 @@ import Link from "next/link";
 
 const BOAT_TYPES = ["Sailboat", "Yacht", "Pontoon", "Speedboat", "Fishing Boat", "Kayak"];
 
+const RANDOM_LISTINGS = [
+  { title: "Sunset Cruiser", description: "Relaxing evening cruises along the coast with stunning sunset views.", location: "Marina Del Rey, CA", boatType: "Yacht", capacity: 8, pricePerTrip: 250 },
+  { title: "The Salty Dog", description: "A rugged fishing boat perfect for deep-sea adventures.", location: "Key West, FL", boatType: "Fishing Boat", capacity: 4, pricePerTrip: 120 },
+  { title: "Aqua Therapy", description: "Peaceful pontoon rides on calm lake waters. BYOB friendly.", location: "Lake Tahoe, CA", boatType: "Pontoon", capacity: 10, pricePerTrip: 180 },
+  { title: "Wind Whisperer", description: "Classic sailboat experience for those who love the open water.", location: "Newport, RI", boatType: "Sailboat", capacity: 6, pricePerTrip: 200 },
+  { title: "Velocity", description: "High-speed thrills on a sleek speedboat. Hold on tight!", location: "Miami Beach, FL", boatType: "Speedboat", capacity: 4, pricePerTrip: 300 },
+  { title: "Lazy River", description: "Kayak through mangroves and spot wildlife up close.", location: "Everglades, FL", boatType: "Kayak", capacity: 2, pricePerTrip: 45 },
+  { title: "Island Hopper", description: "Visit hidden coves and secluded beaches aboard a spacious yacht.", location: "San Juan Islands, WA", boatType: "Yacht", capacity: 12, pricePerTrip: 450 },
+  { title: "Bass Master", description: "Fully equipped fishing boat with sonar, rods, and live bait included.", location: "Lake Okeechobee, FL", boatType: "Fishing Boat", capacity: 3, pricePerTrip: 95 },
+  { title: "Party Barge", description: "The ultimate floating party. Bluetooth speakers and cooler onboard.", location: "Lake Havasu, AZ", boatType: "Pontoon", capacity: 14, pricePerTrip: 350 },
+  { title: "Moonlight Sail", description: "Nighttime sailing under the stars. Includes hot cocoa.", location: "Chesapeake Bay, MD", boatType: "Sailboat", capacity: 5, pricePerTrip: 175 },
+];
+
+function randomDates(count: number): string[] {
+  const dates: string[] = [];
+  const today = new Date();
+  for (let i = 0; i < count; i++) {
+    const future = new Date(today);
+    future.setDate(today.getDate() + Math.floor(Math.random() * 60) + 1);
+    const iso = future.toISOString().split("T")[0];
+    if (!dates.includes(iso)) dates.push(iso);
+  }
+  return dates.sort();
+}
+
 interface Listing {
   id: string;
   title: string;
@@ -61,6 +86,11 @@ function ListingModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const autofill = () => {
+    const preset = RANDOM_LISTINGS[Math.floor(Math.random() * RANDOM_LISTINGS.length)];
+    setForm({ ...preset, availableDates: randomDates(3 + Math.floor(Math.random() * 4)) });
+  };
+
   const addDate = () => {
     if (newDate && !form.availableDates.includes(newDate)) {
       setForm({ ...form, availableDates: [...form.availableDates, newDate].sort() });
@@ -98,7 +128,10 @@ function ListingModal({
       <div className="bg-[#F7F7F7] rounded-xl border border-[#DDDDDD] w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="p-5 border-b border-[#DDDDDD] flex items-center justify-between">
           <h2 className="font-semibold text-lg" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>{listing ? "Edit listing" : "Create listing"}</h2>
-          <button onClick={onClose} className="text-[#717171] hover:text-[#222222] p-1 rounded-full hover:bg-[#EBEBEB] w-8 h-8 flex items-center justify-center">&#10005;</button>
+          <div className="flex items-center gap-2">
+            {!listing && <button type="button" onClick={autofill} className="px-3 py-1.5 text-xs border border-[#DDDDDD] hover:bg-[#EBEBEB] rounded-lg text-[#717171] hover:text-[#222222] transition-colors">Autofill</button>}
+            <button onClick={onClose} className="text-[#717171] hover:text-[#222222] p-1 rounded-full hover:bg-[#EBEBEB] w-8 h-8 flex items-center justify-center">&#10005;</button>
+          </div>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">{error}</div>}

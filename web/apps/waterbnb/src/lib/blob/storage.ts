@@ -36,7 +36,7 @@ export async function storeRead(pathname: string): Promise<string | null> {
   if (hasBlobToken) {
     try {
       const meta = await blob.head(pathname);
-      const res = await fetch(meta.url);
+      const res = await fetch(meta.url, { cache: "no-store" });
       if (!res.ok) return null;
       return await res.text();
     } catch {
@@ -62,6 +62,7 @@ export async function storeWrite(
       addRandomSuffix: false,
       allowOverwrite: true,
       contentType: "application/json",
+      cacheControlMaxAge: 60,
       ...options,
     });
     return;

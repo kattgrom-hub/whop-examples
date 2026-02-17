@@ -134,11 +134,11 @@ importers:
         specifier: ^0.0.51
         version: 0.0.51(react@19.2.4)
       '@whop/embedded-components-react-js':
-        specifier: ^0.0.13-beta.3
-        version: 0.0.13-beta.3(@whop/embedded-components-vanilla-js@0.0.13-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^0.0.13-beta.4
+        version: 0.0.13-beta.4(@whop/embedded-components-vanilla-js@0.0.13-beta.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@whop/embedded-components-vanilla-js':
-        specifier: ^0.0.13-beta.3
-        version: 0.0.13-beta.3
+        specifier: ^0.0.13-beta.4
+        version: 0.0.13-beta.4
       '@whop/sdk':
         specifier: ^0.0.27
         version: 0.0.27
@@ -784,10 +784,10 @@ packages:
       react:
         optional: true
 
-  '@whop/embedded-components-react-js@0.0.13-beta.3':
-    resolution: {integrity: sha512-+y+zS+NMP0Mm+0je8rJhz+hs47EXXUKSq8SHb7iliXM3FNYEezrokscDn2PcOmloWNCzyK2EFWJkq3cyr3aYWQ==}
+  '@whop/embedded-components-react-js@0.0.13-beta.4':
+    resolution: {integrity: sha512-31YTuyYQSZ6ofNd5HRlFGTIXKTuQZmrxK1ltbyMwsCBEKQWjwsqWNx/abDnPPmgbzEsWE6PDTOuxbhQJhFHw4Q==}
     peerDependencies:
-      '@whop/embedded-components-vanilla-js': ^0.0.13-beta.3
+      '@whop/embedded-components-vanilla-js': ^0.0.13-beta.4
       react: '>=16.8.0 <20.0.0'
       react-dom: '>=16.8.0 <20.0.0'
 
@@ -798,8 +798,8 @@ packages:
       react: '>=16.8.0 <20.0.0'
       react-dom: '>=16.8.0 <20.0.0'
 
-  '@whop/embedded-components-vanilla-js@0.0.13-beta.3':
-    resolution: {integrity: sha512-UfVhXC7LZMOwfjLgsE+pnlWepE0Qz+FC6/6/Aw9QtwgtB0Uo84eUDyPoKxdtckYwXDeX9ESxYUAEgRtyg8K0vw==}
+  '@whop/embedded-components-vanilla-js@0.0.13-beta.4':
+    resolution: {integrity: sha512-aVIX/ZojpI2eFFqXsnLkdkimeE0H1/36ZMYrwVgwYEzrq5zpNtgtDlvhlfPZPQQohYwdFTVYj19MiUY2JLeDHA==}
 
   '@whop/embedded-components-vanilla-js@0.0.9':
     resolution: {integrity: sha512-qgs7OUxcRfvleale3LFjvy5SHphMqRSMvN/JRnar4RpK7h3tAh6FrIKu7zyY1KW/aZyhXfgGdFTbdHhbV6ajlw==}
@@ -1459,9 +1459,9 @@ snapshots:
     optionalDependencies:
       react: 19.2.4
 
-  '@whop/embedded-components-react-js@0.0.13-beta.3(@whop/embedded-components-vanilla-js@0.0.13-beta.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@whop/embedded-components-react-js@0.0.13-beta.4(@whop/embedded-components-vanilla-js@0.0.13-beta.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@whop/embedded-components-vanilla-js': 0.0.13-beta.3
+      '@whop/embedded-components-vanilla-js': 0.0.13-beta.4
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
@@ -1471,7 +1471,7 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  '@whop/embedded-components-vanilla-js@0.0.13-beta.3': {}
+  '@whop/embedded-components-vanilla-js@0.0.13-beta.4': {}
 
   '@whop/embedded-components-vanilla-js@0.0.9': {}
 

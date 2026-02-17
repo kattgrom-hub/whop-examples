@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
             if (hostUserId && guestUserId) {
               const dmChannel = await client.dmChannels.create({
                 with_user_ids: [hostUserId, guestUserId],
+                company_id: PLATFORM_COMPANY_ID,
                 custom_name: `Waterbnb: ${metadata.title || "Boat Trip"}`,
               });
 
