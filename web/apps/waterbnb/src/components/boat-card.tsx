@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { WhopEmbeddedCheckout } from "@/components/whop-checkout";
+import { useAuth } from "@/lib/auth-context";
 
 interface BoatItem {
   id: string;
@@ -52,6 +53,7 @@ function formatDateRange(dates: string[]): string {
 
 export function BoatCard({ boat }: { boat: BoatItem }) {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [planId, setPlanId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +71,12 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
   const handleReserve = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!selectedDate) return;
+
+    if (!isAuthenticated) {
+      router.push("/auth/login?redirect=/browse");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
