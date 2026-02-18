@@ -52,8 +52,9 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { data } = body;
-    // Normalize event name: v2 sends underscores (membership_went_valid), handler uses dots
-    const event = (body.event as string).replace(/_/g, ".");
+    // Normalize event name: v2 uses `type`, older versions use `event`; underscores → dots
+    const rawEvent = body.event || body.type || "";
+    const event = (rawEvent as string).replace(/_/g, ".");
 
     console.log(`Received Whop webhook: ${event}`, JSON.stringify(data, null, 2));
 
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
         const productId = data.product?.id ?? data.product_id;
         const membershipId = data.id as string;
 
-        // Read reservation metadata stashed at checkout time
+        // Read reservation metadata — try webhook data first, then blob fallback
         let metadata = (data.metadata || {}) as Record<string, string>;
         if (!metadata.type && planId) {
           const stored = await storeRead(`waterbnb/pending-reservations/${planId}.json`);

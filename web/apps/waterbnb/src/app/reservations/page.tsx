@@ -37,7 +37,8 @@ function ReservationsContent() {
       }
     }
     load();
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const upcoming = reservations.filter((b) => b.status === "upcoming");
   const past = reservations.filter((b) => b.status !== "upcoming");
