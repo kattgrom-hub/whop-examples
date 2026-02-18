@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
         for await (const m of memberships) {
           const meta = m.metadata as Record<string, string> | undefined;
-          if (!meta || (meta.type !== "masterclass" && meta.type !== "coaching_session")) continue;
+          if (!meta || meta.type !== "masterclass") continue;
 
           const created = new Date(m.created_at);
           const dt = meta.date && meta.time
@@ -70,9 +70,9 @@ export async function GET(request: NextRequest) {
           bookings.push({
             id: m.id,
             title: meta.title || "Class",
-            instructorName: meta.instructor_name || meta.coach_name || company.name || "Instructor",
-            instructorId: meta.instructor_id || meta.coach_id || company.id,
-            instructorAvatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${meta.instructor_id || meta.coach_id || company.id}`,
+            instructorName: meta.instructor_name || company.name || "Instructor",
+            instructorId: meta.instructor_id || company.id,
+            instructorAvatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${meta.instructor_id || company.id}`,
             date: meta.date || created.toLocaleDateString(),
             time: meta.time || meta.time_slot || created.toLocaleTimeString(),
             duration: parseInt(meta.duration || "60"),
