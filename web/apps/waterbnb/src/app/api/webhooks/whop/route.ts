@@ -3,6 +3,7 @@ import { getWhopApi } from "@/lib/whop-sdk";
 import { persistWebhookEvent } from "@/lib/blob/webhook-events";
 import { updateHostEntry } from "@/lib/blob/hosts-index";
 import { removeBookedDate } from "@/lib/blob/boats-index";
+import { storeRead } from "@/lib/blob/storage";
 
 // Pro plan IDs from environment
 const PRO_PLAN_IDS = [
@@ -74,31 +75,17 @@ export async function POST(request: NextRequest) {
         const userId = data.user?.id ?? data.user_id;
         const productId = data.product?.id ?? data.product_id;
         const membershipId = data.id as string;
-        let metadata = (data.metadata || {}) as Record<string, string>;
 
-        // If membership metadata is empty, look up the checkout config for this plan
+        // Read reservation metadata stashed at checkout time
+        let metadata = (data.metadata || {}) as Record<string, string>;
         if (!metadata.type && planId) {
-          try {
-            const companyId = data.company?.id ?? data.company_id;
-            if (companyId) {
-              const configs = client.checkoutConfigurations.list({
-                company_id: companyId,
-                plan_id: planId,
-              });
-              for await (const cfg of configs) {
-                const cfgMeta = (cfg.metadata || {}) as Record<string, string>;
-                if (cfgMeta.type === "waterbnb") {
-                  metadata = cfgMeta;
-                  break;
-                }
-              }
-            }
-          } catch (err) {
-            console.warn("Could not look up checkout config metadata:", err);
+          const stored = await storeRead(`waterbnb/pending-reservations/${planId}.json`);
+          if (stored) {
+            metadata = JSON.parse(stored);
           }
         }
 
-        // Persist metadata onto the membership so reservations API can read it
+        // Write metadata to the membership so reservations API can read it
         if (metadata.type === "waterbnb" && membershipId) {
           await client.memberships.update(membershipId, { metadata }).catch((err) =>
             console.error("Failed to update membership metadata:", err)

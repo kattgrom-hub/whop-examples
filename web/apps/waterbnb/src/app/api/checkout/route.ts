@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
 import { getHostEntry } from "@/lib/blob/hosts-index";
+import { storeWrite } from "@/lib/blob/storage";
 
 // Fee rates by host plan tier
 const FEE_RATES = {
@@ -78,6 +79,19 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Stash reservation metadata in blob so the webhook can write it to the membership
+    await storeWrite(
+      `waterbnb/pending-reservations/${planId}.json`,
+      JSON.stringify({
+        host_id: hostId,
+        host_name: hostName || "",
+        reservation_date: reservationDate || "",
+        title: boatTitle || "Waterbnb",
+        location: location || "",
+        type: "waterbnb",
+      })
+    );
 
     return NextResponse.json({
       checkoutUrl: checkoutConfig.purchase_url,
