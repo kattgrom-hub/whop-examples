@@ -46,6 +46,7 @@ interface Listing {
 
 interface BookedReservation {
   id: string;
+  boatId: string;
   title: string;
   guestName: string;
   guestEmail: string;
@@ -225,6 +226,7 @@ function ListingsContent() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Listing | undefined>();
   const [activeTab, setActiveTab] = useState<"listings" | "reservations">("listings");
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const load = async () => {
     if (!user?.companyId) return setIsLoading(false);
@@ -244,6 +246,24 @@ function ListingsContent() {
     if (!confirm("Delete this listing?")) return;
     await fetch(`/api/host/sessions?listingId=${id}`, { method: "DELETE" });
     load();
+  };
+
+  const handleCancelReservation = async (reservation: BookedReservation) => {
+    if (!confirm(`Cancel reservation for ${reservation.guestName} on ${formatDate(reservation.date)}?`)) return;
+    setCancellingId(reservation.id);
+    try {
+      const res = await fetch("/api/host/cancel-reservation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ membershipId: reservation.id, boatId: reservation.boatId, date: reservation.date }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Failed to cancel");
+      load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to cancel reservation");
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -357,6 +377,13 @@ function ListingsContent() {
                     <div className="flex items-center gap-3">
                       <span className="font-medium">{s.amount === 0 ? "Free" : `$${s.amount}`}</span>
                       <Link href="/messages" className="px-3 py-1.5 text-sm border border-[#DDDDDD] rounded-lg hover:bg-[#EBEBEB] transition-colors">Message</Link>
+                      <button
+                        onClick={() => handleCancelReservation(s)}
+                        disabled={cancellingId === s.id}
+                        className="px-3 py-1.5 text-sm border border-[#DDDDDD] rounded-lg hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors disabled:opacity-50"
+                      >
+                        {cancellingId === s.id ? "Cancelling..." : "Cancel"}
+                      </button>
                     </div>
                   </div>
                 ))}
