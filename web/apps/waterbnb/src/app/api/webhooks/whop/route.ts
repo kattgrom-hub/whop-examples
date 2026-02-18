@@ -69,10 +69,41 @@ export async function POST(request: NextRequest) {
       }
 
       case "membership.activated": {
+        const client = getWhopApi();
         const planId = data.plan?.id ?? data.plan_id;
         const userId = data.user?.id ?? data.user_id;
         const productId = data.product?.id ?? data.product_id;
-        const metadata = data.metadata as Record<string, string> | undefined;
+        const membershipId = data.id as string;
+        let metadata = (data.metadata || {}) as Record<string, string>;
+
+        // If membership metadata is empty, look up the checkout config for this plan
+        if (!metadata.type && planId) {
+          try {
+            const companyId = data.company?.id ?? data.company_id;
+            if (companyId) {
+              const configs = client.checkoutConfigurations.list({
+                company_id: companyId,
+                plan_id: planId,
+              });
+              for await (const cfg of configs) {
+                const cfgMeta = (cfg.metadata || {}) as Record<string, string>;
+                if (cfgMeta.type === "waterbnb") {
+                  metadata = cfgMeta;
+                  break;
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("Could not look up checkout config metadata:", err);
+          }
+        }
+
+        // Persist metadata onto the membership so reservations API can read it
+        if (metadata.type === "waterbnb" && membershipId) {
+          await client.memberships.update(membershipId, { metadata }).catch((err) =>
+            console.error("Failed to update membership metadata:", err)
+          );
+        }
 
         // Host subscribed to Pro plan - update their tier
         if (planId && isProPlan(planId) && userId) {
