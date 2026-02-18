@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
             hostName: meta.host_name || company.name || "Host",
             hostId: meta.host_id || company.id,
             hostAvatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${meta.host_id || company.id}`,
-            date: reservationDate || new Date(m.created_at).toLocaleDateString(),
+            date: reservationDate || new Date(m.created_at).toISOString().split("T")[0],
             location: meta.location || "",
             status,
           });

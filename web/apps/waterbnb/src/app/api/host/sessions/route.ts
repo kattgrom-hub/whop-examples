@@ -133,15 +133,15 @@ export async function GET(request: NextRequest) {
     const bookedSessions: { id: string; title: string; guestName: string; guestEmail: string; guestAvatar: string; date: string; location: string; amount: number; status: "upcoming" | "completed" | "cancelled" }[] = [];
     const now = new Date();
     for await (const m of await client.memberships.list({ company_id: hostCompanyId })) {
-      const meta = m.metadata as Record<string, string> | undefined;
-      if (!meta || meta.type !== "waterbnb") continue;
+      const meta = (m.metadata || {}) as Record<string, string>;
       const reservationDate = meta.reservation_date || "";
+      const productTitle = m.product?.title || meta.title || "Boat";
       const dt = reservationDate ? new Date(reservationDate + "T12:00:00") : new Date(m.created_at);
       const status = m.canceled_at ? "cancelled" : dt < now ? "completed" : "upcoming";
       bookedSessions.push({
-        id: m.id, title: meta.title || "Boat", guestName: m.user?.name || m.user?.username || "Anonymous", guestEmail: m.user?.email || "",
+        id: m.id, title: productTitle, guestName: m.user?.name || m.user?.username || "Anonymous", guestEmail: m.user?.email || "",
         guestAvatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${m.user?.id || m.id}`,
-        date: reservationDate || new Date(m.created_at).toLocaleDateString(),
+        date: reservationDate || new Date(m.created_at).toISOString().split("T")[0],
         location: meta.location || "",
         amount: 0, status,
       });
