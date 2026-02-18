@@ -83,13 +83,15 @@ function HostingDashboard() {
   const completed = reservations.filter((s) => s.status === "completed");
   const totalEarned = completed.reduce((sum, s) => sum + (s.amount || 0), 0);
 
-  // Categorize reservations like Airbnb: checking out, currently hosting, arriving soon
-  const checkingOut = upcoming.filter((s) => isToday(s.date));
+  // Currently hosting = booking date is today
+  // Arriving soon = booking date is in the future
+  // Checking out = past date but still "upcoming" status (wrapping up)
+  const currentlyHosting = upcoming.filter((s) => isToday(s.date));
   const arrivingSoon = upcoming.filter(
-    (s) => isTomorrow(s.date) || (isThisWeek(s.date) && !isToday(s.date))
+    (s) => new Date(s.date + "T12:00:00") > new Date() && !isToday(s.date)
   );
-  const currentlyHosting = upcoming.filter(
-    (s) => !isToday(s.date) && !isTomorrow(s.date) && !isThisWeek(s.date)
+  const checkingOut = upcoming.filter(
+    (s) => new Date(s.date + "T12:00:00") < new Date() && !isToday(s.date)
   );
 
   // Pending tasks
