@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useMode } from "@/lib/mode-context";
 
@@ -26,6 +27,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
   const { mode, toggleMode } = useMode();
 
@@ -33,6 +35,17 @@ export default function DashboardLayout({
   const firstName = displayName.split(" ")[0];
 
   const tabs = mode === "hosting" ? hostingTabs : travelingTabs;
+
+  // When mode changes, redirect to the first tab if the current path
+  // doesn't match any tab in the new mode
+  useEffect(() => {
+    const isValidTab = tabs.some((tab) =>
+      tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)
+    );
+    if (!isValidTab) {
+      router.replace(tabs[0].href);
+    }
+  }, [mode, pathname, tabs, router]);
 
   return (
     <div className="min-h-screen">
