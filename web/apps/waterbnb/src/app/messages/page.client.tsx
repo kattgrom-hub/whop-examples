@@ -51,10 +51,9 @@ export function MessagesClient() {
     };
   }, [channelId, handleDmsEvent]);
 
-  const chatOptions: ChatElementOptions | undefined = useMemo(() => {
-    if (!channelId) return undefined;
+  const chatOptions: ChatElementOptions = useMemo(() => {
     return {
-      channelId,
+      channelId: channelId ?? "",
     };
   }, [channelId]);
 
@@ -79,7 +78,7 @@ export function MessagesClient() {
                   />
                 </div>
                 <div className="flex-1">
-                  {chatOptions ? (
+                  {channelId ? (
                     <ChatElement
                       options={chatOptions}
                       style={{ height: "100%", width: "100%" }}
