@@ -48,10 +48,9 @@ export async function GET(request: NextRequest) {
         });
 
         for await (const m of memberships) {
-          const meta = m.metadata as Record<string, string> | undefined;
-          if (!meta || meta.type !== "waterbnb") continue;
-
+          const meta = (m.metadata || {}) as Record<string, string>;
           const reservationDate = meta.reservation_date || "";
+          const productTitle = m.product?.title || meta.title || "Boat";
           const dt = reservationDate
             ? new Date(reservationDate + "T12:00:00")
             : new Date(m.created_at);
@@ -64,7 +63,7 @@ export async function GET(request: NextRequest) {
 
           reservations.push({
             id: m.id,
-            title: meta.title || "Boat",
+            title: productTitle,
             hostName: meta.host_name || company.name || "Host",
             hostId: meta.host_id || company.id,
             hostAvatar: `https://api.dicebear.com/9.x/notionists/svg?seed=${meta.host_id || company.id}`,
