@@ -11,7 +11,7 @@ const FEE_RATES = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { hostId, hostName, price, reservationDate, productId: rawProductId, boatId, boatTitle } = body;
+    const { hostId, hostName, price, reservationDate, productId: rawProductId, boatId, boatTitle, location } = body;
     const productId = rawProductId || boatId;
 
     if (!hostId) {
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         reservation_date: reservationDate || "",
         title: boatTitle || "Waterbnb",
         boat_plan_id: boatId || "",
+        location: location || "",
         type: "waterbnb",
       },
       plan: {

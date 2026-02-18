@@ -91,6 +91,7 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
           reservationDate: selectedDate,
           boatId: boat.id,
           boatTitle: boat.title,
+          location: boat.location,
         }),
       });
 
