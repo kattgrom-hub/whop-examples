@@ -4,6 +4,7 @@ import { persistWebhookEvent } from "@/lib/blob/webhook-events";
 import { updateHostEntry } from "@/lib/blob/hosts-index";
 import { removeBookedDate } from "@/lib/blob/boats-index";
 import { storeRead } from "@/lib/blob/storage";
+import { addChatEntry } from "@/lib/blob/chats-index";
 
 // Pro plan IDs from environment
 const PRO_PLAN_IDS = [
@@ -107,6 +108,60 @@ export async function POST(request: NextRequest) {
             console.error("Failed to remove booked date:", err)
           );
           console.log(`Boat ${productId}: removed date ${reservationDate}`);
+        }
+
+        // Create DM channel between guest and host for post-booking messaging
+        const dmHostCompanyId = metadata?.host_id;
+        if (dmHostCompanyId && userId) {
+          try {
+            const hostCompany = await client.companies.retrieve(dmHostCompanyId);
+            const hostOwnerUserId = hostCompany.owner_user?.id;
+
+            if (hostOwnerUserId) {
+              const dmChannel = await client.dmChannels.create({
+                with_user_ids: [userId, hostOwnerUserId],
+                company_id: PLATFORM_COMPANY_ID,
+              });
+
+              const boatTitle = metadata?.title || "Boat Trip";
+              const hostName = metadata?.host_name || "Host";
+              const resDate = metadata?.reservation_date || "";
+              const location = metadata?.location || "";
+
+              // Send and pin a reservation details message
+              const dateLine = resDate
+                ? new Date(resDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+                : "";
+              const lines = [
+                `**Reservation Confirmed**`,
+                ``,
+                `**${boatTitle}**`,
+                ...(dateLine ? [`Date: ${dateLine}`] : []),
+                ...(location ? [`Location: ${location}`] : []),
+                `Host: ${hostName}`,
+              ];
+              const pinnedMsg = await client.messages.create({
+                channel_id: dmChannel.id,
+                content: lines.join("\n"),
+              });
+              await client.messages.update(pinnedMsg.id, { is_pinned: true }).catch((err) =>
+                console.error("Failed to pin reservation message:", err)
+              );
+
+              await addChatEntry({
+                channelId: dmChannel.id,
+                hostUserId: hostOwnerUserId,
+                guestUserId: userId,
+                membershipId: data.id,
+                boatTitle,
+                createdAt: new Date().toISOString(),
+              }).catch((err) => console.error("Failed to save chat entry:", err));
+
+              console.log(`DM channel created: ${dmChannel.id} with pinned reservation details`);
+            }
+          } catch (err) {
+            console.error("Failed to create DM channel:", err);
+          }
         }
 
         console.log("Membership activated:", data.id);

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // Create a checkout configuration with the host's company
     const checkoutConfig = await client.checkoutConfigurations.create({
       mode: "payment",
-      redirect_url: `${appUrl}/dashboard/listings?success=true&host=${hostId}`,
+      redirect_url: `${appUrl}/booking/message?hostId=${encodeURIComponent(hostId)}&boatTitle=${encodeURIComponent(boatTitle || "Waterbnb")}&date=${encodeURIComponent(reservationDate || "")}`,
       metadata: {
         host_id: hostId,
         host_name: hostName || "",

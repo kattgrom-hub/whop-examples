@@ -4,8 +4,8 @@ import { auth } from "@/auth";
 /**
  * Generate an access token for embedded chat.
  * Uses the caller's OAuth access token to create a short-lived
- * component token via the Whop API directly (the SDK doesn't support
- * OAuth-based auth, and user access tokens require OAuth, not API key).
+ * component token via the Whop API. The access_tokens endpoint
+ * with OAuth auth derives the user from the token automatically.
  */
 export async function GET() {
   const session = await auth();

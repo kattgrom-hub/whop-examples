@@ -110,7 +110,12 @@ export function BoatCard({ boat }: { boat: BoatItem }) {
   };
 
   const handleCheckoutSuccess = () => {
-    router.push(`/dashboard/listings?success=true`);
+    const params = new URLSearchParams({
+      hostId,
+      boatTitle: boat.title,
+      date: selectedDate,
+    });
+    router.push(`/booking/message?${params.toString()}`);
   };
 
   const handleCloseCheckout = () => {
