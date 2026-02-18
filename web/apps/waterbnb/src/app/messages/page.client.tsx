@@ -24,12 +24,9 @@ const appearance = {
 };
 
 async function getToken() {
-  const res = await fetch("/api/chat/token");
-  if (!res.ok) {
-    return "";
-  }
-  const data = await res.json();
-  return data.token ?? "";
+  const response = await fetch("/api/chat/token");
+  const data = await response.json();
+  return data.token;
 }
 
 export function MessagesClient() {
@@ -80,6 +77,7 @@ export function MessagesClient() {
                 <div className="flex-1">
                   {channelId ? (
                     <ChatElement
+                      key={channelId}
                       options={chatOptions}
                       style={{ height: "100%", width: "100%" }}
                       fallback={

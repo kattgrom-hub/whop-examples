@@ -2,25 +2,38 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 /**
- * Return the user's OAuth access token for embedded chat components.
+ * Generate a short-lived access token for embedded chat components.
+ * Uses the user's OAuth token to call accessTokens.create(),
+ * which returns a fresh token the embedded components can use.
  */
 export async function GET() {
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.accessToken) {
     return NextResponse.json(
       { error: "Not authenticated" },
       { status: 401 }
     );
   }
 
-  const token = session.accessToken;
-  if (!token) {
+  const res = await fetch("https://api.whop.com/api/v1/access_tokens", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("[chat/token] access_tokens API error:", res.status, err);
     return NextResponse.json(
-      { error: "No access token available" },
-      { status: 500 }
+      { error: "Failed to generate access token" },
+      { status: res.status }
     );
   }
 
-  return NextResponse.json({ token });
+  const data = await res.json();
+  return NextResponse.json({ token: data.token });
 }
