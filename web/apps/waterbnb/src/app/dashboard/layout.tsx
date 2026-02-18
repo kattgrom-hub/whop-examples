@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useMode } from "@/lib/mode-context";
 
@@ -36,16 +35,16 @@ export default function DashboardLayout({
 
   const tabs = mode === "hosting" ? hostingTabs : travelingTabs;
 
-  // When mode changes, redirect to the first tab if the current path
-  // doesn't match any tab in the new mode
-  useEffect(() => {
-    const isValidTab = tabs.some((tab) =>
+  const handleToggleMode = () => {
+    const targetTabs = mode === "hosting" ? travelingTabs : hostingTabs;
+    const currentPathValid = targetTabs.some((tab) =>
       tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)
     );
-    if (!isValidTab) {
-      router.replace(tabs[0].href);
+    toggleMode();
+    if (!currentPathValid) {
+      router.push("/dashboard");
     }
-  }, [mode, pathname, tabs, router]);
+  };
 
   return (
     <div className="min-h-screen">
@@ -57,7 +56,7 @@ export default function DashboardLayout({
               Welcome, {firstName}
             </h1>
             <button
-              onClick={toggleMode}
+              onClick={handleToggleMode}
               className="px-4 py-2 text-sm font-medium border border-[#222222] rounded-full hover:bg-[#222222] hover:text-white transition-colors"
             >
               Switch to {mode === "hosting" ? "Traveling" : "Hosting"}
