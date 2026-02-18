@@ -65,6 +65,7 @@ export function ClassCard({ session }: { session: ClassItem }) {
           timeSlot: `${session.date} ${session.time}`,
           sessionId: session.id,
           sessionTitle: session.title,
+          duration: session.duration,
         }),
       });
 
