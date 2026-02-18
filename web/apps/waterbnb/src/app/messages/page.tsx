@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import {
@@ -26,6 +27,7 @@ const appearance = {
 };
 
 export default function MessagesPage() {
+  const router = useRouter();
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const [channelId, setChannelId] = useState<string>();
 
@@ -57,10 +59,14 @@ export default function MessagesPage() {
   // token format, not the raw OAuth access token.
   const getToken = useCallback(async () => {
     const res = await fetch("/api/chat/token");
+    if (res.status === 401) {
+      router.push("/auth/login?redirect=/messages");
+      return "";
+    }
     if (!res.ok) return "";
     const data = await res.json();
     return data.token ?? "";
-  }, []);
+  }, [router]);
 
   if (authLoading) {
     return (
