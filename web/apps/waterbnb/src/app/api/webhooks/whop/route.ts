@@ -50,7 +50,9 @@ function isProPlan(planId: string): boolean {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { event, data } = body;
+    const { data } = body;
+    // Normalize event name: v2 sends underscores (membership_went_valid), handler uses dots
+    const event = (body.event as string).replace(/_/g, ".");
 
     console.log(`Received Whop webhook: ${event}`, data);
 
