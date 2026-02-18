@@ -102,14 +102,35 @@ function BookingMessageContent() {
           <h2 className="font-semibold text-[#222222] mb-1">
             Send a message to your host
           </h2>
-          <p className="text-sm text-[#717171] mb-4">
+          <p className="text-sm text-[#717171] mb-3">
             Introduce yourself and let them know anything they should prepare for your trip.
           </p>
+
+          {/* Quick-fill suggestions */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            {[
+              `Hi! I just booked ${boatTitle}. Can't wait!`,
+              `Hey! Excited for ${boatTitle}${formattedDate ? ` on ${formattedDate}` : ""}. Anything I should bring?`,
+              `Hello! Looking forward to the trip. How early should we arrive?`,
+              `Hi there! We're a group of friends celebrating a birthday — any special requests we can make?`,
+              `Hey! First time on this type of boat. Any tips for a newbie?`,
+              `Hi! Will there be shade on board? Want to make sure we pack sunscreen either way.`,
+            ].map((suggestion, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setMessage(suggestion)}
+                className="px-3 py-1.5 text-xs bg-[#F7F7F7] border border-[#DDDDDD] rounded-full text-[#222222] hover:bg-[#EBEBEB] transition-colors text-left"
+              >
+                {suggestion.length > 50 ? suggestion.slice(0, 50) + "..." : suggestion}
+              </button>
+            ))}
+          </div>
 
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder={`Hi! I just booked ${boatTitle}. Looking forward to it!`}
+            placeholder="Type a message to your host..."
             rows={4}
             className="w-full px-4 py-3 border border-[#DDDDDD] rounded-lg text-[#222222] placeholder-[#B0B0B0] focus:outline-none focus:border-[#222222] resize-none text-sm"
           />

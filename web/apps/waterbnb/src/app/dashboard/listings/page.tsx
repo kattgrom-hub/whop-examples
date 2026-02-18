@@ -8,16 +8,42 @@ import Link from "next/link";
 const BOAT_TYPES = ["Sailboat", "Yacht", "Pontoon", "Speedboat", "Fishing Boat", "Kayak"];
 
 const RANDOM_LISTINGS = [
+  // Yachts
   { title: "Sunset Cruiser", description: "Relaxing evening cruises along the coast with stunning sunset views.", location: "Marina Del Rey, CA", boatType: "Yacht", capacity: 8, pricePerTrip: 250 },
-  { title: "The Salty Dog", description: "A rugged fishing boat perfect for deep-sea adventures.", location: "Key West, FL", boatType: "Fishing Boat", capacity: 4, pricePerTrip: 120 },
-  { title: "Aqua Therapy", description: "Peaceful pontoon rides on calm lake waters. BYOB friendly.", location: "Lake Tahoe, CA", boatType: "Pontoon", capacity: 10, pricePerTrip: 180 },
-  { title: "Wind Whisperer", description: "Classic sailboat experience for those who love the open water.", location: "Newport, RI", boatType: "Sailboat", capacity: 6, pricePerTrip: 200 },
-  { title: "Velocity", description: "High-speed thrills on a sleek speedboat. Hold on tight!", location: "Miami Beach, FL", boatType: "Speedboat", capacity: 4, pricePerTrip: 300 },
-  { title: "Lazy River", description: "Kayak through mangroves and spot wildlife up close.", location: "Everglades, FL", boatType: "Kayak", capacity: 2, pricePerTrip: 45 },
   { title: "Island Hopper", description: "Visit hidden coves and secluded beaches aboard a spacious yacht.", location: "San Juan Islands, WA", boatType: "Yacht", capacity: 12, pricePerTrip: 450 },
+  { title: "The Odyssey", description: "Full-day luxury yacht charter with catered lunch and open bar.", location: "Cabo San Lucas, MX", boatType: "Yacht", capacity: 10, pricePerTrip: 800 },
+  { title: "Blue Horizon", description: "Whale watching excursion on a 40ft yacht. Binoculars provided.", location: "Monterey Bay, CA", boatType: "Yacht", capacity: 8, pricePerTrip: 350 },
+  { title: "Diamond Waves", description: "Corporate event yacht with presentation area and Wi-Fi.", location: "Hudson River, NY", boatType: "Yacht", capacity: 20, pricePerTrip: 1200 },
+  // Fishing Boats
+  { title: "The Salty Dog", description: "A rugged fishing boat perfect for deep-sea adventures.", location: "Key West, FL", boatType: "Fishing Boat", capacity: 4, pricePerTrip: 120 },
   { title: "Bass Master", description: "Fully equipped fishing boat with sonar, rods, and live bait included.", location: "Lake Okeechobee, FL", boatType: "Fishing Boat", capacity: 3, pricePerTrip: 95 },
+  { title: "Reel Deal", description: "Half-day deep sea fishing. Tackle, bait, and fish cleaning included.", location: "Destin, FL", boatType: "Fishing Boat", capacity: 6, pricePerTrip: 200 },
+  { title: "Catch & Release", description: "Fly fishing guide boat on pristine mountain rivers.", location: "Bozeman, MT", boatType: "Fishing Boat", capacity: 2, pricePerTrip: 275 },
+  { title: "Trophy Hunter", description: "Night fishing for swordfish. All gear and snacks provided.", location: "Islamorada, FL", boatType: "Fishing Boat", capacity: 4, pricePerTrip: 350 },
+  // Pontoons
+  { title: "Aqua Therapy", description: "Peaceful pontoon rides on calm lake waters. BYOB friendly.", location: "Lake Tahoe, CA", boatType: "Pontoon", capacity: 10, pricePerTrip: 180 },
   { title: "Party Barge", description: "The ultimate floating party. Bluetooth speakers and cooler onboard.", location: "Lake Havasu, AZ", boatType: "Pontoon", capacity: 14, pricePerTrip: 350 },
+  { title: "Lily Pad", description: "Chill pontoon with a water slide and swimming platform.", location: "Lake Travis, TX", boatType: "Pontoon", capacity: 12, pricePerTrip: 225 },
+  { title: "Floating Picnic", description: "Pontoon set up for wine and cheese on the water. Couples welcome.", location: "Finger Lakes, NY", boatType: "Pontoon", capacity: 6, pricePerTrip: 150 },
+  { title: "Sunday Funday", description: "Family-friendly pontoon with shaded canopy, tubes, and snorkels.", location: "Table Rock Lake, MO", boatType: "Pontoon", capacity: 10, pricePerTrip: 160 },
+  // Sailboats
+  { title: "Wind Whisperer", description: "Classic sailboat experience for those who love the open water.", location: "Newport, RI", boatType: "Sailboat", capacity: 6, pricePerTrip: 200 },
   { title: "Moonlight Sail", description: "Nighttime sailing under the stars. Includes hot cocoa.", location: "Chesapeake Bay, MD", boatType: "Sailboat", capacity: 5, pricePerTrip: 175 },
+  { title: "Trade Winds", description: "Learn to sail with a USCG-certified captain. Beginners welcome.", location: "Annapolis, MD", boatType: "Sailboat", capacity: 4, pricePerTrip: 150 },
+  { title: "Sea Breeze", description: "Catamaran sailing with snorkel stop at a coral reef.", location: "Maui, HI", boatType: "Sailboat", capacity: 8, pricePerTrip: 300 },
+  { title: "Golden Gate Glider", description: "Sail under the Golden Gate Bridge. Camera-ready views guaranteed.", location: "San Francisco, CA", boatType: "Sailboat", capacity: 6, pricePerTrip: 225 },
+  // Speedboats
+  { title: "Velocity", description: "High-speed thrills on a sleek speedboat. Hold on tight!", location: "Miami Beach, FL", boatType: "Speedboat", capacity: 4, pricePerTrip: 300 },
+  { title: "Thunder Run", description: "Adrenaline-pumping speedboat tour through the harbor.", location: "San Diego, CA", boatType: "Speedboat", capacity: 6, pricePerTrip: 180 },
+  { title: "Jet Setter", description: "Wakeboarding and tubing package with all equipment included.", location: "Lake Powell, UT", boatType: "Speedboat", capacity: 5, pricePerTrip: 250 },
+  { title: "Mako", description: "Shark cage diving transport. Fast ride to the dive site.", location: "Montauk, NY", boatType: "Speedboat", capacity: 4, pricePerTrip: 400 },
+  { title: "Splash Zone", description: "Banana boat pulls and donuts. Perfect for groups of friends.", location: "Panama City Beach, FL", boatType: "Speedboat", capacity: 8, pricePerTrip: 200 },
+  // Kayaks
+  { title: "Lazy River", description: "Kayak through mangroves and spot wildlife up close.", location: "Everglades, FL", boatType: "Kayak", capacity: 2, pricePerTrip: 45 },
+  { title: "Glow Tour", description: "Bioluminescent kayak tour at night. Paddles and life vests included.", location: "Mosquito Lagoon, FL", boatType: "Kayak", capacity: 2, pricePerTrip: 65 },
+  { title: "Canyon Paddle", description: "Kayak through slot canyons with towering red rock walls.", location: "Lake Mead, NV", boatType: "Kayak", capacity: 2, pricePerTrip: 85 },
+  { title: "Sea Cave Explorer", description: "Guided sea kayak tour through coastal caves and arches.", location: "La Jolla, CA", boatType: "Kayak", capacity: 2, pricePerTrip: 75 },
+  { title: "Sunrise Paddle", description: "Early morning kayak with coffee and pastries on a sandbar.", location: "Siesta Key, FL", boatType: "Kayak", capacity: 2, pricePerTrip: 55 },
 ];
 
 function randomDates(count: number): string[] {
