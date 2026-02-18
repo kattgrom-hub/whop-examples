@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import {
@@ -26,14 +25,26 @@ const appearance = {
   },
 };
 
+async function getToken() {
+  const res = await fetch("/api/chat/token");
+  if (!res.ok) {
+    console.error("[chat:getToken] token endpoint failed:", res.status);
+    return "";
+  }
+  const data = await res.json();
+  console.log("[chat:getToken] got component token");
+  return data.token ?? "";
+}
+
 export default function MessagesPage() {
-  const router = useRouter();
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const [channelId, setChannelId] = useState<string>();
 
   const handleDmsEvent = useCallback((event: DmsListElementEvent) => {
+    console.log("[chat:dms] event:", event.type, event);
     switch (event.type) {
       case "channelSelected":
+        console.log("[chat:dms] channel selected:", event.detail.id);
         setChannelId(event.detail.id);
         break;
     }
@@ -48,25 +59,19 @@ export default function MessagesPage() {
   }, [channelId, handleDmsEvent]);
 
   const chatOptions: ChatElementOptions | undefined = useMemo(() => {
-    if (!channelId) return undefined;
+    if (!channelId) {
+      console.log("[chat:options] no channelId yet");
+      return undefined;
+    }
+    console.log("[chat:options] creating chatOptions for channel:", channelId);
     return {
       channelId,
     };
   }, [channelId]);
 
-  // Fetch a short-lived access token from our API route, which calls
-  // accessTokens.create() server-side. Embedded components require this
-  // token format, not the raw OAuth access token.
-  const getToken = useCallback(async () => {
-    const res = await fetch("/api/chat/token");
-    if (res.status === 401) {
-      router.push("/auth/login?redirect=/messages");
-      return "";
-    }
-    if (!res.ok) return "";
-    const data = await res.json();
-    return data.token ?? "";
-  }, [router]);
+  const handleChatReady = useCallback(() => {
+    console.log("[chat:element] READY");
+  }, []);
 
   if (authLoading) {
     return (
@@ -118,10 +123,12 @@ export default function MessagesPage() {
                   {chatOptions ? (
                     <ChatElement
                       options={chatOptions}
+                      onReady={handleChatReady}
                       style={{ height: "100%", width: "100%" }}
                       fallback={
                         <div className="flex items-center justify-center h-full">
                           <div className="w-6 h-6 border-2 spinner-airbnb rounded-full animate-spin" />
+                          <span className="ml-2 text-sm text-[#717171]">Loading chat...</span>
                         </div>
                       }
                     />
