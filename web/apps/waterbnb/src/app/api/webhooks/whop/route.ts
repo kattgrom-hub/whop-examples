@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
 import { persistWebhookEvent } from "@/lib/blob/webhook-events";
-import { updateHostEntry, getUserIdByCompanyId } from "@/lib/blob/hosts-index";
+import { updateHostEntry } from "@/lib/blob/hosts-index";
 import { removeBookedDate } from "@/lib/blob/boats-index";
-import { addChatEntry } from "@/lib/blob/chats-index";
 
 // Pro plan IDs from environment
 const PRO_PLAN_IDS = [
@@ -43,7 +42,7 @@ function isProPlan(planId: string): boolean {
  *
  * Handles:
  * - payment.succeeded / payment.failed
- * - membership.went_valid — removes booked date, creates DM channel
+ * - membership.went_valid — removes booked date
  * - membership.went_invalid — downgrades host plan
  * - payout.completed
  */
@@ -54,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Normalize event name: v2 sends underscores (membership_went_valid), handler uses dots
     const event = (body.event as string).replace(/_/g, ".");
 
-    console.log(`Received Whop webhook: ${event}`, data);
+    console.log(`Received Whop webhook: ${event}`, JSON.stringify(data, null, 2));
 
     switch (event) {
       case "payment.succeeded": {
@@ -69,80 +68,44 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "membership.went_valid": {
-        // Host subscribed to Pro plan - update their tier
-        if (data.plan_id && isProPlan(data.plan_id) && data.user_id) {
-          const companyId = await updateHostPlanTier(data.user_id, "pro");
-          if (companyId) {
-            await updateHostEntry(companyId, { plan: "pro" }).catch(() => {});
-          }
-        }
-
-        // Boat was reserved - remove the booked date
+      case "membership.activated": {
+        const planId = data.plan?.id ?? data.plan_id;
+        const userId = data.user?.id ?? data.user_id;
+        const productId = data.product?.id ?? data.product_id;
         const metadata = data.metadata as Record<string, string> | undefined;
-        if (metadata?.type === "waterbnb" && data.product_id) {
-          const reservationDate = metadata.reservation_date || "";
 
-          // Remove the booked date from available dates
-          if (reservationDate) {
-            await removeBookedDate(data.product_id, reservationDate).catch((err) =>
-              console.error("Failed to remove booked date:", err)
-            );
-            console.log(`Boat ${data.product_id}: removed date ${reservationDate}`);
-          }
-
-          // Create DM channel between host and guest
-          try {
-            const client = getWhopApi();
-            const hostCompanyId = data.company_id as string;
-            const guestUserId = data.user_id as string;
-
-            // Resolve host's userId: try local cache first, fall back to API
-            let hostUserId = await getUserIdByCompanyId(hostCompanyId);
-            if (!hostUserId) {
-              const company = await client.companies.retrieve(hostCompanyId);
-              hostUserId = company.owner_user?.id ?? null;
-            }
-
-            if (hostUserId && guestUserId) {
-              const dmChannel = await client.dmChannels.create({
-                with_user_ids: [hostUserId, guestUserId],
-                company_id: PLATFORM_COMPANY_ID,
-                custom_name: `Waterbnb: ${metadata.title || "Boat Trip"}`,
-              });
-
-              // Persist to chats index
-              await addChatEntry({
-                channelId: dmChannel.id,
-                hostUserId,
-                guestUserId,
-                membershipId: data.id as string,
-                boatTitle: metadata.title || "Boat Trip",
-                createdAt: new Date().toISOString(),
-              });
-
-              console.log(`DM channel created: ${dmChannel.id} for ${metadata.title}`);
-            } else {
-              console.warn(`Skipped DM creation: could not resolve host userId for company ${hostCompanyId}`);
-            }
-          } catch (chatErr) {
-            console.error("Failed to create DM channel:", chatErr);
+        // Host subscribed to Pro plan - update their tier
+        if (planId && isProPlan(planId) && userId) {
+          const hostCompanyId = await updateHostPlanTier(userId, "pro");
+          if (hostCompanyId) {
+            await updateHostEntry(hostCompanyId, { plan: "pro" }).catch(() => {});
           }
         }
 
-        console.log("Membership went valid:", data.id);
+        // Remove the booked date from available dates
+        const reservationDate = metadata?.reservation_date || "";
+        if (reservationDate && productId) {
+          await removeBookedDate(productId, reservationDate).catch((err) =>
+            console.error("Failed to remove booked date:", err)
+          );
+          console.log(`Boat ${productId}: removed date ${reservationDate}`);
+        }
+
+        console.log("Membership activated:", data.id);
         break;
       }
 
-      case "membership.went_invalid": {
+      case "membership.deactivated": {
         // Host's Pro subscription ended - downgrade to core
-        if (data.plan_id && isProPlan(data.plan_id) && data.user_id) {
-          const companyId = await updateHostPlanTier(data.user_id, "core");
-          if (companyId) {
-            await updateHostEntry(companyId, { plan: "core" }).catch(() => {});
+        const deactPlanId = data.plan?.id ?? data.plan_id;
+        const deactUserId = data.user?.id ?? data.user_id;
+        if (deactPlanId && isProPlan(deactPlanId) && deactUserId) {
+          const deactCompanyId = await updateHostPlanTier(deactUserId, "core");
+          if (deactCompanyId) {
+            await updateHostEntry(deactCompanyId, { plan: "core" }).catch(() => {});
           }
         }
-        console.log("Membership went invalid:", data.id);
+        console.log("Membership deactivated:", data.id);
         break;
       }
 

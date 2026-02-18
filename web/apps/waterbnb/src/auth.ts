@@ -79,9 +79,16 @@ async function ensureConnectedAccount(
 
 export const { auth, handlers, signIn, signOut } = createWhopAuth({
   scopes: [
+    "openid",
+    "profile",
+    "email",
+    "chat:message:create",
+    "chat:read",
     "dms:read",
     "dms:message:manage",
     "dms:channel:manage",
+    "support_chat:read",
+    "support_chat:message:create",
   ],
   callbacks: {
     async jwt({ token, user, account }) {

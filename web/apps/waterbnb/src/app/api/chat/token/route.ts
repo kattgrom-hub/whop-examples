@@ -29,7 +29,7 @@ export async function GET() {
 
     if (!res.ok) {
       const err = await res.text();
-      console.error("Whop access token API error:", res.status, err);
+      console.error("[chat/token] Whop access token API error:", res.status, err);
       return NextResponse.json(
         { error: "Failed to generate access token" },
         { status: res.status }
