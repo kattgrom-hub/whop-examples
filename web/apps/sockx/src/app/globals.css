@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-sockx-primary: #7C3AED;
+  --color-sockx-secondary: #A78BFA;
+  --color-sockx-cta: #22C55E;
+  --color-sockx-bg: #FAF5FF;
+  --color-sockx-text: #4C1D95;
+  --font-heading: var(--font-anton);
+  --font-body: var(--font-epilogue);
+}
+
+body {
+  background: var(--color-sockx-bg);
+  color: var(--color-sockx-text);
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+/* Horizontal scrollbar styling for trending section */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

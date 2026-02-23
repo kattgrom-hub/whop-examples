@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #1E1B4B;
+  --color-secondary: #4338CA;
+  --color-cta: #22C55E;
+  --color-background: #0F0F23;
+  --color-text: #F8FAFC;
+  --color-role-producer: #22C55E;
+  --color-role-vocalist: #A78BFA;
+  --color-role-engineer: #3B82F6;
+  --color-role-ar: #F59E0B;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1E1B4B transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #1E1B4B;
+  border-radius: 3px;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  overflow: hidden;
+}

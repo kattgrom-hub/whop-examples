@@ -31,5 +31,32 @@
     "stack": ["Next.js", "Tailwind"],
     "integrations": ["Checkout", "Payouts", "OAuth", "Chat"],
     "previewImage": "preview.png"
+  },
+  {
+    "slug": "dischord",
+    "name": "Dischord",
+    "description": "Discord-style chat app — real-time messaging with channels, members, and embedded Whop components",
+    "category": "Social",
+    "status": "built",
+    "stack": ["Next.js", "Tailwind"],
+    "integrations": ["Checkout", "OAuth", "Embedded Components"]
+  },
+  {
+    "slug": "sockx",
+    "name": "SockX",
+    "description": "Sneaker marketplace — browse, bid, and buy shoes with Whop Checkout integration",
+    "category": "Marketplace",
+    "status": "built",
+    "stack": ["Next.js", "Tailwind"],
+    "integrations": ["Checkout", "OAuth"]
+  },
+  {
+    "slug": "dropify",
+    "name": "Dropify",
+    "description": "E-commerce storefront — product catalog with cart, checkout, and Whop payment integration",
+    "category": "E-commerce",
+    "status": "built",
+    "stack": ["Next.js", "Tailwind"],
+    "integrations": ["Checkout", "OAuth"]
   }
 ]

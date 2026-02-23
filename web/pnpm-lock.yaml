@@ -12,6 +12,104 @@ importers:
         specifier: ^2.3.0
         version: 2.8.1
 
+  apps/dischord:
+    dependencies:
+      '@whop-examples/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@whop/checkout':
+        specifier: ^0.0.52
+        version: 0.0.52(react@19.2.4)
+      '@whop/embedded-components-react-js':
+        specifier: 0.0.13-beta.10
+        version: 0.0.13-beta.10(@whop/embedded-components-vanilla-js@0.0.13-beta.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@whop/embedded-components-vanilla-js':
+        specifier: 0.0.13-beta.10
+        version: 0.0.13-beta.10
+      '@whop/sdk':
+        specifier: ^0.0.28
+        version: 0.0.28
+      lucide-react:
+        specifier: ^0.575.0
+        version: 0.575.0(react@19.2.4)
+      next:
+        specifier: ^15.1.0
+        version: 15.5.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next-auth:
+        specifier: 5.0.0-beta.30
+        version: 5.0.0-beta.30(next@15.5.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.1.18
+      '@types/node':
+        specifier: ^20
+        version: 20.19.33
+      '@types/react':
+        specifier: ^19
+        version: 19.2.10
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.3(@types/react@19.2.10)
+      tailwindcss:
+        specifier: ^4
+        version: 4.1.18
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  apps/dropify:
+    dependencies:
+      '@whop-examples/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@whop/checkout':
+        specifier: ^0.0.52
+        version: 0.0.52(react@19.2.4)
+      '@whop/sdk':
+        specifier: ^0.0.28
+        version: 0.0.28
+      lucide-react:
+        specifier: ^0.575.0
+        version: 0.575.0(react@19.2.4)
+      next:
+        specifier: ^15.1.0
+        version: 15.5.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next-auth:
+        specifier: 5.0.0-beta.30
+        version: 5.0.0-beta.30(next@15.5.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.1.18
+      '@types/node':
+        specifier: ^20
+        version: 20.19.33
+      '@types/react':
+        specifier: ^19
+        version: 19.2.10
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.3(@types/react@19.2.10)
+      tailwindcss:
+        specifier: ^4
+        version: 4.1.18
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
   apps/masterclass:
     dependencies:
       '@vercel/blob':
@@ -68,6 +166,52 @@ importers:
         version: 4.21.0
       typescript:
         specifier: ^5.7.0
+        version: 5.9.3
+
+  apps/sockx:
+    dependencies:
+      '@whop-examples/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@whop/checkout':
+        specifier: ^0.0.52
+        version: 0.0.52(react@19.2.4)
+      '@whop/sdk':
+        specifier: ^0.0.28
+        version: 0.0.28
+      lucide-react:
+        specifier: ^0.575.0
+        version: 0.575.0(react@19.2.4)
+      next:
+        specifier: ^15.1.0
+        version: 15.5.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      next-auth:
+        specifier: 5.0.0-beta.30
+        version: 5.0.0-beta.30(next@15.5.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.1.18
+      '@types/node':
+        specifier: ^20
+        version: 20.19.33
+      '@types/react':
+        specifier: ^19
+        version: 19.2.10
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.3(@types/react@19.2.10)
+      tailwindcss:
+        specifier: ^4
+        version: 4.1.18
+      typescript:
+        specifier: ^5
         version: 5.9.3
 
   apps/titled-tuesday:
@@ -761,6 +905,9 @@ packages:
   '@tailwindcss/postcss@4.1.18':
     resolution: {integrity: sha512-Ce0GFnzAOuPyfV5SxjXGn0CubwGcuDB0zcdaPuCSzAa/2vII24JTkH+I6jcbXLb1ctjZMZZI6OjDaLPJQL1S0g==}
 
+  '@types/node@20.19.33':
+    resolution: {integrity: sha512-Rs1bVAIdBs5gbTIKza/tgpMuG1k3U/UMJLWecIMxNdJFDMzcM5LOiLVRYh3PilWEYDIeUDv7bpiHPLPsbydGcw==}
+
   '@types/node@22.19.7':
     resolution: {integrity: sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw==}
 
@@ -784,6 +931,21 @@ packages:
       react:
         optional: true
 
+  '@whop/checkout@0.0.52':
+    resolution: {integrity: sha512-bbaJUWyzdraYYiTBzSe1w/oNB98ZlIA138KlCljSGOtzt96ByBJvWEPteX0UUvMYvWu/BKfHNTi+IVZD8FRY0g==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  '@whop/embedded-components-react-js@0.0.13-beta.10':
+    resolution: {integrity: sha512-aULSrbkYbpz9c+iU3WOxF4hFcyBC3riASrHA1kzYn3xt8QTqC3TbwjGneRlvhDJSNnAXMum2zAH1NubW1GJIhw==}
+    peerDependencies:
+      '@whop/embedded-components-vanilla-js': ^0.0.13-beta.10
+      react: '>=16.8.0 <20.0.0'
+      react-dom: '>=16.8.0 <20.0.0'
+
   '@whop/embedded-components-react-js@0.0.13-beta.8':
     resolution: {integrity: sha512-M1wUNDREjtr36Sw91rVtd78Pez5sRuU3qGOhSUsG9AyOjXvfg7lXn0iNuZVqXYKYQjKc6cmg/RxmZT+VQGtc4g==}
     peerDependencies:
@@ -798,6 +960,9 @@ packages:
       react: '>=16.8.0 <20.0.0'
       react-dom: '>=16.8.0 <20.0.0'
 
+  '@whop/embedded-components-vanilla-js@0.0.13-beta.10':
+    resolution: {integrity: sha512-hj2YF0fLVVQBvYo93SUjx5KdHc4XSu5QC5gyMvhDeoNkKI8rWX8V8Z0561OMEPPyHC2+2FfcJttnVy1NR0IZzw==}
+
   '@whop/embedded-components-vanilla-js@0.0.13-beta.8':
     resolution: {integrity: sha512-MWQpQc45ZwZbxwQu8fsWJO3CU/Ej7jHZe/m+hp2kSDlDmkw7JAoo3CIgxu6h7H6GAPiYq/e0Rl4E0ps68NEWYQ==}
 
@@ -809,6 +974,9 @@ packages:
 
   '@whop/sdk@0.0.27':
     resolution: {integrity: sha512-9X5RC46/H5LaE0KsnHatDpOZN7EvzadzPWnW4r1h1V3KeR1k/61fikaIm2Bzaziec4z4TXWRDghAPieLUqrbHQ==}
+
+  '@whop/sdk@0.0.28':
+    resolution: {integrity: sha512-/7cy//wFH9+53Cj2u6MGsBY+mRNw7QaOtdIfYoOAKw4I4kt0zLtsaZ3cXYZa8g9fnI+bMv02271MXSAGZnAu7w==}
 
   async-retry@1.3.3:
     resolution: {integrity: sha512-wfr/jstw9xNi/0teMHrRW7dsz3Lt5ARhYNZ2ewpadnhaIp5mbALhOAP+EAdsC7t4Z6wqsDVv9+W6gm1Dk9mEyw==}
@@ -940,6 +1108,11 @@ packages:
   lightningcss@1.30.2:
     resolution: {integrity: sha512-utfs7Pr5uJyyvDETitgsaqSyjCb2qNRAtuqUeWIAKztsOYdcACf2KtARYXg2pSvhkt+9NfoaNY7fxjl6nuMjIQ==}
     engines: {node: '>= 12.0.0'}
+
+  lucide-react@0.575.0:
+    resolution: {integrity: sha512-VuXgKZrk0uiDlWjGGXmKV6MSk9Yy4l10qgVvzGn2AWBx1Ylt0iBexKOAoA6I7JO3m+M9oeovJd3yYENfkUbOeg==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -1435,6 +1608,10 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.1.18
 
+  '@types/node@20.19.33':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@22.19.7':
     dependencies:
       undici-types: 6.21.0
@@ -1459,6 +1636,16 @@ snapshots:
     optionalDependencies:
       react: 19.2.4
 
+  '@whop/checkout@0.0.52(react@19.2.4)':
+    optionalDependencies:
+      react: 19.2.4
+
+  '@whop/embedded-components-react-js@0.0.13-beta.10(@whop/embedded-components-vanilla-js@0.0.13-beta.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@whop/embedded-components-vanilla-js': 0.0.13-beta.10
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+
   '@whop/embedded-components-react-js@0.0.13-beta.8(@whop/embedded-components-vanilla-js@0.0.13-beta.8)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@whop/embedded-components-vanilla-js': 0.0.13-beta.8
@@ -1471,6 +1658,8 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
+  '@whop/embedded-components-vanilla-js@0.0.13-beta.10': {}
+
   '@whop/embedded-components-vanilla-js@0.0.13-beta.8': {}
 
   '@whop/embedded-components-vanilla-js@0.0.9': {}
@@ -1481,6 +1670,11 @@ snapshots:
       standardwebhooks: 1.0.0
 
   '@whop/sdk@0.0.27':
+    dependencies:
+      jose: 6.1.3
+      standardwebhooks: 1.0.0
+
+  '@whop/sdk@0.0.28':
     dependencies:
       jose: 6.1.3
       standardwebhooks: 1.0.0
@@ -1600,6 +1794,10 @@ snapshots:
       lightningcss-linux-x64-musl: 1.30.2
       lightningcss-win32-arm64-msvc: 1.30.2
       lightningcss-win32-x64-msvc: 1.30.2
+
+  lucide-react@0.575.0(react@19.2.4):
+    dependencies:
+      react: 19.2.4
 
   magic-string@0.30.21:
     dependencies:

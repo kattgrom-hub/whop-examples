@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-gold: #D4AF37;
+  --color-gold-hover: #C4A030;
+  --color-primary: #171717;
+  --color-secondary: #404040;
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: #ffffff;
+  color: #171717;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Cart drawer backdrop */
+.backdrop-blur-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}

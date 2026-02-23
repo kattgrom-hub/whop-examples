@@ -14,7 +14,8 @@
         "AUTH_TRUST_HOST",
         "ENABLE_COREPACK",
         "ENABLE_EXPERIMENTAL_COREPACK",
-        "BLOB_READ_WRITE_TOKEN"
+        "BLOB_READ_WRITE_TOKEN",
+        "NEXT_PUBLIC_WHOP_CHAT_CHANNEL_ID"
       ]
     },
     "dev": {
