@@ -11,7 +11,9 @@ import {
 } from "@whop/embedded-components-react-js";
 import { loadWhopElements } from "@whop/embedded-components-vanilla-js";
 
-const elements = loadWhopElements();
+const elements = loadWhopElements({
+  environment: (process.env.NEXT_PUBLIC_WHOP_PAYMENTS_ENV as "sandbox" | "production") || "production",
+});
 
 const appearance = {
   theme: {

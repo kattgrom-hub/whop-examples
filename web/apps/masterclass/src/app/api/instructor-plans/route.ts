@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
  * Instructor plan checkout links - all plans go to Whop hosted checkout
  */
 const PLAN_IDS = {
-  core: "plan_jkXUdgZw1MAeL",
-  pro_monthly: "plan_dILTpyq7hdoFT",
-  pro_yearly: "plan_HuiQ7GzCm8jtG",
+  core: process.env.WHOP_PLAN_CORE || "plan_jkXUdgZw1MAeL",
+  pro_monthly: process.env.WHOP_PLAN_PRO_MONTHLY || "plan_dILTpyq7hdoFT",
+  pro_yearly: process.env.WHOP_PLAN_PRO_YEARLY || "plan_HuiQ7GzCm8jtG",
 };
 
 export async function POST(request: NextRequest) {
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Return the Whop hosted checkout URL
     return NextResponse.json({
-      checkoutUrl: `https://whop.com/checkout/${planId}`,
+      checkoutUrl: `${process.env.WHOP_BASE_URL?.includes("sandbox") ? "https://sandbox.whop.com" : "https://whop.com"}/checkout/${planId}`,
     });
   } catch (error) {
     console.error("Instructor plan error:", error);

@@ -13,7 +13,8 @@ const PLATFORM_COMPANY_ID = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || "";
 export async function POST(request: NextRequest) {
   try {
     const { companyId, userName, userAvatar, title, description, date, time, duration, price } = await request.json();
-    if (!companyId || !title || !date || !time) return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const missing = [!companyId && "companyId", !title && "title", !date && "date", !time && "time"].filter(Boolean);
+    if (missing.length) return NextResponse.json({ error: `Missing required fields: ${missing.join(", ")}` }, { status: 400 });
     if (!PLATFORM_COMPANY_ID) return NextResponse.json({ error: "Platform not configured" }, { status: 500 });
 
     const instructorCompanyId = companyId;

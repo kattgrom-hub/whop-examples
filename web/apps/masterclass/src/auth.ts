@@ -68,7 +68,7 @@ async function ensureConnectedAccount(
       avatarUrl: image || "",
       plan: "core",
       categories: [],
-    }, userId);
+    }, userId).catch((err) => console.warn("Blob cache write failed (non-fatal):", err));
 
     return newAccount.id;
   } catch (error) {
