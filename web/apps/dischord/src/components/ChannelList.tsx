@@ -11,19 +11,15 @@ import {
 import type { ChatChannel } from "@/lib/channels";
 
 interface ChannelListProps {
-  serverName: string;
   channels: ChatChannel[];
   activeChannelId: string | null;
   onChannelChange: (channelId: string) => void;
-  loading?: boolean;
 }
 
 export default function ChannelList({
-  serverName,
   channels,
   activeChannelId,
   onChannelChange,
-  loading,
 }: ChannelListProps) {
   return (
     <div className="flex w-56 flex-col bg-[#12122a]">
@@ -31,7 +27,7 @@ export default function ChannelList({
       <div className="flex h-12 items-center justify-between border-b border-[#1E1B4B] px-4 shadow-sm">
         <div className="flex items-center gap-2 min-w-0">
           <h2 className="truncate text-[15px] font-semibold text-white">
-            {serverName}
+            Dischord
           </h2>
           <div
             className="h-2 w-2 rounded-full bg-[#22C55E] shrink-0"
@@ -53,11 +49,7 @@ export default function ChannelList({
 
       {/* Channels */}
       <div className="flex-1 overflow-y-auto px-2 pt-2 scrollbar-hide">
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#4338CA] border-t-transparent" />
-          </div>
-        ) : channels.length > 0 ? (
+        {channels.length > 0 ? (
           <div className="mb-4">
             <div className="mb-1 flex w-full items-center gap-0.5 px-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
               <ChevronDown size={12} />
