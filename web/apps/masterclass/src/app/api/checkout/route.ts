@@ -18,13 +18,22 @@ export async function POST(request: NextRequest) {
     const instructorName = coachName;
 
     if (!instructorId) {
+      console.error("Checkout: missing coachId", { body: JSON.stringify(body) });
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing coachId — no instructor specified for this class" },
         { status: 400 }
       );
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5001";
+
+    console.log("Checkout: creating config", {
+      instructorId,
+      instructorName,
+      price,
+      sessionId: sessionId || productId || "(none)",
+      appUrl,
+    });
 
     const client = getWhopApi();
 
@@ -104,13 +113,36 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Checkout error:", error);
-    if (error && typeof error === 'object') {
-      console.error("Error details:", JSON.stringify(error, null, 2));
+
+    const raw = error instanceof Error ? error.message : String(error);
+
+    // Parse Whop API errors into actionable messages
+    let userMessage = "Something went wrong creating the checkout. Please try again.";
+    let status = 500;
+
+    if (raw.includes("Bot was not found") || raw.includes("not_found")) {
+      userMessage =
+        `Instructor company ${instructorId} is not connected to the app. ` +
+        "The Masterclass app must be installed on the instructor's company before checkout can work.";
+      status = 400;
+    } else if (raw.includes("unauthorized") || raw.includes("Authentication failed")) {
+      userMessage =
+        "The API key is invalid or missing permissions. " +
+        "Check that WHOP_API_KEY is a valid app API key (not a company key).";
+      status = 401;
+    } else if (raw.includes("redirect URL must be a valid URL")) {
+      userMessage =
+        "NEXT_PUBLIC_APP_URL must be set to an https:// URL in production. " +
+        "Current value is generating an invalid redirect URL for checkout.";
+      status = 400;
+    } else if (raw.includes("application_fee_amount")) {
+      userMessage =
+        "Invalid platform fee configuration. The application fee must be greater than 0 and less than the total price.";
+      status = 400;
     }
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json(
-      { error: `Failed to create checkout: ${errorMessage}` },
-      { status: 500 }
-    );
+
+    console.error("Parsed checkout error:", { raw, userMessage });
+
+    return NextResponse.json({ error: userMessage }, { status });
   }
 }

@@ -78,11 +78,31 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Checkout error:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : String(error);
-    return NextResponse.json(
-      { error: `Failed to create checkout: ${errorMessage}` },
-      { status: 500 }
-    );
+
+    const raw = error instanceof Error ? error.message : String(error);
+
+    let userMessage = "Something went wrong creating the checkout. Please try again.";
+    let status = 500;
+
+    if (raw.includes("Bot was not found") || raw.includes("not_found")) {
+      userMessage =
+        "The app is not installed on this company. " +
+        "Check that WHOP_API_KEY is an app API key and the app is installed on the company in NEXT_PUBLIC_WHOP_COMPANY_ID.";
+      status = 400;
+    } else if (raw.includes("unauthorized") || raw.includes("Authentication failed")) {
+      userMessage =
+        "The API key is invalid or missing permissions. " +
+        "Check that WHOP_API_KEY is a valid app API key (not a company key).";
+      status = 401;
+    } else if (raw.includes("redirect URL must be a valid URL")) {
+      userMessage =
+        "NEXT_PUBLIC_APP_URL must be set to an https:// URL in production. " +
+        "Current value is generating an invalid redirect URL for checkout.";
+      status = 400;
+    }
+
+    console.error("Parsed checkout error:", { raw, userMessage });
+
+    return NextResponse.json({ error: userMessage }, { status });
   }
 }
