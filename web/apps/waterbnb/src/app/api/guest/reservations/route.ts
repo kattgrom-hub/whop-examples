@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
 import { readHostsIndex } from "@/lib/blob/hosts-index";
+import { readChatsIndex } from "@/lib/blob/chats-index";
 
 const PLATFORM_COMPANY_ID = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID || "";
 
@@ -20,7 +21,17 @@ export async function GET(request: NextRequest) {
       date: string;
       location: string;
       status: "upcoming" | "completed" | "cancelled";
+      channelId?: string;
     }[] = [];
+
+    // Build a membership -> channelId lookup from the chats index
+    const chatsIndex = await readChatsIndex();
+    const channelByMembership = new Map<string, string>();
+    if (chatsIndex) {
+      for (const chat of chatsIndex.chats) {
+        channelByMembership.set(chat.membershipId, chat.channelId);
+      }
+    }
 
     const now = new Date();
 
@@ -70,6 +81,7 @@ export async function GET(request: NextRequest) {
             date: reservationDate || new Date(m.created_at).toISOString().split("T")[0],
             location: meta.location || "",
             status,
+            channelId: channelByMembership.get(m.id),
           });
         }
       } catch {

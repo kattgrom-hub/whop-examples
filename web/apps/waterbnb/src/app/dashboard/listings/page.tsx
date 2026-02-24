@@ -81,6 +81,7 @@ interface BookedReservation {
   location: string;
   amount: number;
   status: "upcoming" | "completed" | "cancelled";
+  channelId?: string;
 }
 
 const formatDate = (d: string) => d ? new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "";
@@ -402,7 +403,7 @@ function ListingsContent() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-medium">{s.amount === 0 ? "Free" : `$${s.amount}`}</span>
-                      <Link href="/messages" className="px-3 py-1.5 text-sm border border-[#DDDDDD] rounded-lg hover:bg-[#EBEBEB] transition-colors">Message</Link>
+                      <Link href={s.channelId ? `/messages?channel=${s.channelId}` : "/messages"} className="px-3 py-1.5 text-sm border border-[#DDDDDD] rounded-lg hover:bg-[#EBEBEB] transition-colors">Message</Link>
                       <button
                         onClick={() => handleCancelReservation(s)}
                         disabled={cancellingId === s.id}

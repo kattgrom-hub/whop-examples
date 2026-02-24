@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   ChatElement,
   ChatSession,
@@ -30,7 +31,10 @@ async function getToken() {
 }
 
 export function MessagesClient() {
-  const [channelId, setChannelId] = useState<string>();
+  const searchParams = useSearchParams();
+  const [channelId, setChannelId] = useState<string | undefined>(
+    searchParams.get("channel") || undefined
+  );
 
   const handleDmsEvent = useCallback((event: DmsListElementEvent) => {
     switch (event.type) {

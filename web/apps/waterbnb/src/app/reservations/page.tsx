@@ -72,7 +72,7 @@ function ReservationsContent() {
                   </div>
                 </div>
                 <Link
-                  href="/messages"
+                  href={b.channelId ? `/messages?channel=${b.channelId}` : "/messages"}
                   className="px-4 py-2 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] font-semibold"
                 >
                   Message Host

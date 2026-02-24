@@ -12,6 +12,7 @@ interface Reservation {
   date: string;
   location: string;
   status: "upcoming" | "completed" | "cancelled";
+  channelId?: string;
 }
 
 const formatDate = (d: string) =>
@@ -77,7 +78,7 @@ export default function DashboardReservationsPage() {
                   </div>
                 </div>
                 <Link
-                  href="/messages"
+                  href={r.channelId ? `/messages?channel=${r.channelId}` : "/messages"}
                   className="px-4 py-2 bg-[#FF385C] text-white rounded-lg hover:bg-[#D70466] font-semibold text-sm"
                 >
                   Message Host
