@@ -85,23 +85,20 @@ export async function POST(request: NextRequest) {
     let status = 500;
 
     if (raw.includes("Bot was not found") || raw.includes("not_found")) {
-      userMessage =
-        "The app is not installed on this company. " +
-        "Check that WHOP_API_KEY is an app API key and the app is installed on the company in NEXT_PUBLIC_WHOP_COMPANY_ID.";
+      console.error("Checkout: Whop app not installed on company. Check WHOP_API_KEY is an app key and the app is installed on NEXT_PUBLIC_WHOP_COMPANY_ID. Raw:", raw);
+      userMessage = "Checkout is not configured yet. Please contact support.";
       status = 400;
     } else if (raw.includes("unauthorized") || raw.includes("Authentication failed")) {
-      userMessage =
-        "The API key is invalid or missing permissions. " +
-        "Check that WHOP_API_KEY is a valid app API key (not a company key).";
-      status = 401;
+      console.error("Checkout: WHOP_API_KEY is invalid or lacks permissions. Must be an app API key, not a company key.");
+      userMessage = "Checkout is temporarily unavailable. Please try again later.";
+      status = 500;
     } else if (raw.includes("redirect URL must be a valid URL")) {
-      userMessage =
-        "NEXT_PUBLIC_APP_URL must be set to an https:// URL in production. " +
-        "Current value is generating an invalid redirect URL for checkout.";
-      status = 400;
+      console.error("Checkout: NEXT_PUBLIC_APP_URL must start with https:// in production. Current value:", process.env.NEXT_PUBLIC_APP_URL);
+      userMessage = "Checkout is temporarily unavailable. Please try again later.";
+      status = 500;
+    } else {
+      console.error("Checkout: unhandled error:", raw);
     }
-
-    console.error("Parsed checkout error:", { raw, userMessage });
 
     return NextResponse.json({ error: userMessage }, { status });
   }

@@ -121,27 +121,24 @@ export async function POST(request: NextRequest) {
     let status = 500;
 
     if (raw.includes("Bot was not found") || raw.includes("not_found")) {
-      userMessage =
-        "The instructor's company is not connected to the app. " +
-        "The Masterclass app must be installed on the instructor's company before checkout can work.";
+      console.error("Checkout: instructor company not linked to this Whop app. Ensure the app is installed on the instructor's company. Raw:", raw);
+      userMessage = "This instructor isn't set up for payments yet. Please contact support.";
       status = 400;
     } else if (raw.includes("unauthorized") || raw.includes("Authentication failed")) {
-      userMessage =
-        "The API key is invalid or missing permissions. " +
-        "Check that WHOP_API_KEY is a valid app API key (not a company key).";
-      status = 401;
+      console.error("Checkout: WHOP_API_KEY is invalid or lacks permissions. Must be an app API key, not a company key.");
+      userMessage = "Checkout is temporarily unavailable. Please try again later.";
+      status = 500;
     } else if (raw.includes("redirect URL must be a valid URL")) {
-      userMessage =
-        "NEXT_PUBLIC_APP_URL must be set to an https:// URL in production. " +
-        "Current value is generating an invalid redirect URL for checkout.";
-      status = 400;
+      console.error("Checkout: NEXT_PUBLIC_APP_URL must start with https:// in production. Current value:", process.env.NEXT_PUBLIC_APP_URL);
+      userMessage = "Checkout is temporarily unavailable. Please try again later.";
+      status = 500;
     } else if (raw.includes("application_fee_amount")) {
-      userMessage =
-        "Invalid platform fee configuration. The application fee must be greater than 0 and less than the total price.";
+      console.error("Checkout: application_fee_amount must be > 0 and < total price. Raw:", raw);
+      userMessage = "There was a problem with the pricing. Please try again.";
       status = 400;
+    } else {
+      console.error("Checkout: unhandled error:", raw);
     }
-
-    console.error("Parsed checkout error:", { raw, userMessage });
 
     return NextResponse.json({ error: userMessage }, { status });
   }
