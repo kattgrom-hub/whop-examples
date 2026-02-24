@@ -1,8 +1,9 @@
-import { getServers } from "@/data/servers";
+import { fetchChannels } from "@/lib/channels";
 import DischordApp from "@/components/DischordApp";
 
-export default function Home() {
-  const servers = getServers();
+export default async function Home() {
+  const companyId = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID ?? "";
+  const channels = companyId ? await fetchChannels(companyId) : [];
 
-  return <DischordApp servers={servers} />;
+  return <DischordApp companyId={companyId} channels={channels} />;
 }

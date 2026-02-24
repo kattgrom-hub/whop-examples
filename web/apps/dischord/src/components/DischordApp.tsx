@@ -1,61 +1,43 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { Server } from "@/data/servers";
+import type { ChatChannel } from "@/lib/channels";
 import Sidebar from "./Sidebar";
 import ChannelList from "./ChannelList";
 import ChatArea from "./ChatArea";
-import MemberList from "./MemberList";
 
 interface DischordAppProps {
-  servers: Server[];
+  companyId: string;
+  channels: ChatChannel[];
 }
 
-export default function DischordApp({ servers }: DischordAppProps) {
-  const [activeServerId, setActiveServerId] = useState(servers[0]?.id || "1");
-
-  const activeServer = servers.find((s) => s.id === activeServerId) || servers[0];
-
+export default function DischordApp({
+  companyId,
+  channels,
+}: DischordAppProps) {
   const [activeChannelId, setActiveChannelId] = useState(
-    activeServer?.channels[0]?.id || null
-  );
-
-  const handleServerChange = useCallback(
-    (serverId: string) => {
-      setActiveServerId(serverId);
-      const server = servers.find((s) => s.id === serverId);
-      // Auto-select first channel when switching servers
-      if (server?.channels[0]) {
-        setActiveChannelId(server.channels[0].id);
-      } else {
-        setActiveChannelId(null);
-      }
-    },
-    [servers]
+    channels[0]?.id ?? null
   );
 
   const handleChannelChange = useCallback((channelId: string) => {
     setActiveChannelId(channelId);
   }, []);
 
+  const activeChannel = channels.find((c) => c.id === activeChannelId) ?? null;
+
   return (
     <div className="flex h-screen w-screen overflow-hidden">
-      <Sidebar
-        servers={servers}
-        activeServerId={activeServerId}
-        onServerChange={handleServerChange}
-      />
+      <Sidebar />
       <ChannelList
-        server={activeServer}
+        channels={channels}
         activeChannelId={activeChannelId}
         onChannelChange={handleChannelChange}
       />
       <ChatArea
         channelId={activeChannelId}
-        companyId={activeServer?.companyId || null}
-        serverName={activeServer?.name || ""}
+        channelName={activeChannel?.name ?? null}
+        companyId={companyId}
       />
-      <MemberList />
     </div>
   );
 }

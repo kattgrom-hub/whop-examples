@@ -1,19 +1,8 @@
 "use client";
 
 import { Plus, Compass } from "lucide-react";
-import type { Server } from "@/data/servers";
 
-interface SidebarProps {
-  servers: Server[];
-  activeServerId: string;
-  onServerChange: (serverId: string) => void;
-}
-
-export default function Sidebar({
-  servers,
-  activeServerId,
-  onServerChange,
-}: SidebarProps) {
+export default function Sidebar() {
   return (
     <div className="flex w-[72px] flex-col items-center gap-2 bg-[#0a0a1a] py-3 overflow-y-auto scrollbar-hide">
       {/* Home / DM button */}
@@ -32,46 +21,20 @@ export default function Sidebar({
       {/* Separator */}
       <div className="mx-auto h-[2px] w-8 rounded-full bg-[#1E1B4B]" />
 
-      {/* Server list */}
-      {servers.map((server) => (
-        <div key={server.id} className="group relative">
-          {/* Active indicator pill */}
-          <div
-            className={`absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-white transition-all duration-200 ${
-              activeServerId === server.id
-                ? "h-10"
-                : "h-0 group-hover:h-5"
-            }`}
-          />
-
-          {/* Connected indicator — green dot if companyId is set */}
-          {server.companyId && activeServerId !== server.id && (
-            <div className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0a0a1a] bg-[#22C55E] z-10" />
-          )}
-
-          <button
-            onClick={() => onServerChange(server.id)}
-            className={`flex h-12 w-12 items-center justify-center text-sm font-semibold transition-all duration-200 ${
-              activeServerId === server.id
-                ? "rounded-[16px] bg-[#4338CA] text-white"
-                : server.companyId
-                  ? "rounded-[24px] bg-[#1E1B4B] text-gray-300 hover:rounded-[16px] hover:bg-[#4338CA] hover:text-white"
-                  : "rounded-[24px] bg-[#1E1B4B]/60 text-gray-500 hover:rounded-[16px] hover:bg-[#1E1B4B] hover:text-gray-300"
-            }`}
-            title={server.name}
-          >
-            {server.icon}
-          </button>
-
-          {/* Tooltip */}
-          <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-4 -translate-y-1/2 whitespace-nowrap rounded-md bg-[#18182f] px-3 py-2 text-sm font-medium text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-            {server.name}
-            {!server.companyId && (
-              <span className="ml-2 text-xs text-gray-500">Not connected</span>
-            )}
-          </div>
+      {/* Active server */}
+      <div className="group relative">
+        <div className="absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-white transition-all duration-200 h-10" />
+        <div className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0a0a1a] bg-[#22C55E] z-10" />
+        <button
+          className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#4338CA] text-sm font-semibold text-white"
+          title="Dischord"
+        >
+          DC
+        </button>
+        <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-4 -translate-y-1/2 whitespace-nowrap rounded-md bg-[#18182f] px-3 py-2 text-sm font-medium text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+          Dischord
         </div>
-      ))}
+      </div>
 
       {/* Separator */}
       <div className="mx-auto h-[2px] w-8 rounded-full bg-[#1E1B4B]" />
