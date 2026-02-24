@@ -220,7 +220,7 @@ function HostingDashboard() {
             {upcoming.slice(0, 5).map((s) => (
               <div
                 key={s.id}
-                className="p-4 flex items-center justify-between hover:bg-[#222222] transition-colors"
+                className="p-4 flex items-center justify-between hover:bg-[#F0F0F0] transition-colors"
               >
                 <div className="flex items-center gap-4">
                   <img

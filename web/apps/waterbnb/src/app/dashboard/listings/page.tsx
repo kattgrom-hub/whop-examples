@@ -434,7 +434,7 @@ function ListingsContent() {
                   </tr></thead>
                   <tbody className="divide-y divide-[#EBEBEB]">
                     {past.map((s) => (
-                      <tr key={s.id} className="hover:bg-[#222222] transition-colors">
+                      <tr key={s.id} className="hover:bg-[#F0F0F0] transition-colors">
                         <td className="px-5 py-3 font-medium">{s.title}</td>
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-2">

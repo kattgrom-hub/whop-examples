@@ -57,7 +57,7 @@ export default function DashboardLayout({
             </h1>
             <button
               onClick={handleToggleMode}
-              className="px-4 py-2 text-sm font-medium border border-[#222222] rounded-full hover:bg-[#222222] hover:text-white transition-colors"
+              className="px-4 py-2 text-sm font-medium border border-[#222222] rounded-full hover:bg-[#F0F0F0] transition-colors"
             >
               Switch to {mode === "hosting" ? "Traveling" : "Hosting"}
             </button>
