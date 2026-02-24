@@ -9,6 +9,7 @@ import ChatArea from "./ChatArea";
 import DMSidebar from "./DMSidebar";
 import CreateServerModal from "./CreateServerModal";
 import CreateDMModal from "./CreateDMModal";
+import CreateChannelModal from "./CreateChannelModal";
 import DiscoverPage from "./DiscoverPage";
 
 type View = "server" | "dm" | "discover";
@@ -42,6 +43,7 @@ export default function DischordApp({
   const [dmChannelId, setDmChannelId] = useState<string | null>(null);
   const [showCreateServer, setShowCreateServer] = useState(false);
   const [showCreateDM, setShowCreateDM] = useState(false);
+  const [showCreateChannel, setShowCreateChannel] = useState(false);
 
   const activeServer = servers.find((s) => s.id === activeServerId);
   const activeChannel =
@@ -129,6 +131,23 @@ export default function DischordApp({
     [parentCompanyId]
   );
 
+  const handleCreateChannel = useCallback(
+    async (name: string) => {
+      const res = await fetch("/api/channels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, companyId: activeServerId }),
+      });
+      if (!res.ok) throw new Error("Failed to create channel");
+      const data = await res.json();
+      const newChannel: ChatChannel = data.channel;
+      setChannels((prev) => [...prev, newChannel]);
+      setActiveChannelId(newChannel.id);
+      setShowCreateChannel(false);
+    },
+    [activeServerId]
+  );
+
   const getToken = useCallback(async (): Promise<string> => {
     const res = await fetch(`/api/token?companyId=${parentCompanyId}`);
     const data = await res.json();
@@ -177,6 +196,7 @@ export default function DischordApp({
               channels={channels}
               activeChannelId={activeChannelId}
               onChannelChange={handleChannelChange}
+              onCreateChannel={() => setShowCreateChannel(true)}
               loading={channelsLoading}
             />
             <ChatArea
@@ -199,6 +219,13 @@ export default function DischordApp({
         <CreateDMModal
           onClose={() => setShowCreateDM(false)}
           onCreate={handleCreateDM}
+        />
+      )}
+
+      {showCreateChannel && (
+        <CreateChannelModal
+          onClose={() => setShowCreateChannel(false)}
+          onCreate={handleCreateChannel}
         />
       )}
     </>

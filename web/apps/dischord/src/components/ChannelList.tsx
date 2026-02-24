@@ -7,6 +7,7 @@ import {
   Mic,
   Headphones,
   Settings,
+  Plus,
 } from "lucide-react";
 import type { ChatChannel } from "@/lib/channels";
 
@@ -15,6 +16,7 @@ interface ChannelListProps {
   channels: ChatChannel[];
   activeChannelId: string | null;
   onChannelChange: (channelId: string) => void;
+  onCreateChannel: () => void;
   loading?: boolean;
 }
 
@@ -23,6 +25,7 @@ export default function ChannelList({
   channels,
   activeChannelId,
   onChannelChange,
+  onCreateChannel,
   loading,
 }: ChannelListProps) {
   return (
@@ -61,7 +64,14 @@ export default function ChannelList({
           <div className="mb-4">
             <div className="mb-1 flex w-full items-center gap-0.5 px-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
               <ChevronDown size={12} />
-              <span>Chat Channels</span>
+              <span className="flex-1">Chat Channels</span>
+              <button
+                onClick={onCreateChannel}
+                className="rounded p-0.5 text-gray-500 transition-colors hover:text-white"
+                title="Create Channel"
+              >
+                <Plus size={14} />
+              </button>
             </div>
 
             {channels.map((channel) => (
@@ -80,8 +90,14 @@ export default function ChannelList({
             ))}
           </div>
         ) : (
-          <div className="px-2 py-4 text-center text-xs text-gray-600">
-            No channels found. Create chat experiences in your Whop dashboard.
+          <div className="flex flex-col items-center gap-2 px-2 py-4 text-center text-xs text-gray-600">
+            <span>No channels yet.</span>
+            <button
+              onClick={onCreateChannel}
+              className="rounded-md bg-[#4338CA] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#5346db]"
+            >
+              Create Channel
+            </button>
           </div>
         )}
       </div>
