@@ -21,9 +21,12 @@ export async function POST(request: NextRequest) {
     }
 
     const companyId = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
-    if (!companyId) {
+    if (!companyId || companyId === "biz_xxxxx") {
       return NextResponse.json(
-        { error: "Company ID not configured" },
+        {
+          error:
+            "Whop Company ID not configured. Copy .env.example to .env.local and add your credentials from the Whop Developer Dashboard (https://whop.com/developer).",
+        },
         { status: 500 }
       );
     }
