@@ -3,75 +3,61 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const apiKey = process.env.WHOP_API_KEY;
-  const companyId = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
+  const parentCompanyId = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
 
-  if (!apiKey || !companyId) {
+  if (!apiKey || !parentCompanyId) {
     return NextResponse.json(
       { error: "Missing configuration" },
       { status: 500 }
     );
   }
 
-  const whop = new Whop({ apiKey });
-
   try {
-    const products: Array<{
+    const whop = new Whop({ apiKey });
+    const communities: {
       id: string;
       name: string;
-      visibility: string;
-    }> = [];
+      plans: { id: string; name: string | null; price: number; purchaseUrl: string; planType: string }[];
+    }[] = [];
 
-    for await (const product of whop.products.list({
-      company_id: companyId,
+    for await (const company of whop.companies.list({
+      parent_company_id: parentCompanyId,
     })) {
-      products.push({
-        id: product.id,
-        name: product.title,
-        visibility: product.visibility,
+      const plans: {
+        id: string;
+        name: string | null;
+        price: number;
+        purchaseUrl: string;
+        planType: string;
+      }[] = [];
+
+      try {
+        for await (const plan of whop.plans.list({
+          company_id: company.id,
+        })) {
+          if (plan.purchase_url) {
+            plans.push({
+              id: plan.id,
+              name: plan.title ?? null,
+              price: plan.initial_price ?? 0,
+              purchaseUrl: plan.purchase_url,
+              planType: plan.plan_type,
+            });
+          }
+        }
+      } catch {
+        // Company may not have plans configured - skip
+      }
+
+      communities.push({
+        id: company.id,
+        name: company.title,
+        plans,
       });
     }
-
-    const plans: Array<{
-      id: string;
-      accessPassId: string;
-      price: number;
-      currency: string;
-      type: string;
-      purchaseUrl: string;
-      billingPeriodDays: number | null;
-      visibility: string;
-    }> = [];
-
-    for await (const plan of whop.plans.list({
-      company_id: companyId,
-    })) {
-      plans.push({
-        id: plan.id,
-        accessPassId: plan.product?.id ?? "",
-        price: plan.initial_price,
-        currency: plan.currency ?? "usd",
-        type: plan.plan_type,
-        purchaseUrl: plan.purchase_url,
-        billingPeriodDays: plan.billing_period ?? null,
-        visibility: plan.visibility,
-      });
-    }
-
-    const communities = products.map((product) => {
-      const productPlans = plans.filter(
-        (plan) => plan.accessPassId === product.id
-      );
-      return {
-        id: product.id,
-        name: product.name,
-        visibility: product.visibility,
-        plans: productPlans,
-      };
-    });
 
     return NextResponse.json({ communities });
-  } catch (error) {
-    console.error("Discover error:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch communities" },
       { status: 500 }

@@ -2,28 +2,54 @@
 
 import { Plus, Compass } from "lucide-react";
 
-export type View = "channels" | "discover" | "dms";
-
-interface SidebarProps {
-  activeView: View;
-  onViewChange: (view: View) => void;
+export interface SidebarServer {
+  id: string;
+  name: string;
+  isParent: boolean;
 }
 
-export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
+interface SidebarProps {
+  servers: SidebarServer[];
+  activeServerId: string | null;
+  isDMView: boolean;
+  isDiscoverView: boolean;
+  onServerSelect: (serverId: string) => void;
+  onDMClick: () => void;
+  onAddServer: () => void;
+  onDiscoverClick: () => void;
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export default function Sidebar({
+  servers,
+  activeServerId,
+  isDMView,
+  isDiscoverView,
+  onServerSelect,
+  onDMClick,
+  onAddServer,
+  onDiscoverClick,
+}: SidebarProps) {
   return (
     <div className="flex w-[72px] flex-col items-center gap-2 bg-[#0a0a1a] py-3 overflow-y-auto scrollbar-hide">
       {/* Home / DM button */}
       <button
-        onClick={() => onViewChange("dms")}
-        className={`group relative flex h-12 w-12 items-center justify-center rounded-[24px] bg-[#1E1B4B] text-white transition-all duration-200 hover:rounded-[16px] hover:bg-[#4338CA] ${
-          activeView === "dms"
-            ? "rounded-[16px] bg-[#4338CA]"
-            : ""
+        onClick={onDMClick}
+        className={`group relative flex h-12 w-12 items-center justify-center rounded-[24px] text-white transition-all duration-200 hover:rounded-[16px] hover:bg-[#4338CA] ${
+          isDMView ? "rounded-[16px] bg-[#4338CA]" : "bg-[#1E1B4B]"
         }`}
         title="Direct Messages"
       >
-        {activeView === "dms" && (
-          <div className="absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-white h-10" />
+        {isDMView && (
+          <div className="absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-white transition-all duration-200 h-10" />
         )}
         <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
           <path
@@ -36,56 +62,57 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
       {/* Separator */}
       <div className="mx-auto h-[2px] w-8 rounded-full bg-[#1E1B4B]" />
 
-      {/* Active server */}
-      <div className="group relative">
-        {activeView === "channels" && (
-          <div className="absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-white transition-all duration-200 h-10" />
-        )}
-        <div className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0a0a1a] bg-[#22C55E] z-10" />
-        <button
-          onClick={() => onViewChange("channels")}
-          className={`flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#4338CA] text-sm font-semibold text-white ${
-            activeView !== "channels"
-              ? "opacity-70 hover:opacity-100"
-              : ""
-          } transition-opacity`}
-          title="Dischord"
-        >
-          DC
-        </button>
-        <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-4 -translate-y-1/2 whitespace-nowrap rounded-md bg-[#18182f] px-3 py-2 text-sm font-medium text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-          Dischord
-        </div>
-      </div>
+      {/* Server list */}
+      {servers.map((server) => {
+        const isActive = !isDMView && !isDiscoverView && activeServerId === server.id;
+        return (
+          <div key={server.id} className="group relative">
+            {isActive && (
+              <div className="absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-white transition-all duration-200 h-10" />
+            )}
+            {server.isParent && (
+              <div className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0a0a1a] bg-[#22C55E] z-10" />
+            )}
+            <button
+              onClick={() => onServerSelect(server.id)}
+              className={`flex h-12 w-12 items-center justify-center text-sm font-semibold text-white transition-all duration-200 ${
+                isActive
+                  ? "rounded-[16px] bg-[#4338CA]"
+                  : "rounded-[24px] bg-[#1E1B4B] hover:rounded-[16px] hover:bg-[#4338CA]"
+              }`}
+              title={server.name}
+            >
+              {getInitials(server.name)}
+            </button>
+            <div className="pointer-events-none absolute left-full top-1/2 z-50 ml-4 -translate-y-1/2 whitespace-nowrap rounded-md bg-[#18182f] px-3 py-2 text-sm font-medium text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+              {server.name}
+            </div>
+          </div>
+        );
+      })}
 
       {/* Separator */}
       <div className="mx-auto h-[2px] w-8 rounded-full bg-[#1E1B4B]" />
 
       {/* Add server */}
       <button
+        onClick={onAddServer}
         className="flex h-12 w-12 items-center justify-center rounded-[24px] bg-[#1E1B4B] text-[#22C55E] transition-all duration-200 hover:rounded-[16px] hover:bg-[#22C55E] hover:text-white"
         title="Add a Server"
       >
         <Plus size={24} />
       </button>
 
-      {/* Explore */}
-      <div className="relative">
-        {activeView === "discover" && (
-          <div className="absolute -left-1 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-white h-10" />
-        )}
-        <button
-          onClick={() => onViewChange("discover")}
-          className={`flex h-12 w-12 items-center justify-center rounded-[24px] bg-[#1E1B4B] text-[#22C55E] transition-all duration-200 hover:rounded-[16px] hover:bg-[#22C55E] hover:text-white ${
-            activeView === "discover"
-              ? "rounded-[16px] bg-[#22C55E] text-white"
-              : ""
-          }`}
-          title="Explore Servers"
-        >
-          <Compass size={24} />
-        </button>
-      </div>
+      {/* Discover */}
+      <button
+        onClick={onDiscoverClick}
+        className={`flex h-12 w-12 items-center justify-center rounded-[24px] text-[#22C55E] transition-all duration-200 hover:rounded-[16px] hover:bg-[#22C55E] hover:text-white ${
+          isDiscoverView ? "rounded-[16px] bg-[#22C55E] text-white" : "bg-[#1E1B4B]"
+        }`}
+        title="Discover Communities"
+      >
+        <Compass size={24} />
+      </button>
     </div>
   );
 }
