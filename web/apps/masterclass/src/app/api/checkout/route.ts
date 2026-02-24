@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       userMessage = "This instructor isn't set up for payments yet. Please contact support.";
       status = 400;
     } else if (raw.includes("unauthorized") || raw.includes("Authentication failed")) {
-      console.error("Checkout: WHOP_API_KEY is invalid or lacks permissions. Must be an app API key, not a company key.");
+      console.error("Checkout: WHOP_API_KEY auth failed. Verify the key is valid and WHOP_BASE_URL matches the key's environment (prod vs sandbox). WHOP_BASE_URL:", process.env.WHOP_BASE_URL || "(not set — defaulting to production)");
       userMessage = "Checkout is temporarily unavailable. Please try again later.";
       status = 500;
     } else if (raw.includes("redirect URL must be a valid URL")) {
