@@ -3,11 +3,50 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useAuth } from "@whop-examples/auth/client";
+import { useSession, signIn, signOut } from "next-auth/react";
+
+function LoginButton() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <button
+        disabled
+        className="px-4 py-2 bg-purple-300 text-white text-sm font-body font-semibold rounded-lg"
+      >
+        ...
+      </button>
+    );
+  }
+
+  if (session?.user) {
+    return (
+      <div className="flex items-center gap-3">
+        <span className="hidden sm:block text-sm font-body font-medium text-sockx-text">
+          {session.user.name}
+        </span>
+        <button
+          onClick={() => signOut()}
+          className="px-4 py-2 bg-sockx-primary text-white text-sm font-body font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => signIn("whop")}
+      className="px-4 py-2 bg-sockx-primary text-white text-sm font-body font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+    >
+      Login
+    </button>
+  );
+}
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-purple-100 shadow-sm">
@@ -37,32 +76,12 @@ export default function Navbar() {
           {/* Navigation Links */}
           <div className="flex items-center gap-6">
             <Link
-              href="/"
-              className="hidden sm:block text-sm font-body font-medium text-sockx-text hover:text-sockx-primary transition-colors"
-            >
-              Browse
-            </Link>
-            <Link
               href="/sell"
               className="hidden sm:block text-sm font-body font-medium text-sockx-text hover:text-sockx-primary transition-colors"
             >
               Sell
             </Link>
-            {isAuthenticated && user ? (
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-purple-100 text-sockx-primary text-sm font-body font-semibold rounded-lg hover:bg-purple-200 transition-colors"
-              >
-                {user.name || user.username || "Account"}
-              </button>
-            ) : (
-              <a
-                href="/api/auth/signin"
-                className="px-4 py-2 bg-sockx-primary text-white text-sm font-body font-semibold rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Login
-              </a>
-            )}
+            <LoginButton />
           </div>
         </div>
       </div>

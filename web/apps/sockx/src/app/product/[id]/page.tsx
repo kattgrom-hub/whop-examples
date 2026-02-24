@@ -194,22 +194,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             <div className="flex gap-8">
               <a
-                href="#"
-                className="font-body text-sm text-purple-300 hover:text-white transition-colors"
-              >
-                Browse
-              </a>
-              <a
                 href="/sell"
                 className="font-body text-sm text-purple-300 hover:text-white transition-colors"
               >
                 Sell
-              </a>
-              <a
-                href="#"
-                className="font-body text-sm text-purple-300 hover:text-white transition-colors"
-              >
-                About
               </a>
               <a
                 href="#"
