@@ -15,7 +15,9 @@ import type {
   ChatElementOptions,
 } from "@whop/embedded-components-vanilla-js/types";
 
-const elements = loadWhopElements();
+const elements = loadWhopElements({
+  environment: (process.env.NEXT_PUBLIC_WHOP_ENVIRONMENT as "sandbox" | "production") || "production",
+});
 
 const appearance = {
   theme: {

@@ -13,7 +13,9 @@ import type {
 } from "@whop/embedded-components-vanilla-js/types";
 import { Plus, Mic, Headphones, Settings } from "lucide-react";
 
-const elements = loadWhopElements();
+const elements = loadWhopElements({
+  environment: (process.env.NEXT_PUBLIC_WHOP_ENVIRONMENT as "sandbox" | "production") || "production",
+});
 
 interface DMSidebarProps {
   companyId: string;

@@ -9,7 +9,9 @@ import {
 import { loadWhopElements } from "@whop/embedded-components-vanilla-js";
 import { Hash, MessageCircle, Users } from "lucide-react";
 
-const elements = loadWhopElements();
+const elements = loadWhopElements({
+  environment: (process.env.NEXT_PUBLIC_WHOP_ENVIRONMENT as "sandbox" | "production") || "production",
+});
 
 interface ChatAreaProps {
   channelId: string | null;
