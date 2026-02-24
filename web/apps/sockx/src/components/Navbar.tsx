@@ -3,9 +3,11 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@whop-examples/auth/client";
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-purple-100 shadow-sm">
@@ -41,20 +43,26 @@ export default function Navbar() {
               Browse
             </Link>
             <Link
-              href="/"
+              href="/sell"
               className="hidden sm:block text-sm font-body font-medium text-sockx-text hover:text-sockx-primary transition-colors"
             >
               Sell
             </Link>
-            <Link
-              href="/"
-              className="hidden sm:block text-sm font-body font-medium text-sockx-text hover:text-sockx-primary transition-colors"
-            >
-              About
-            </Link>
-            <button className="px-4 py-2 bg-sockx-primary text-white text-sm font-body font-semibold rounded-lg hover:bg-purple-700 transition-colors">
-              Login
-            </button>
+            {isAuthenticated && user ? (
+              <button
+                onClick={logout}
+                className="px-4 py-2 bg-purple-100 text-sockx-primary text-sm font-body font-semibold rounded-lg hover:bg-purple-200 transition-colors"
+              >
+                {user.name || user.username || "Account"}
+              </button>
+            ) : (
+              <a
+                href="/api/auth/signin"
+                className="px-4 py-2 bg-sockx-primary text-white text-sm font-body font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Login
+              </a>
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Anton, Epilogue } from "next/font/google";
+import { AuthProvider } from "@whop-examples/auth/client";
 import "./globals.css";
 
 const anton = Anton({
@@ -30,7 +31,7 @@ export default function RootLayout({
       <body
         className={`${anton.variable} ${epilogue.variable} antialiased bg-sockx-bg text-sockx-text`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

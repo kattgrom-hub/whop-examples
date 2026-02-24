@@ -158,7 +158,7 @@ export default function Home() {
                 Browse
               </a>
               <a
-                href="#"
+                href="/sell"
                 className="font-body text-sm text-purple-300 hover:text-white transition-colors"
               >
                 Sell

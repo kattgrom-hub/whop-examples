@@ -200,7 +200,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 Browse
               </a>
               <a
-                href="#"
+                href="/sell"
                 className="font-body text-sm text-purple-300 hover:text-white transition-colors"
               >
                 Sell
