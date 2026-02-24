@@ -23,6 +23,10 @@ export function WhopEmbeddedCheckout({
 }: WhopEmbeddedCheckoutProps) {
   const router = useRouter();
 
+  const environment =
+    (process.env.NEXT_PUBLIC_WHOP_ENVIRONMENT as "sandbox" | "production") ||
+    "production";
+
   const handleComplete = (completedPlanId: string, receiptId?: string) => {
     console.log("Checkout complete:", { planId: completedPlanId, receiptId });
     onSuccess?.();
@@ -36,6 +40,7 @@ export function WhopEmbeddedCheckout({
       <WhopCheckoutEmbed
         planId={planId}
         onComplete={handleComplete}
+        environment={environment}
         theme="dark"
         skipRedirect={true}
         themeOptions={{
