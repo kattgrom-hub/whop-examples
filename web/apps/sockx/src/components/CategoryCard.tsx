@@ -1,4 +1,4 @@
-import Image from "next/image";
+import FallbackImage from "@/components/FallbackImage";
 import { Category } from "@/data/categories";
 
 interface CategoryCardProps {
@@ -9,7 +9,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   return (
     <div className="relative group overflow-hidden rounded-xl cursor-pointer aspect-[4/3]">
       {/* Background Image */}
-      <Image
+      <FallbackImage
         src={category.image}
         alt={category.name}
         fill

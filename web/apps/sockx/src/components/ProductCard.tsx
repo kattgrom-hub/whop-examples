@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
-import Image from "next/image";
+import FallbackImage from "@/components/FallbackImage";
 import Link from "next/link";
 import { Product } from "@/data/products";
 
@@ -15,7 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="bg-white rounded-xl border border-purple-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group">
         {/* Image */}
         <div className="relative aspect-square bg-purple-50 p-4">
-          <Image
+          <FallbackImage
             src={product.image}
             alt={product.name}
             fill

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
+import FallbackImage from "@/components/FallbackImage";
 import { ArrowUp, ArrowDown, TrendingUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import SizeSelector from "@/components/SizeSelector";
@@ -50,7 +50,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Left - Product Image */}
           <div className="bg-white rounded-2xl border border-purple-100 p-8 aspect-square relative">
-            <Image
+            <FallbackImage
               src={product.image}
               alt={product.name}
               fill

@@ -38,7 +38,7 @@ export const products: Product[] = [
     id: "adidas-yeezy-sock-350-cream",
     name: "Adidas Yeezy Sock 350 'Cream'",
     brand: "Adidas",
-    image: "https://images.unsplash.com/photo-1631006235600-a7c5fafd8a09?w=600&h=600&fit=crop",
+    image: "https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=600&h=600&fit=crop",
     colorway: "Cream White/Cream White",
     lowestAsk: 220,
     highestBid: 198,
