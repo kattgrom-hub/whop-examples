@@ -215,7 +215,7 @@ export default function ProductPage() {
               {/* Badge */}
               <div className="mt-10 pt-6 border-t border-neutral-100">
                 <p className="text-[11px] font-light text-neutral-400 text-center">
-                  Powered by Shopify &middot; Payments by Whop
+                  Payments powered by Whop
                 </p>
               </div>
             </div>

@@ -1,11 +1,46 @@
 "use client";
 
-import { X, Minus, Plus, ShoppingBag } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { X, Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
 import { useCart } from "./CartContext";
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, totalPrice } =
     useCart();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCheckout = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            productId: item.product.id,
+            name: item.product.name,
+            price: item.product.price,
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      closeCart();
+      router.push(`/checkout?planId=${data.planId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Checkout failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -133,8 +168,24 @@ export default function CartDrawer() {
                   ${totalPrice}
                 </span>
               </div>
-              <button className="w-full bg-gold py-3.5 text-sm font-medium tracking-wide text-primary rounded-sm transition-all duration-500 hover:bg-gold-hover">
-                Checkout with Whop
+              {error && (
+                <p className="mb-3 text-center text-xs font-light text-red-500">
+                  {error}
+                </p>
+              )}
+              <button
+                onClick={handleCheckout}
+                disabled={isLoading}
+                className="w-full bg-gold py-3.5 text-sm font-medium tracking-wide text-primary rounded-sm transition-all duration-500 hover:bg-gold-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Checkout with Whop"
+                )}
               </button>
               <p className="mt-3 text-center text-[11px] font-light text-neutral-400">
                 Shipping & taxes calculated at checkout
