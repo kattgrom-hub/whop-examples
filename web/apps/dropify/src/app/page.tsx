@@ -56,11 +56,13 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Image Placeholder */}
-            <div className="aspect-[4/5] bg-neutral-200 rounded-sm flex items-center justify-center">
-              <span className="text-neutral-400 text-sm font-light tracking-wider">
-                Atelier
-              </span>
+            {/* Atelier Image */}
+            <div className="aspect-[4/5] bg-neutral-100 overflow-hidden rounded-sm">
+              <img
+                src="https://images.unsplash.com/photo-1605651202774-7d573fd3f12d?w=800&h=1000&fit=crop"
+                alt="Our sun-filled candle atelier on the California coast"
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
         </div>
