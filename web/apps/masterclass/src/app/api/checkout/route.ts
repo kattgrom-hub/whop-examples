@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     if (raw.includes("Bot was not found") || raw.includes("not_found")) {
       userMessage =
-        `Instructor company ${instructorId} is not connected to the app. ` +
+        "The instructor's company is not connected to the app. " +
         "The Masterclass app must be installed on the instructor's company before checkout can work.";
       status = 400;
     } else if (raw.includes("unauthorized") || raw.includes("Authentication failed")) {
