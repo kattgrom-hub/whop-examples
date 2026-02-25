@@ -58,5 +58,24 @@
     "status": "built",
     "stack": ["Next.js", "Tailwind"],
     "integrations": ["Checkout", "OAuth"]
+  },
+  {
+    "slug": "whmcs",
+    "name": "WHMCS",
+    "description": "Web hosting billing & automation platform — WHMCS admin dashboard clone with Whop Payouts and embedded components",
+    "category": "SaaS",
+    "status": "built",
+    "demoUrl": "https://whop-example-app-whmcs-jxpw3dm69-whop.vercel.app",
+    "stack": ["Next.js"],
+    "integrations": ["Checkout", "Payouts", "Embedded Components"]
+  },
+  {
+    "slug": "grail-talent",
+    "name": "Grail Talent",
+    "description": "Talent booking marketplace — brands book creators for campaigns, creators get paid via Whop Payouts",
+    "category": "Marketplace",
+    "status": "built",
+    "stack": ["Next.js"],
+    "integrations": ["Checkout", "Payouts"]
   }
 ]

@@ -1,0 +1,26 @@
+{
+  "name": "whmcs",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "next dev -p 5007",
+    "build": "next build",
+    "start": "next start -p 5007"
+  },
+  "dependencies": {
+    "@whop/embedded-components-react-js": "^0.0.9",
+    "@whop/embedded-components-vanilla-js": "^0.0.9",
+    "@whop/sdk": "^0.0.26",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^3.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

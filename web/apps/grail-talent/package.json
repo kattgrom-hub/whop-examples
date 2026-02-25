@@ -1,0 +1,24 @@
+{
+  "name": "grail-talent",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "next dev -p 5008",
+    "build": "next build",
+    "start": "next start -p 5008"
+  },
+  "dependencies": {
+    "@whop/checkout": "^0.0.52",
+    "@whop/sdk": "^0.0.26",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}
