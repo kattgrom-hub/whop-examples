@@ -5,6 +5,8 @@ export const metadata = {
   description: "Complete your purchase securely with Whop.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function ElementsCheckoutPage() {
   const enabled = process.env.WHOP_ELEMENTS_ENABLED === "true";
   const planId = process.env.WHOP_ELEMENTS_PLAN_ID ?? "";
