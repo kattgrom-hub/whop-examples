@@ -403,6 +403,12 @@ importers:
       '@whop/checkout':
         specifier: ^0.0.51
         version: 0.0.51(react@19.2.4)
+      '@whop/elements':
+        specifier: ^1.1.0
+        version: 1.1.0
+      '@whop/elements-react':
+        specifier: ^1.1.0
+        version: 1.1.0(@whop/elements@1.1.0)(react@19.2.4)
       '@whop/embedded-components-react-js':
         specifier: ^0.0.9
         version: 0.0.9(@whop/embedded-components-vanilla-js@0.0.9)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1053,6 +1059,15 @@ packages:
     peerDependenciesMeta:
       react:
         optional: true
+
+  '@whop/elements-react@1.1.0':
+    resolution: {integrity: sha512-JH8sPSnaFqv5NGv75Tz42ARebqL/RxL9kWtQjz4GxuLpC+ko7dXLSp6ZlnXsiPAcqopfJGWSgb+HMYpGnROjNw==}
+    peerDependencies:
+      '@whop/elements': ^1.1.0
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  '@whop/elements@1.1.0':
+    resolution: {integrity: sha512-qDN+FHBIiu93ZFY9cL8+8OF8wS3UTEHhie25A92K4DnyaxUJUwGpVUIsEL2DM9xPBdwJEq35GZlqhmuwSllNBA==}
 
   '@whop/embedded-components-react-js@0.0.13-beta.10':
     resolution: {integrity: sha512-aULSrbkYbpz9c+iU3WOxF4hFcyBC3riASrHA1kzYn3xt8QTqC3TbwjGneRlvhDJSNnAXMum2zAH1NubW1GJIhw==}
@@ -1908,6 +1923,14 @@ snapshots:
   '@whop/checkout@0.0.52(react@19.2.4)':
     optionalDependencies:
       react: 19.2.4
+
+  '@whop/elements-react@1.1.0(@whop/elements@1.1.0)(react@19.2.4)':
+    dependencies:
+      '@whop/elements': 1.1.0
+      react: 19.2.4
+      use-sync-external-store: 1.6.0(react@19.2.4)
+
+  '@whop/elements@1.1.0': {}
 
   '@whop/embedded-components-react-js@0.0.13-beta.10(@whop/embedded-components-vanilla-js@0.0.13-beta.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:

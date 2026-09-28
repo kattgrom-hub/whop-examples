@@ -12,6 +12,8 @@
   "dependencies": {
     "@vercel/blob": "^2.2.0",
     "@whop/checkout": "^0.0.51",
+    "@whop/elements": "^1.1.0",
+    "@whop/elements-react": "^1.1.0",
     "@whop/embedded-components-react-js": "^0.0.9",
     "@whop/embedded-components-vanilla-js": "^0.0.9",
     "@whop/sdk": "^0.0.26",
