@@ -1,56 +1,76 @@
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { products } from "@/data/products";
+import { createOrderToken } from "@/lib/checkout-token";
 import { getWhopApi } from "@/lib/whop-sdk";
 
-interface CartItem {
+interface CartItemInput {
   productId: string;
-  name: string;
-  price: number;
   quantity: number;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { items } = body as { items: CartItem[] };
+    const { items } = body as { items?: CartItemInput[] };
 
-    if (!items || items.length === 0) {
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+    }
+
+    if (items.length > 20) {
       return NextResponse.json(
-        { error: "Cart is empty" },
+        { error: "Too many items in cart" },
         { status: 400 }
       );
     }
 
+    const seen = new Set<string>();
+    const canonicalItems = items.map((item) => {
+      if (
+        !item ||
+        typeof item.productId !== "string" ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity < 1 ||
+        item.quantity > 20 ||
+        seen.has(item.productId)
+      ) {
+        throw new Error("Invalid cart item");
+      }
+
+      seen.add(item.productId);
+
+      const product = products.find((entry) => entry.id === item.productId);
+      if (!product) {
+        throw new Error("Unknown product");
+      }
+
+      return {
+        productId: product.id,
+        name: product.name,
+        unitPrice: product.price,
+        quantity: item.quantity,
+      };
+    });
+
     const companyId = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
     if (!companyId || companyId === "biz_xxxxx") {
       return NextResponse.json(
-        {
-          error:
-            "Whop Company ID not configured. Copy .env.example to .env.local and add your credentials from the Whop Developer Dashboard (https://whop.com/developer).",
-        },
+        { error: "Whop Company ID not configured" },
         { status: 500 }
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5007";
-    const client = getWhopApi();
-
-    // Calculate total price from cart items
-    const totalPrice = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+    const totalPrice = canonicalItems.reduce(
+      (sum, item) => sum + item.unitPrice * item.quantity,
       0
     );
 
-    // Build a summary of items for metadata
-    const itemsSummary = items
-      .map((item) => `${item.quantity}x ${item.name}`)
-      .join(", ");
+    const client = getWhopApi();
 
     const checkoutConfig = await client.checkoutConfigurations.create({
       mode: "payment",
-      redirect_url: `${appUrl}/checkout?status=success`,
       metadata: {
-        items: JSON.stringify(items),
-        items_summary: itemsSummary,
         type: "dropify_order",
       },
       plan: {
@@ -72,34 +92,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const orderToken = createOrderToken({
+      v: 1,
+      orderId: randomUUID(),
+      planId,
+      items: canonicalItems,
+      totalPrice,
+      currency: "usd",
+      expiresAt: Date.now() + 30 * 60 * 1000,
+    });
+
     return NextResponse.json({
       planId,
-      checkoutUrl: checkoutConfig.purchase_url,
+      orderToken,
     });
   } catch (error) {
     console.error("Checkout error:", error);
 
-    const raw = error instanceof Error ? error.message : String(error);
+    const message = error instanceof Error ? error.message : String(error);
 
-    let userMessage = "Something went wrong creating the checkout. Please try again.";
-    let status = 500;
-
-    if (raw.includes("Bot was not found") || raw.includes("not_found")) {
-      console.error("Checkout: Whop app not installed on company. Check WHOP_API_KEY is an app key and the app is installed on NEXT_PUBLIC_WHOP_COMPANY_ID. Raw:", raw);
-      userMessage = "Checkout is not configured yet. Please contact support.";
-      status = 400;
-    } else if (raw.includes("unauthorized") || raw.includes("Authentication failed")) {
-      console.error("Checkout: WHOP_API_KEY is invalid or lacks permissions. Must be an app API key, not a company key.");
-      userMessage = "Checkout is temporarily unavailable. Please try again later.";
-      status = 500;
-    } else if (raw.includes("redirect URL must be a valid URL")) {
-      console.error("Checkout: NEXT_PUBLIC_APP_URL must start with https:// in production. Current value:", process.env.NEXT_PUBLIC_APP_URL);
-      userMessage = "Checkout is temporarily unavailable. Please try again later.";
-      status = 500;
-    } else {
-      console.error("Checkout: unhandled error:", raw);
+    if (message === "Invalid cart item" || message === "Unknown product") {
+      return NextResponse.json(
+        { error: "Your cart contains an invalid item. Please refresh and try again." },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ error: userMessage }, { status });
+    return NextResponse.json(
+      { error: "Something went wrong creating the checkout. Please try again." },
+      { status: 500 }
+    );
   }
 }
