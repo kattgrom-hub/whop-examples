@@ -18,76 +18,7 @@ type PaymentState =
   | "succeeded"
   | "canceled";
 
-type MountedElement = {
-  mount(target: string | HTMLElement): void;
-  destroy?: () => void;
-};
-
-type PaymentsHandle = {
-  create(
-    element:
-      | "payment"
-      | "address"
-      | "email"
-      | "branding",
-    options?: Record<string, unknown>
-  ): MountedElement;
-  createConfirmationToken(): Promise<{ confirmationToken: string }>;
-  handleNextAction(input: { clientSecret: string }): Promise<void>;
-  destroy?: () => void;
-};
-
-type WhopRoot = {
-  payments: {
-    create(options: Record<string, unknown>): PaymentsHandle;
-  };
-};
-
-type WhopElementsConstructor = (
-  options?: Record<string, unknown>
-) => WhopRoot;
-
-declare global {
-  interface Window {
-    WhopElements?: WhopElementsConstructor;
-  }
-}
-
-const WHOP_ELEMENTS_SRC =
-  "https://cdn.whop.com/elements/amber/elements.js";
-
-function loadWhopElements(): Promise<WhopElementsConstructor> {
-  if (window.WhopElements) {
-    return Promise.resolve(window.WhopElements);
-  }
-
-  const existing = document.querySelector<HTMLScriptElement>(
-    "script[data-whop-elements]"
-  );
-
-  return new Promise((resolve, reject) => {
-    const script = existing || document.createElement("script");
-
-    const finish = () => {
-      if (window.WhopElements) resolve(window.WhopElements);
-      else reject(new Error("Whop Elements did not initialize"));
-    };
-
-    script.addEventListener("load", finish, { once: true });
-    script.addEventListener(
-      "error",
-      () => reject(new Error("Unable to load Whop Elements")),
-      { once: true }
-    );
-
-    if (!existing) {
-      script.src = WHOP_ELEMENTS_SRC;
-      script.async = true;
-      script.dataset.whopElements = "";
-      document.head.appendChild(script);
-    }
-  });
-}
+import { loadWhopElements, type PaymentsHandle, type MountedElement } from "@/lib/whop-elements";
 
 export function WhopElementsCheckout({
   planId,

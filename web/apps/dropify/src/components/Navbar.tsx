@@ -46,6 +46,10 @@ export default function Navbar() {
             </Link>
           </div>
 
+          <Link href="/wallet" className="ml-auto mr-4 text-sm text-secondary hover:text-primary">
+            Wallet
+          </Link>
+
           {/* Cart */}
           <button
             onClick={openCart}
