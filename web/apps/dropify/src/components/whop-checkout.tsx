@@ -1,16 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import {
-  AddressElement,
-  BrandingElement,
-  EmailElement,
-  PaymentElement,
-  Payments,
-  WhopElements,
-  usePayments,
-} from "@whop/elements-react";
-import { loadWhop } from "@whop/elements";
+import { useEffect, useRef, useState } from "react";
 
 interface WhopElementsCheckoutProps {
   planId: string;
@@ -28,16 +18,160 @@ type PaymentState =
   | "succeeded"
   | "canceled";
 
-function PaymentForm({
+type MountedElement = {
+  mount(target: string | HTMLElement): void;
+  destroy?: () => void;
+};
+
+type PaymentsHandle = {
+  create(
+    element:
+      | "payment"
+      | "address"
+      | "email"
+      | "branding",
+    options?: Record<string, unknown>
+  ): MountedElement;
+  createConfirmationToken(): Promise<{ confirmationToken: string }>;
+  handleNextAction(input: { clientSecret: string }): Promise<void>;
+  destroy?: () => void;
+};
+
+type WhopRoot = {
+  payments: {
+    create(options: Record<string, unknown>): PaymentsHandle;
+  };
+};
+
+type WhopElementsConstructor = (
+  options?: Record<string, unknown>
+) => WhopRoot;
+
+declare global {
+  interface Window {
+    WhopElements?: WhopElementsConstructor;
+  }
+}
+
+const WHOP_ELEMENTS_SRC =
+  "https://cdn.whop.com/elements/amber/elements.js";
+
+function loadWhopElements(): Promise<WhopElementsConstructor> {
+  if (window.WhopElements) {
+    return Promise.resolve(window.WhopElements);
+  }
+
+  const existing = document.querySelector<HTMLScriptElement>(
+    "script[data-whop-elements]"
+  );
+
+  return new Promise((resolve, reject) => {
+    const script = existing || document.createElement("script");
+
+    const finish = () => {
+      if (window.WhopElements) resolve(window.WhopElements);
+      else reject(new Error("Whop Elements did not initialize"));
+    };
+
+    script.addEventListener("load", finish, { once: true });
+    script.addEventListener(
+      "error",
+      () => reject(new Error("Unable to load Whop Elements")),
+      { once: true }
+    );
+
+    if (!existing) {
+      script.src = WHOP_ELEMENTS_SRC;
+      script.async = true;
+      script.dataset.whopElements = "";
+      document.head.appendChild(script);
+    }
+  });
+}
+
+export function WhopElementsCheckout({
   planId,
   accountId,
   orderToken,
   onSuccess,
 }: WhopElementsCheckoutProps) {
-  const payments = usePayments();
+  const paymentsRef = useRef<PaymentsHandle | null>(null);
   const [ready, setReady] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let payments: PaymentsHandle | null = null;
+    const mounted: MountedElement[] = [];
+
+    const boot = async () => {
+      try {
+        const WhopElements = await loadWhopElements();
+        if (cancelled) return;
+
+        const environment =
+          (process.env.NEXT_PUBLIC_WHOP_ENVIRONMENT as
+            | "sandbox"
+            | "production") || "production";
+
+        const whop = WhopElements({
+          environment,
+          locale: "en",
+          appearance: {
+            theme: {
+              appearance: "light",
+              accentColor: "yellow",
+            },
+          },
+        });
+
+        payments = whop.payments.create({
+          accountId,
+          plan: planId,
+          returnUrl: `${window.location.origin}/checkout?planId=${encodeURIComponent(
+            planId
+          )}`,
+        });
+
+        const email = payments.create("email");
+        const address = payments.create("address");
+        const payment = payments.create("payment", {
+          onChange: (state: { complete?: boolean }) => {
+            setReady(Boolean(state.complete));
+          },
+        });
+        const branding = payments.create("branding");
+
+        email.mount("#whop-email");
+        address.mount("#whop-address");
+        payment.mount("#whop-payment");
+        branding.mount("#whop-branding");
+
+        mounted.push(email, address, payment, branding);
+        paymentsRef.current = payments;
+        setLoaded(true);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load secure payment form"
+          );
+        }
+      }
+    };
+
+    void boot();
+
+    return () => {
+      cancelled = true;
+      paymentsRef.current = null;
+      for (const element of mounted) element.destroy?.();
+      payments?.destroy?.();
+    };
+  }, [accountId, planId]);
 
   const getStatus = async (paymentId: string) => {
     const response = await fetch("/api/payments/status", {
@@ -72,6 +206,7 @@ function PaymentForm({
   };
 
   const handleSubmit = async () => {
+    const payments = paymentsRef.current;
     if (!payments || !ready || submitting) return;
 
     setSubmitting(true);
@@ -130,63 +265,32 @@ function PaymentForm({
   };
 
   return (
-    <Payments
-      accountId={accountId}
-      plan={planId}
-      returnUrl={
-        typeof window === "undefined"
-          ? undefined
-          : `${window.location.origin}/checkout?planId=${encodeURIComponent(
-              planId
-            )}`
-      }
-    >
-      <div className="space-y-5">
-        <EmailElement />
-        <AddressElement />
-        <PaymentElement
-          onChange={(state) => setReady(Boolean(state.complete))}
-        />
-        <BrandingElement />
+    <div className="space-y-5">
+      <div id="whop-email" />
+      <div id="whop-address" />
+      <div id="whop-payment" />
+      <div id="whop-branding" />
 
-        {error && (
-          <p className="text-center text-xs font-light text-red-500">
-            {error}
-          </p>
-        )}
+      {!loaded && !error && (
+        <p className="text-center text-xs font-light text-secondary">
+          Loading secure payment form...
+        </p>
+      )}
 
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!ready || submitting}
-          className="w-full bg-gold py-3.5 text-sm font-medium tracking-wide text-primary rounded-sm transition-all duration-500 hover:bg-gold-hover disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {submitting ? "Confirming payment..." : "Pay securely"}
-        </button>
-      </div>
-    </Payments>
-  );
-}
+      {error && (
+        <p className="text-center text-xs font-light text-red-500">
+          {error}
+        </p>
+      )}
 
-export function WhopElementsCheckout(props: WhopElementsCheckoutProps) {
-  const elements = typeof window === "undefined" ? null : loadWhop();
-  const environment =
-    (process.env.NEXT_PUBLIC_WHOP_ENVIRONMENT as "sandbox" | "production") ||
-    "production";
-
-  return (
-    <WhopElements
-      elements={elements}
-      environment={environment}
-      locale="en"
-      appearance={{
-        theme: {
-          appearance: "light",
-          accentColor: "yellow",
-        },
-      }}
-    >
-      <PaymentForm {...props} />
-    </WhopElements>
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={!loaded || !ready || submitting}
+        className="w-full bg-gold py-3.5 text-sm font-medium tracking-wide text-primary rounded-sm transition-all duration-500 hover:bg-gold-hover disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {submitting ? "Confirming payment..." : "Pay securely"}
+      </button>
+    </div>
   );
 }
