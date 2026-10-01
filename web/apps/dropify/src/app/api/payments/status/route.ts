@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getWhopApi } from "@/lib/whop-sdk";
 import { verifyOrderToken } from "@/lib/checkout-token";
+import {
+  retrieveWhopPayment,
+  retrieveWhopPaymentStatus,
+} from "@/lib/whop-payments";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,11 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     const order = verifyOrderToken(orderToken);
-    const client = getWhopApi();
-
-    const payment = await client.payments.retrieve({
-      payment_id: paymentId,
-    });
+    const payment = await retrieveWhopPayment(paymentId);
 
     if (
       payment.metadata?.type !== "dropify_order" ||
@@ -34,9 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const status = await client.payments.retrieveStatus({
-      payment_id: paymentId,
-    });
+    const status = await retrieveWhopPaymentStatus(paymentId);
 
     return NextResponse.json({
       paymentId,
