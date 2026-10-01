@@ -34,7 +34,12 @@ export default function CartDrawer() {
       if (!response.ok) throw new Error(data.error);
 
       closeCart();
-      router.push(`/checkout?planId=${data.planId}`);
+      const checkoutTarget = data.checkoutConfigurationId
+        ? `/checkout?checkoutConfigurationId=${encodeURIComponent(
+            data.checkoutConfigurationId
+          )}`
+        : `/checkout?planId=${encodeURIComponent(data.planId)}`;
+      router.push(checkoutTarget);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Checkout failed");
     } finally {
