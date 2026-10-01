@@ -57,6 +57,23 @@ export function WhopEmbeddedCheckout({
     let cancelled = false;
     let checkout: CheckoutHandle | null = null;
 
+    const checkoutIdentity = checkoutConfigurationId || planId;
+    const completionKey = checkoutIdentity
+      ? `dropify:whop-checkout-complete:${checkoutIdentity}`
+      : null;
+
+    if (
+      completionKey &&
+      window.sessionStorage.getItem(completionKey) === "1"
+    ) {
+      window.sessionStorage.removeItem(completionKey);
+      const destination = new URL(redirectUrl, window.location.origin);
+      router.replace(
+        `${destination.pathname}${destination.search}${destination.hash}`
+      );
+      return;
+    }
+
     const mountCheckout = () => {
       if (cancelled) return;
 
@@ -87,10 +104,12 @@ export function WhopEmbeddedCheckout({
             : { plan: planId }),
           returnUrl: restoreUrl.toString(),
           onComplete: () => {
-            const destination = new URL(redirectUrl, window.location.origin);
-            router.replace(
-              `${destination.pathname}${destination.search}${destination.hash}`
-            );
+            // Whop fires this only once the purchase stands, immediately before
+            // navigating to returnUrl. Persist a one-tab marker so the restored
+            // checkout can move to our local thank-you state after that navigation.
+            if (completionKey) {
+              window.sessionStorage.setItem(completionKey, "1");
+            }
           },
         });
 
