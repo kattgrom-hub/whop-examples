@@ -31,7 +31,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5007";
+    const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+    const appUrl =
+      configuredAppUrl && configuredAppUrl.length > 0
+        ? configuredAppUrl
+        : request.nextUrl.origin;
     const client = getWhopApi();
 
     // Calculate total price from cart items
