@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       planId,
+      checkoutConfigurationId: checkoutConfig.id,
       checkoutUrl: checkoutConfig.purchase_url,
     });
   } catch (error) {
