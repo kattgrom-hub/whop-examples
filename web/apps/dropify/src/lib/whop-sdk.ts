@@ -1,26 +1,13 @@
+import "server-only";
 import Whop from "@whop/sdk";
-
-let _whopApi: Whop | null = null;
+import { getWhopEnvironment } from "./checkout-config";
 
 export function getWhopApi(): Whop {
-  if (!_whopApi) {
-    if (!process.env.WHOP_API_KEY) {
-      throw new Error(
-        "WHOP_API_KEY environment variable is required. Copy .env.example to .env.local and add your API key from https://whop.com/developer"
-      );
-    }
-
-    _whopApi = new Whop({
-      apiKey: process.env.WHOP_API_KEY,
-      ...(process.env.WHOP_WEBHOOK_SECRET
-        ? {
-            webhookKey: Buffer.from(
-              process.env.WHOP_WEBHOOK_SECRET
-            ).toString("base64"),
-          }
-        : {}),
-    });
-  }
-
-  return _whopApi;
+  const environment = getWhopEnvironment();
+  const apiKey = process.env.WHOP_API_KEY;
+  if (!apiKey || apiKey.includes("xxxxx")) throw new Error("Configure the Whop API key for this environment");
+  return new Whop({ apiKey,
+    baseURL: environment === "sandbox" ? "https://sandbox-api.whop.com/api/v1" : "https://api.whop.com/api/v1",
+    ...(process.env.WHOP_WEBHOOK_SECRET ? { webhookKey: Buffer.from(process.env.WHOP_WEBHOOK_SECRET).toString("base64") } : {}),
+  });
 }

@@ -1,174 +1,82 @@
 "use client";
+import { useEffect, useRef, useState } from "react";
+import { getWhopEnvironment } from "@/lib/checkout-config";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
-type WhopEnvironment = "sandbox" | "production";
-
-type CheckoutHandle = {
-  create: (name: "checkout") => {
-    mount: (target: string | HTMLElement) => void;
-  };
-  destroy?: () => void;
+type Completion = { result: "payment"; paymentId: string; sessionId: string } |
+  { result: "setup"; setupIntentId: string; sessionId: string } |
+  { result: "waitlist_entry"; entryId: string; sessionId: string };
+type ElementHandle = { mount(target: HTMLElement): void; destroy(): void };
+type CheckoutHandle = { create(name: "checkout", options?: { onError?: (event: { code?: string }) => void }): ElementHandle; destroy(): void };
+type ElementsConstructor = (options: { environment: "sandbox" | "production" }) => {
+  checkout: { create(options: { checkoutConfiguration?: string; plan?: string; returnUrl: string; onComplete(event: Completion): void }): CheckoutHandle };
 };
-
-type WhopElementsRoot = {
-  checkout: {
-    create: (options: {
-      plan?: string;
-      checkoutConfiguration?: string;
-      returnUrl: string;
-      onComplete?: () => void;
-    }) => CheckoutHandle;
-  };
-};
-
-declare global {
-  interface Window {
-    WhopElements?: (options?: {
-      environment?: WhopEnvironment;
-    }) => WhopElementsRoot;
-  }
-}
-
-interface WhopEmbeddedCheckoutProps {
-  planId?: string;
-  checkoutConfigurationId?: string;
-  redirectUrl?: string;
-}
-
-const WHOP_ELEMENTS_SRC = "https://cdn.whop.com/elements/amber/elements.js";
-
-export function WhopEmbeddedCheckout({
-  planId,
-  checkoutConfigurationId,
-  redirectUrl = "/checkout?status=success",
-}: WhopEmbeddedCheckoutProps) {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-
-  const environment =
-    (process.env.NEXT_PUBLIC_WHOP_ENVIRONMENT as WhopEnvironment) ||
-    "production";
-
-  useEffect(() => {
-    if (!planId && !checkoutConfigurationId) return;
-
-    let cancelled = false;
-    let checkout: CheckoutHandle | null = null;
-
-    const checkoutIdentity = checkoutConfigurationId || planId;
-    const completionKey = checkoutIdentity
-      ? `dropify:whop-checkout-complete:${checkoutIdentity}`
-      : null;
-
-    if (
-      completionKey &&
-      window.sessionStorage.getItem(completionKey) === "1"
-    ) {
-      window.sessionStorage.removeItem(completionKey);
-      const destination = new URL(redirectUrl, window.location.origin);
-      router.replace(
-        `${destination.pathname}${destination.search}${destination.hash}`
-      );
-      return;
-    }
-
-    const mountCheckout = () => {
-      if (cancelled) return;
-
-      const createWhop = window.WhopElements;
-      const target = document.getElementById("whop-elements-checkout");
-
-      if (!createWhop || !target) {
-        setError("Whop Elements could not be loaded. Please refresh and try again.");
-        return;
-      }
-
-      try {
-        const restoreUrl = new URL("/checkout", window.location.origin);
-        if (checkoutConfigurationId) {
-          restoreUrl.searchParams.set(
-            "checkoutConfigurationId",
-            checkoutConfigurationId
-          );
-        } else if (planId) {
-          restoreUrl.searchParams.set("planId", planId);
-        }
-
-        const whop = createWhop({ environment });
-
-        checkout = whop.checkout.create({
-          ...(checkoutConfigurationId
-            ? { checkoutConfiguration: checkoutConfigurationId }
-            : { plan: planId }),
-          returnUrl: restoreUrl.toString(),
-          onComplete: () => {
-            // Whop fires this only once the purchase stands, immediately before
-            // navigating to returnUrl. Persist a one-tab marker so the restored
-            // checkout can move to our local thank-you state after that navigation.
-            if (completionKey) {
-              window.sessionStorage.setItem(completionKey, "1");
-            }
-          },
-        });
-
-        checkout.create("checkout").mount(target);
-      } catch (checkoutError) {
-        console.error("Failed to mount Whop Elements checkout:", checkoutError);
-        setError("Checkout is temporarily unavailable. Please try again.");
-      }
+declare global { interface Window { WhopElements?: ElementsConstructor } }
+let scriptPromise: Promise<ElementsConstructor> | null = null;
+function loadElements(): Promise<ElementsConstructor> {
+  if (window.WhopElements) return Promise.resolve(window.WhopElements);
+  if (scriptPromise) return scriptPromise;
+  scriptPromise = new Promise<ElementsConstructor>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>("script[data-whop-elements]");
+    const script = existing || document.createElement("script");
+    const cleanup = () => { clearTimeout(timeout); script.removeEventListener("load", loaded); script.removeEventListener("error", failed); };
+    const loaded = () => {
+      cleanup();
+      if (window.WhopElements) resolve(window.WhopElements);
+      else { script.remove(); reject(new Error("Checkout did not initialize")); }
     };
-
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      "script[data-whop-elements]"
-    );
-
-    if (window.WhopElements) {
-      mountCheckout();
-    } else if (existingScript) {
-      existingScript.addEventListener("load", mountCheckout, { once: true });
-      existingScript.addEventListener(
-        "error",
-        () => setError("Whop Elements failed to load. Please try again."),
-        { once: true }
-      );
-    } else {
-      const script = document.createElement("script");
-      script.src = WHOP_ELEMENTS_SRC;
+    const failed = () => { cleanup(); script.remove(); reject(new Error("Checkout could not load")); };
+    const timeout = setTimeout(failed, 15000);
+    script.addEventListener("load", loaded);
+    script.addEventListener("error", failed);
+    if (!existing) {
+      script.src = "https://cdn.whop.com/elements/amber/elements.js";
       script.async = true;
-      script.setAttribute("data-whop-elements", "");
-      script.addEventListener("load", mountCheckout, { once: true });
-      script.addEventListener(
-        "error",
-        () => setError("Whop Elements failed to load. Please try again."),
-        { once: true }
-      );
+      script.dataset.whopElements = "";
       document.head.appendChild(script);
     }
+  }).catch(error => { scriptPromise = null; throw error; });
+  return scriptPromise;
+}
 
-    return () => {
-      cancelled = true;
-      checkout?.destroy?.();
-    };
-  }, [checkoutConfigurationId, environment, planId, redirectUrl, router]);
-
-  if (error) {
-    return (
-      <div
-        role="alert"
-        className="rounded-sm border border-red-200 bg-red-50 px-4 py-4 text-sm font-light text-red-700"
-      >
-        {error}
-      </div>
-    );
-  }
-
-  return (
-    <div
-      id="whop-elements-checkout"
-      className="min-h-[360px] w-full"
-      aria-label="Whop checkout"
-    />
-  );
+export function WhopEmbeddedCheckout({ orderId, checkoutConfigurationId, planId, onPaymentComplete }: {
+  orderId: string; checkoutConfigurationId: string | null; planId: string | null;
+  onPaymentComplete: (paymentId: string, sessionId: string) => void;
+}) {
+  const target = useRef<HTMLDivElement>(null);
+  const complete = useRef(onPaymentComplete);
+  complete.current = onPaymentComplete;
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    let checkout: CheckoutHandle | undefined;
+    setError(null);
+    void loadElements().then(Elements => {
+      if (cancelled || !target.current) return;
+      const restore = new URL("/checkout", window.location.origin);
+      restore.searchParams.set("orderId", orderId);
+      checkout = Elements({ environment: getWhopEnvironment() }).checkout.create({
+        ...(checkoutConfigurationId ? { checkoutConfiguration: checkoutConfigurationId } : { plan: planId || undefined }),
+        returnUrl: restore.toString(),
+        onComplete: event => {
+          if (cancelled) return;
+          if (event.result === "payment" && /^pay_[a-zA-Z0-9]+$/.test(event.paymentId) && event.sessionId) {
+            complete.current(event.paymentId, event.sessionId);
+          } else {
+            setError("This checkout did not complete a payment. No order has been confirmed.");
+          }
+        },
+      });
+      checkout.create("checkout", { onError: () => {
+        if (!cancelled) setError("Checkout is unavailable. Please retry.");
+      } }).mount(target.current);
+    }).catch(() => { if (!cancelled) setError("Checkout could not load. Please retry."); });
+    return () => { cancelled = true; checkout?.destroy(); };
+  }, [orderId, checkoutConfigurationId, planId, attempt]);
+  return <div>
+    {error && <div role="alert" className="mb-4 text-sm text-red-700">
+      <p>{error}</p><button type="button" onClick={() => setAttempt(n => n + 1)} className="underline mt-2">Retry checkout</button>
+    </div>}
+    <div ref={target} className="min-h-[360px] w-full" aria-label="Whop checkout" />
+  </div>;
 }

@@ -1,110 +1,56 @@
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { InvalidCartError, priceCart } from "@/lib/checkout-cart";
+import { getAppOrigin, getWhopCompanyId, getWhopEnvironment } from "@/lib/checkout-config";
+import { attachCheckout, checkoutClientKey, createOrder, hashAccess, newOrderAccess, orderCookieName, requireOrderStore } from "@/lib/order-store";
 import { getWhopApi } from "@/lib/whop-sdk";
-
-interface CartItem {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { items } = body as { items: CartItem[] };
-
-    if (!items || items.length === 0) {
-      return NextResponse.json(
-        { error: "Cart is empty" },
-        { status: 400 }
-      );
+    const environment = getWhopEnvironment();
+    const companyId = getWhopCompanyId();
+    const appOrigin = getAppOrigin(request.url);
+    if (request.headers.get("origin") !== new URL(request.url).origin ||
+        request.headers.get("sec-fetch-site") === "cross-site") {
+      return NextResponse.json({ error: "Use checkout from this website" }, { status: 403 });
     }
-
-    const companyId = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
-    if (!companyId || companyId === "biz_xxxxx") {
-      return NextResponse.json(
-        {
-          error:
-            "Whop Company ID not configured. Copy .env.example to .env.local and add your credentials from the Whop Developer Dashboard (https://whop.com/developer).",
-        },
-        { status: 500 }
-      );
+    if (!request.headers.get("content-type")?.includes("application/json")) {
+      return NextResponse.json({ error: "Expected JSON" }, { status: 415 });
     }
-
-    const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
-    const appUrl =
-      configuredAppUrl && configuredAppUrl.length > 0
-        ? configuredAppUrl
-        : request.nextUrl.origin;
+    const raw = await request.text();
+    if (raw.length > 16384) return NextResponse.json({ error: "Cart is too large" }, { status: 413 });
+    let body;
+    try { body = JSON.parse(raw); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
+    const { items, totalMinor, currency } = priceCart(body?.items);
+    requireOrderStore();
     const client = getWhopApi();
-
-    // Calculate total price from cart items
-    const totalPrice = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
-
-    // Build a summary of items for metadata
-    const itemsSummary = items
-      .map((item) => `${item.quantity}x ${item.name}`)
-      .join(", ");
-
-    const checkoutConfig = await client.checkoutConfigurations.create({
-      mode: "payment",
-      redirect_url: `${appUrl}/checkout?status=success`,
-      metadata: {
-        items: JSON.stringify(items),
-        items_summary: itemsSummary,
-        type: "dropify_order",
-      },
-      plan: {
-        company_id: companyId,
-        currency: "usd",
-        initial_price: totalPrice,
-        plan_type: "one_time",
-        visibility: "hidden",
-        release_method: "buy_now",
+    const orderId = randomUUID();
+    const access = newOrderAccess();
+    const order = await createOrder({ id: orderId, access_hash: hashAccess(access), environment,
+      company_id: companyId, total_minor: totalMinor, currency, items }, checkoutClientKey(request));
+    if (!order) return NextResponse.json({ error: "Too many checkout attempts. Please wait a minute." }, { status: 429 });
+    const returnUrl = `${appOrigin}/checkout?orderId=${orderId}`;
+    const checkout = await client.checkoutConfigurations.create({
+      mode: "payment", redirect_url: returnUrl,
+      metadata: { type: "dropify_order", order_id: orderId, environment },
+      plan: { company_id: companyId, currency, initial_price: totalMinor / 100,
+        plan_type: "one_time", visibility: "hidden", release_method: "buy_now",
+        product: { external_identifier: `dropify-${orderId}`, title: "Dropify candle order", collect_shipping_address: true },
       },
     });
-
-    const planId = checkoutConfig.plan?.id;
-
-    if (!planId) {
-      return NextResponse.json(
-        { error: "Failed to create plan for checkout" },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      planId,
-      checkoutConfigurationId: checkoutConfig.id,
-      checkoutUrl: checkoutConfig.purchase_url,
+    if (!checkout.plan?.id || !checkout.id) throw new Error("Checkout target missing");
+    await attachCheckout(orderId, checkout.plan.id, checkout.id);
+    const response = NextResponse.json({ orderId, planId: checkout.plan.id, checkoutConfigurationId: checkout.id }, {
+      headers: { "Cache-Control": "no-store" },
     });
+    response.cookies.set(orderCookieName(orderId), access, {
+      httpOnly: true, secure: new URL(request.url).protocol === "https:", sameSite: "lax",
+      path: "/api/orders", maxAge: 7 * 24 * 60 * 60,
+    });
+    return response;
   } catch (error) {
-    console.error("Checkout error:", error);
-
-    const raw = error instanceof Error ? error.message : String(error);
-
-    let userMessage = "Something went wrong creating the checkout. Please try again.";
-    let status = 500;
-
-    if (raw.includes("Bot was not found") || raw.includes("not_found")) {
-      console.error("Checkout: Whop app not installed on company. Check WHOP_API_KEY is an app key and the app is installed on NEXT_PUBLIC_WHOP_COMPANY_ID. Raw:", raw);
-      userMessage = "Checkout is not configured yet. Please contact support.";
-      status = 400;
-    } else if (raw.includes("unauthorized") || raw.includes("Authentication failed")) {
-      console.error("Checkout: WHOP_API_KEY is invalid or lacks permissions. Must be an app API key, not a company key.");
-      userMessage = "Checkout is temporarily unavailable. Please try again later.";
-      status = 500;
-    } else if (raw.includes("redirect URL must be a valid URL")) {
-      console.error("Checkout: NEXT_PUBLIC_APP_URL must start with https:// in production. Current value:", process.env.NEXT_PUBLIC_APP_URL);
-      userMessage = "Checkout is temporarily unavailable. Please try again later.";
-      status = 500;
-    } else {
-      console.error("Checkout: unhandled error:", raw);
-    }
-
-    return NextResponse.json({ error: userMessage }, { status });
+    if (error instanceof InvalidCartError) return NextResponse.json({ error: error.message }, { status: 400 });
+    console.error("Dropify checkout creation failed", { type: error instanceof Error ? error.name : "unknown" });
+    return NextResponse.json({ error: "Checkout is unavailable. Please try again later." }, { status: 503 });
   }
 }

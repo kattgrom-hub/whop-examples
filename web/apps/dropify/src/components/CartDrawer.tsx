@@ -23,8 +23,6 @@ export default function CartDrawer() {
         body: JSON.stringify({
           items: items.map((item) => ({
             productId: item.product.id,
-            name: item.product.name,
-            price: item.product.price,
             quantity: item.quantity,
           })),
         }),
@@ -34,12 +32,7 @@ export default function CartDrawer() {
       if (!response.ok) throw new Error(data.error);
 
       closeCart();
-      const checkoutTarget = data.checkoutConfigurationId
-        ? `/checkout?checkoutConfigurationId=${encodeURIComponent(
-            data.checkoutConfigurationId
-          )}`
-        : `/checkout?planId=${encodeURIComponent(data.planId)}`;
-      router.push(checkoutTarget);
+      router.push(`/checkout?orderId=${encodeURIComponent(data.orderId)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Checkout failed");
     } finally {
@@ -49,7 +42,6 @@ export default function CartDrawer() {
 
   return (
     <>
-      {/* Backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/20 backdrop-blur-overlay transition-opacity duration-500"
@@ -57,14 +49,12 @@ export default function CartDrawer() {
         />
       )}
 
-      {/* Drawer */}
       <div
         className={`fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white shadow-2xl transition-transform duration-500 ease-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex h-full flex-col">
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-5">
             <h2 className="text-sm font-light tracking-[0.2em] text-primary">
               CART
@@ -78,7 +68,6 @@ export default function CartDrawer() {
             </button>
           </div>
 
-          {/* Items */}
           <div className="flex-1 overflow-y-auto px-6 py-6">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
@@ -94,18 +83,13 @@ export default function CartDrawer() {
             ) : (
               <div className="space-y-6">
                 {items.map((item) => (
-                  <div
-                    key={item.product.id}
-                    className="flex gap-4"
-                  >
-                    {/* Product Image Placeholder */}
+                  <div key={item.product.id} className="flex gap-4">
                     <div className="h-20 w-20 flex-shrink-0 bg-neutral-100 rounded-sm flex items-center justify-center">
                       <span className="text-[10px] text-neutral-300 font-light">
                         {item.product.name}
                       </span>
                     </div>
 
-                    {/* Details */}
                     <div className="flex flex-1 flex-col justify-between">
                       <div className="flex justify-between">
                         <div>
@@ -125,14 +109,10 @@ export default function CartDrawer() {
                         </button>
                       </div>
 
-                      {/* Quantity Controls */}
                       <div className="flex items-center gap-3 mt-2">
                         <button
                           onClick={() =>
-                            updateQuantity(
-                              item.product.id,
-                              item.quantity - 1
-                            )
+                            updateQuantity(item.product.id, item.quantity - 1)
                           }
                           className="flex h-7 w-7 items-center justify-center border border-neutral-200 rounded-sm text-secondary transition-colors duration-400 hover:border-primary hover:text-primary"
                           aria-label="Decrease quantity"
@@ -144,10 +124,7 @@ export default function CartDrawer() {
                         </span>
                         <button
                           onClick={() =>
-                            updateQuantity(
-                              item.product.id,
-                              item.quantity + 1
-                            )
+                            updateQuantity(item.product.id, item.quantity + 1)
                           }
                           className="flex h-7 w-7 items-center justify-center border border-neutral-200 rounded-sm text-secondary transition-colors duration-400 hover:border-primary hover:text-primary"
                           aria-label="Increase quantity"
@@ -162,7 +139,6 @@ export default function CartDrawer() {
             )}
           </div>
 
-          {/* Footer */}
           {items.length > 0 && (
             <div className="border-t border-neutral-100 px-6 py-6">
               <div className="flex items-center justify-between mb-5">
@@ -193,7 +169,7 @@ export default function CartDrawer() {
                 )}
               </button>
               <p className="mt-3 text-center text-[11px] font-light text-neutral-400">
-                Shipping & taxes calculated at checkout
+                Prices in USD. Review the final total at checkout.
               </p>
             </div>
           )}

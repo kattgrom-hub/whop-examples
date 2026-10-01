@@ -7,10 +7,10 @@
     "dev": "next dev -p 5007",
     "build": "next build",
     "start": "next start -p 5007",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test tests/checkout.test.mjs tests/database.test.mjs"
   },
   "dependencies": {
-    "@whop/checkout": "^0.0.52",
     "@whop/sdk": "^0.0.28",
     "@whop-examples/auth": "workspace:*",
     "lucide-react": "^0.575.0",
@@ -25,6 +25,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@electric-sql/pglite": "0.5.8"
   }
 }
