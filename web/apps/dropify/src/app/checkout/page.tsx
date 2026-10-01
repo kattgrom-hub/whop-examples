@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
 import { WhopEmbeddedCheckout } from "@/components/whop-checkout";
@@ -10,12 +10,20 @@ import { useCart } from "@/components/CartContext";
 function CheckoutContent() {
   const searchParams = useSearchParams();
   const planId = searchParams.get("planId");
+  const checkoutConfigurationId = searchParams.get("checkoutConfigurationId");
   const status = searchParams.get("status");
   const { clearCart } = useCart();
 
-  // Success state after payment redirect
-  if (status === "success") {
-    clearCart();
+  const paymentSucceeded = status === "success" || status === "succeeded";
+
+  useEffect(() => {
+    if (paymentSucceeded) {
+      clearCart();
+    }
+  }, [clearCart, paymentSucceeded]);
+
+  // Success state after Whop confirms checkout completion
+  if (paymentSucceeded) {
     return (
       <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
         <CheckCircle2
@@ -41,8 +49,8 @@ function CheckoutContent() {
     );
   }
 
-  // No plan ID — user navigated here directly
-  if (!planId) {
+  // No Whop checkout target — user navigated here directly
+  if (!planId && !checkoutConfigurationId) {
     return (
       <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
         <h1 className="text-2xl font-extralight tracking-tight text-primary">
@@ -79,8 +87,8 @@ function CheckoutContent() {
         </h1>
 
         <WhopEmbeddedCheckout
-          planId={planId}
-          onSuccess={() => clearCart()}
+          planId={planId ?? undefined}
+          checkoutConfigurationId={checkoutConfigurationId ?? undefined}
           redirectUrl="/checkout?status=success"
         />
 
