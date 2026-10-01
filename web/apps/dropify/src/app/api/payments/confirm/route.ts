@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getWhopApi } from "@/lib/whop-sdk";
 import { verifyOrderToken } from "@/lib/checkout-token";
+import {
+  createWhopPayment,
+  retrieveWhopPaymentStatus,
+} from "@/lib/whop-payments";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,9 +30,8 @@ export async function POST(request: NextRequest) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5007";
-    const client = getWhopApi();
 
-    const payment = await client.payments.create({
+    const payment = await createWhopPayment({
       account_id: accountId,
       plan_id: order.planId,
       confirmation_token: confirmationToken,
@@ -45,9 +47,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const paymentStatus = await client.payments.retrieveStatus({
-      payment_id: payment.id,
-    });
+    const paymentStatus = await retrieveWhopPaymentStatus(payment.id);
 
     return NextResponse.json({
       paymentId: payment.id,
