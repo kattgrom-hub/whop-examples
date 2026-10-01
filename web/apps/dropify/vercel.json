@@ -2,5 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter dropify build"
+  "buildCommand": "cd ../.. && pnpm --filter dropify build",
+  "rewrites": [
+    {
+      "source": "/.well-known/apple-developer-merchantid-domain-association",
+      "destination": "https://whop.com/.well-known/apple-platform-integrator/apple-developer-merchantid-domain-association"
+    }
+  ]
 }
