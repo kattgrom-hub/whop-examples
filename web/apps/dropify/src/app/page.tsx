@@ -7,8 +7,8 @@ export default function Home() {
  ["Are these physical products?","No. Both are digital creator kits. There is no physical shipment or delivery address to enter."],
  ["Is this a subscription?","Both kits are priced at A$29.99 each as a one-time purchase. Buying both is A$59.98 before any applicable checkout adjustments."],
  ["Which kit should I choose?","Coastal Creator Toolkit focuses on lifestyle content, templates and workflows. Viral Gold Video Kit focuses on hooks, editing and short-form platform strategy."],
- ["Can I buy right now?","Sales are currently paused while product delivery is completed. You can browse the kits and build your cart; payments will open once access is ready."],
+ ["Can I buy right now?","Yes. Choose Buy now to complete a secure Whop checkout. Each kit is purchased separately; use the same Whop account to access both."],
  ["Does Viral Gold guarantee viral results?","No. Reach and engagement depend on your content, audience and platform. The kit provides creative resources, not guaranteed views or income."],
- ["How will I receive my kit?","The product access and delivery instructions will be confirmed here before sales open. We will not take payment before delivery is ready."]
+ ["How will I receive my kit?","After payment, open the kit’s Downloads app in your Whop account. Download the ZIP, unzip it and read START_HERE.txt. Each kit includes a PDF guide and editable resources. No shipping is required."]
  ].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></section></>;
 }

@@ -50,7 +50,7 @@ function CheckoutContent() {
     return () => { cancelled = true; clearTimeout(timer); controller.abort(); };
   }, [orderId, refresh]);
   useEffect(() => { if (order?.status === "paid") clearCart(); }, [order?.status, clearCart]);
-  if (!orderId) return <Message title="No checkout in progress" text="Add items to your cart to begin a new checkout." />;
+  if (!orderId) return <Message title="No checkout in progress" text="Choose a kit in the shop and use Buy on Whop to purchase and receive your download." />;
   if (error) return <Message title="Unable to verify this order" text={error}><button onClick={() => setRefresh(n => n + 1)} className="underline mt-4">Check again</button></Message>;
   if (!order) return <Message title="Loading your order" text="Checking your secure order details." />;
   if (order.status === "paid") return <Message title="Thank you for your order" text="Your payment has been verified. Your order reference is available for delivery support." />;

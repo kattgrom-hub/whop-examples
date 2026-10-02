@@ -95,7 +95,7 @@ try {
   assert.equal(await shop.page.getByText(/candle|beeswax|Prices in USD/i).count(),0);
   await shop.page.getByRole('button',{name:'Add to cart',exact:true}).first().click();
   await shop.page.getByRole('dialog').waitFor();
-  await shop.page.getByRole('button',{name:'Checkout opens soon'}).isDisabled().then(value=>assert.equal(value,true));
+  assert.equal(await shop.page.getByRole('dialog').getByRole('link',{name:/Buy Coastal Creator Toolkit/}).getAttribute('href'),'https://whop.com/checkout/plan_jXJDMD5T3MKJD/');
   assert.match(await shop.page.getByRole('dialog').innerText(),/A\$29.99/);
   await shop.page.keyboard.press('Escape');
   await shop.page.getByRole('button',{name:'Add to cart',exact:true}).first().click();
@@ -103,6 +103,7 @@ try {
   await shop.page.keyboard.press('Escape');
   await shop.page.getByRole('button',{name:'Add to cart',exact:true}).last().click();
   assert.match(await shop.page.getByRole('dialog').innerText(),/A\$59.98/);
+  assert.equal(await shop.page.getByRole('dialog').getByRole('link',{name:/Buy Viral Gold Video Kit/}).getAttribute('href'),'https://whop.com/checkout/plan_iTC5mUal2nJw5/');
   await shop.page.keyboard.press('Escape');
   await shop.page.setViewportSize({width:390,height:844});
   await shop.page.goto(base+'/shop');
@@ -110,7 +111,9 @@ try {
   assert.equal(await shop.page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
   await shop.page.getByRole('link',{name:'View Viral Gold Video Kit',exact:true}).click();
   await shop.page.getByRole('heading',{name:'Viral Gold Video Kit',exact:true}).waitFor();
-  await shop.page.getByText('Hook formulas',{exact:true}).waitFor();
+  await shop.page.getByText('30 hook formulas with examples',{exact:true}).waitFor();
+  assert.equal(await shop.page.getByRole('link',{name:/Buy on Whop/}).getAttribute('href'),'https://whop.com/checkout/plan_iTC5mUal2nJw5/');
+  assert.equal(await shop.page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
   passed++;await shop.page.close();
   console.log(`${passed} browser scenarios passed. Whop network requests were intercepted.`);
 } finally {await browser.close();server?.kill();}

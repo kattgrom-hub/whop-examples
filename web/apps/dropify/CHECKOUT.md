@@ -2,13 +2,15 @@
 
 The storefront now presents Coastal Creator Toolkit (`prod_lW8tQxG87dsKP`) and Viral Gold Video Kit (`prod_IjbZFclq4nnH4`) at A$29.99 each, one-time. Copy is based on the existing Whop descriptions. There are no physical products, shipping charges, sample reviews, or guaranteed viral results. Cart quantities are limited to one of each kit and priced on the server in AUD.
 
-## Sales and delivery status
+## Live sales and delivery
 
-The cart visibly states that sales are paused and its checkout button is disabled. The server also rejects charge creation unless `DROPIFY_DIGITAL_DELIVERY_READY=true`. Do not set this variable merely to enable payments: neither product currently has delivery content attached. Connect and verify real digital delivery first, then update the cart and FAQ together with the backend.
+The storefront uses product-specific hosted Whop checkouts: Coastal `plan_jXJDMD5T3MKJD` and Viral Gold `plan_iTC5mUal2nJw5`, A$29.99 one-time with unlimited stock. ZIP files are uploaded into separate native Files apps (`exp_uggpaxt7j1Asgr`, `exp_zsD5umAIRdXxFG`), gated to their matching standard products. The original API/app products cannot include experiences; standard purchase listings were created for native delivery. Paid files are not in this public repository.
 
-The existing inline checkout plan does **not** grant access to either existing Whop product. Implement verified product-specific plan access or a private digital delivery system before removing the gate. Do not put paid files in this public repository. The existing database/staff queue is still a legacy physical fulfilment implementation: address-less digital payments will remain on review, and it must be adapted and tested before launch. No fake address is used to bypass that review.
+Each kit has its own checkout, rather than a combined charge that fails to grant both entitlements. Whop manages payment, receipts and access. Buyer pages and original AUD checkout totals were verified without making a real purchase. Whop may offer a local currency conversion. The Vercel app needs no payment credentials for these links.
 
-## Current release blocker
+The legacy inline order route remains gated. Leave `DROPIFY_DIGITAL_DELIVERY_READY` unset: it must not be enabled for this hosted launch. The local database/staff queue is a separate legacy physical fulfilment implementation and does not track hosted Whop purchases. Monitor hosted purchases in Whop. The existing `whopProductId` catalog fields identify legacy API products and are not used by the hosted purchase links.
+
+## Legacy embedded checkout limitation
 
 As checked on 2026-10-03, Whop's sandbox guide explicitly says Whop Elements is not yet available in sandbox. Sandbox API credentials alone cannot validate the embedded payment flow. Keep Preview in sandbox and use mocked browser tests until Whop confirms support; do not switch Preview to production to work around this limitation.
 
@@ -55,4 +57,4 @@ Tests exercise tampered prices, invalid quantities, cross-site requests, wrong e
 
 Browser scenarios use a local production server and a mocked Whop runtime: completion waits for the verified order, forged success URLs fail, failed/canceled returns require explicit retry, waitlist completion does not count as payment, and script errors offer a retry. To run, install Playwright locally, start Dropify on port 5018 with sandbox at build time, and run `node tests/browser-smoke.mjs` (set `DROPIFY_TEST_URL` for another port).
 
-Once Whop supports Elements in sandbox, run a separate **sandbox-only** purchase-flow check with the configured database and webhook endpoint: success, decline, 3DS approval/cancellation, reload, duplicate webhook delivery, refund hold and queue inspection. These integration checks remain blocked by platform support; local mocks cannot prove account configuration or successful payment collection. A Vercel Ready deployment proves the application built, not that checkout accepts payments. Real purchases and a production launch require separate authorization.
+Once Whop supports Elements in sandbox, run a separate **sandbox-only** purchase-flow check with the configured database and webhook endpoint: success, decline, 3DS approval/cancellation, reload, duplicate webhook delivery, refund hold and queue inspection. These integration checks remain blocked by platform support; local mocks cannot prove account configuration or successful payment collection. A Vercel Ready deployment proves the application built, not that checkout accepts payments. Real purchases require separate authorization. The user authorized the hosted storefront production launch.
