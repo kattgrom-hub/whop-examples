@@ -1,235 +1,80 @@
 "use client";
-
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
-import { WhopElementsCheckout } from "@/components/whop-checkout";
+import { WhopEmbeddedCheckout } from "@/components/whop-checkout";
 import { useCart } from "@/components/CartContext";
 
-function VerifiedSuccess({
-  paymentId,
-  orderToken,
-}: {
-  paymentId: string;
-  orderToken: string;
-}) {
-  const { clearCart } = useCart();
-  const [state, setState] = useState<"checking" | "paid" | "error">("checking");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const verify = async () => {
-      try {
-        const response = await fetch("/api/payments/status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentId, orderToken }),
-        });
-
-        const data = await response.json();
-
-        if (!cancelled && response.ok && data.status === "succeeded") {
-          clearCart();
-          sessionStorage.removeItem(`dropify:payment:${paymentId}`);
-          setState("paid");
-          return;
-        }
-
-        if (!cancelled) setState("error");
-      } catch {
-        if (!cancelled) setState("error");
-      }
-    };
-
-    void verify();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [clearCart, orderToken, paymentId]);
-
-  if (state === "checking") {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
-        <Loader2 size={30} className="animate-spin text-gold mb-5" />
-        <h1 className="text-2xl font-extralight tracking-tight text-primary">
-          Verifying your payment
-        </h1>
-        <p className="mt-3 text-sm font-light text-secondary">
-          We&apos;re confirming the payment with Whop.
-        </p>
-      </div>
-    );
-  }
-
-  if (state === "error") {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
-        <h1 className="text-2xl font-extralight tracking-tight text-primary">
-          Payment not verified
-        </h1>
-        <p className="mt-3 text-sm font-light text-secondary max-w-md">
-          We couldn&apos;t verify this payment as completed. Your cart has not
-          been cleared.
-        </p>
-        <Link
-          href="/shop"
-          className="mt-8 inline-flex items-center gap-2 text-sm font-light text-secondary transition-colors duration-400 hover:text-primary"
-        >
-          <ArrowLeft size={14} strokeWidth={1.5} />
-          Back to shop
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
-      <CheckCircle2
-        size={48}
-        strokeWidth={1}
-        className="text-gold mb-6"
-      />
-      <h1 className="text-2xl font-extralight tracking-tight text-primary">
-        Thank you for your order
-      </h1>
-      <p className="mt-3 text-sm font-light text-secondary max-w-md">
-        Your payment has been verified. You&apos;ll receive your Whop payment
-        confirmation separately.
-      </p>
-      <Link
-        href="/shop"
-        className="mt-8 inline-flex items-center gap-2 text-sm font-light text-secondary transition-colors duration-400 hover:text-primary"
-      >
-        <ArrowLeft size={14} strokeWidth={1.5} />
-        Continue shopping
-      </Link>
-    </div>
-  );
-}
-
+type OrderState = { orderId: string; status: "pending" | "paid" | "review"; paymentId: string | null; planId: string | null; checkoutConfigurationId: string | null };
 function CheckoutContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const planId = searchParams.get("planId");
-  const paymentId = searchParams.get("paymentId");
-  const [orderToken, setOrderToken] = useState<string | null>(null);
-
+  const search = useSearchParams();
+  const orderId = search.get("orderId");
+  const outcome = search.get("status");
+  const { clearCart } = useCart();
+  const [order, setOrder] = useState<OrderState | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [returned, setReturned] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [retry, setRetry] = useState(false);
+  const [refresh, setRefresh] = useState(0);
+  const [completion, setCompletion] = useState<{ paymentId: string; sessionId: string } | null>(null);
+  const onComplete = useCallback((paymentId: string, sessionId: string) => {
+    setCompletion({ paymentId, sessionId });
+    setConfirming(true);
+    setRefresh(n => n + 1);
+  }, []);
   useEffect(() => {
-    if (paymentId) {
-      setOrderToken(sessionStorage.getItem(`dropify:payment:${paymentId}`));
-      return;
-    }
-
-    if (planId) {
-      setOrderToken(sessionStorage.getItem(`dropify:checkout:${planId}`));
-    }
-  }, [paymentId, planId]);
-
-  if (paymentId) {
-    if (!orderToken) {
-      return (
-        <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
-          <h1 className="text-2xl font-extralight tracking-tight text-primary">
-            Unable to verify this order
-          </h1>
-          <p className="mt-3 text-sm font-light text-secondary">
-            This browser does not have the checkout verification token.
-          </p>
-        </div>
-      );
-    }
-
-    return <VerifiedSuccess paymentId={paymentId} orderToken={orderToken} />;
-  }
-
-  if (!planId) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
-        <h1 className="text-2xl font-extralight tracking-tight text-primary">
-          No checkout in progress
-        </h1>
-        <p className="mt-3 text-sm font-light text-secondary">
-          Add items to your cart to begin checkout.
-        </p>
-        <Link
-          href="/shop"
-          className="mt-8 inline-flex items-center gap-2 text-sm font-light text-secondary transition-colors duration-400 hover:text-primary"
-        >
-          <ArrowLeft size={14} strokeWidth={1.5} />
-          Back to shop
-        </Link>
-      </div>
-    );
-  }
-
-  if (!orderToken) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <div className="text-sm font-light text-secondary">
-          Loading secure checkout...
-        </div>
-      </div>
-    );
-  }
-
-  const accountId = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
-
-  if (!accountId) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <div className="text-sm font-light text-red-500">
-          Checkout is not configured.
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="px-6 lg:px-8 py-12 md:py-20">
-      <div className="mx-auto max-w-lg">
-        <Link
-          href="/shop"
-          className="inline-flex items-center gap-2 text-xs font-light text-secondary transition-colors duration-400 hover:text-primary mb-8"
-        >
-          <ArrowLeft size={14} strokeWidth={1.5} />
-          Back to shop
-        </Link>
-
-        <h1 className="text-2xl font-extralight tracking-tight text-primary mb-8">
-          Complete your order
-        </h1>
-
-        <WhopElementsCheckout
-          planId={planId}
-          accountId={accountId}
-          orderToken={orderToken}
-          onSuccess={(verifiedPaymentId) => {
-            sessionStorage.removeItem(`dropify:checkout:${planId}`);
-            router.replace(
-              `/checkout?paymentId=${encodeURIComponent(verifiedPaymentId)}`
-            );
-          }}
-        />
-      </div>
-    </div>
-  );
+    setOrder(null); setError(null); setRetry(false); setCompletion(null);
+    // A return can still be processing or require another provider step.
+    // Never reopen payment collection while that attempt may settle.
+    setConfirming(outcome !== null && outcome !== "failed" && outcome !== "canceled");
+    setReturned(outcome === "failed" || outcome === "canceled");
+  }, [orderId, outcome]);
+  useEffect(() => {
+    if (!orderId) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const controller = new AbortController();
+    let count = 0;
+    const check = async () => {
+      try {
+        const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}`, { cache: "no-store", signal: controller.signal });
+        const data = await response.json();
+        if (cancelled) return;
+        if (!response.ok) { setError(data.error || "Could not check your order"); return; }
+        setError(null); setOrder(data);
+        if (data.status === "pending" && ++count < 30) timer = setTimeout(check, 2000);
+      } catch { if (!cancelled) setError("Could not check your order. Please retry."); }
+    };
+    void check();
+    return () => { cancelled = true; clearTimeout(timer); controller.abort(); };
+  }, [orderId, refresh]);
+  useEffect(() => { if (order?.status === "paid") clearCart(); }, [order?.status, clearCart]);
+  if (!orderId) return <Message title="No checkout in progress" text="Choose a kit in the shop and use Buy on Whop to purchase and receive your download." />;
+  if (error) return <Message title="Unable to verify this order" text={error}><button onClick={() => setRefresh(n => n + 1)} className="underline mt-4">Check again</button></Message>;
+  if (!order) return <Message title="Loading your order" text="Checking your secure order details." />;
+  if (order.status === "paid") return <Message title="Thank you for your order" text="Your payment has been verified. Your order reference is available for delivery support." />;
+  if (order.status === "review") return <Message title="Your order needs a review" text="A payment was recorded, but the order needs attention before fulfilment. Please contact support with your order reference."><p className="mt-4 text-sm">Order: {orderId}</p></Message>;
+  if (confirming) return <Message title="Confirming your payment" text="We’re waiting for secure payment confirmation. Please don’t pay again.">
+    <p className="mt-4 text-sm">Order: {orderId}</p>
+    {completion && <p className="mt-2 text-xs">Payment reference: {completion.paymentId}</p>}
+    <button onClick={() => setRefresh(n => n + 1)} className="underline mt-4">Check again</button>
+  </Message>;
+  if (returned && !retry) return <Message title={outcome === "canceled" ? "Payment canceled" : "Payment not completed"} text="Your order is not confirmed. You can retry checkout or check for a delayed payment confirmation.">
+    <button onClick={() => { setRetry(true); setReturned(false); }} className="underline mt-4">Retry checkout</button>
+    <button onClick={() => setRefresh(n => n + 1)} className="underline mt-4 ml-4">Check payment status</button>
+  </Message>;
+  if (!order.checkoutConfigurationId && !order.planId) return <Message title="Checkout is unavailable" text="Return to your cart and start a new checkout." />;
+  return <div className="px-6 py-12"><div className="mx-auto max-w-lg">
+    <h1 className="text-2xl font-extralight mb-8">Complete your order</h1>
+    <WhopEmbeddedCheckout orderId={orderId} checkoutConfigurationId={order.checkoutConfigurationId} planId={order.planId} onPaymentComplete={onComplete} />
+  </div></div>;
 }
-
-export default function CheckoutPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center py-32">
-          <div className="text-sm font-light text-secondary">
-            Loading checkout...
-          </div>
-        </div>
-      }
-    >
-      <CheckoutContent />
-    </Suspense>
-  );
+function Message({ title, text, children }: { title: string; text: string; children?: React.ReactNode }) {
+  return <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
+    <h1 className="text-2xl font-extralight text-primary">{title}</h1>
+    <p className="mt-3 text-sm text-secondary max-w-md">{text}</p>{children}
+    <Link href="/shop" className="mt-8 text-sm underline">Back to shop</Link>
+  </div>;
 }
+export default function CheckoutPage() { return <Suspense fallback={<p className="p-12 text-center">Loading checkout...</p>}><CheckoutContent /></Suspense>; }

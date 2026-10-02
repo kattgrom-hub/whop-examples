@@ -1,126 +1,60 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { products } from "@/data/products";
-import { createOrderToken } from "@/lib/checkout-token";
+import { InvalidCartError, priceCart } from "@/lib/checkout-cart";
+import { getAppOrigin, getWhopCompanyId, getWhopEnvironment } from "@/lib/checkout-config";
+import { attachCheckout, checkoutClientKey, createOrder, hashAccess, newOrderAccess, orderCookieName, requireOrderStore } from "@/lib/order-store";
 import { getWhopApi } from "@/lib/whop-sdk";
-
-interface CartItemInput {
-  productId: string;
-  quantity: number;
-}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { items } = body as { items?: CartItemInput[] };
-
-    if (!Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+    const environment = getWhopEnvironment();
+    const companyId = getWhopCompanyId();
+    const appOrigin = getAppOrigin(request.url);
+    if (request.headers.get("origin") !== new URL(request.url).origin ||
+        request.headers.get("sec-fetch-site") === "cross-site") {
+      return NextResponse.json({ error: "Use checkout from this website" }, { status: 403 });
     }
-
-    if (items.length > 20) {
-      return NextResponse.json(
-        { error: "Too many items in cart" },
-        { status: 400 }
-      );
+    if (!request.headers.get("content-type")?.includes("application/json")) {
+      return NextResponse.json({ error: "Expected JSON" }, { status: 415 });
     }
-
-    const seen = new Set<string>();
-    const canonicalItems = items.map((item) => {
-      if (
-        !item ||
-        typeof item.productId !== "string" ||
-        !Number.isInteger(item.quantity) ||
-        item.quantity < 1 ||
-        item.quantity > 20 ||
-        seen.has(item.productId)
-      ) {
-        throw new Error("Invalid cart item");
-      }
-
-      seen.add(item.productId);
-
-      const product = products.find((entry) => entry.id === item.productId);
-      if (!product) {
-        throw new Error("Unknown product");
-      }
-
-      return {
-        productId: product.id,
-        name: product.name,
-        unitPrice: product.price,
-        quantity: item.quantity,
-      };
-    });
-
-    const companyId = process.env.NEXT_PUBLIC_WHOP_COMPANY_ID;
-    if (!companyId || companyId === "biz_xxxxx") {
-      return NextResponse.json(
-        { error: "Whop Company ID not configured" },
-        { status: 500 }
-      );
+    const raw = await request.text();
+    if (raw.length > 16384) return NextResponse.json({ error: "Cart is too large" }, { status: 413 });
+    let body;
+    try { body = JSON.parse(raw); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
+    const { items, totalMinor, currency } = priceCart(body?.items);
+    // No charge can be created until a real delivery system has been connected.
+    if (process.env.DROPIFY_DIGITAL_DELIVERY_READY !== "true") {
+      return NextResponse.json({ error: "Sales are paused while digital product delivery is completed." }, { status: 503 });
     }
-
-    const totalPrice = canonicalItems.reduce(
-      (sum, item) => sum + item.unitPrice * item.quantity,
-      0
-    );
-
+    requireOrderStore();
     const client = getWhopApi();
-
-    const checkoutConfig = await client.checkoutConfigurations.create({
-      mode: "payment",
-      metadata: {
-        type: "dropify_order",
+    const orderId = randomUUID();
+    const access = newOrderAccess();
+    const order = await createOrder({ id: orderId, access_hash: hashAccess(access), environment,
+      company_id: companyId, total_minor: totalMinor, currency, items }, checkoutClientKey(request));
+    if (!order) return NextResponse.json({ error: "Too many checkout attempts. Please wait a minute." }, { status: 429 });
+    const returnUrl = `${appOrigin}/checkout?orderId=${orderId}`;
+    const checkout = await client.checkoutConfigurations.create({
+      mode: "payment", redirect_url: returnUrl,
+      metadata: { type: "dropify_order", order_id: orderId, environment },
+      plan: { company_id: companyId, currency, initial_price: totalMinor / 100,
+        plan_type: "one_time", visibility: "hidden", release_method: "buy_now",
+        product: { external_identifier: `dropify-${orderId}`, title: "Kattassie digital creator kits", collect_shipping_address: false },
       },
-      plan: {
-        company_id: companyId,
-        currency: "usd",
-        initial_price: totalPrice,
-        plan_type: "one_time",
-        visibility: "hidden",
-        release_method: "buy_now",
-      },
     });
-
-    const planId = checkoutConfig.plan?.id;
-
-    if (!planId) {
-      return NextResponse.json(
-        { error: "Failed to create plan for checkout" },
-        { status: 500 }
-      );
-    }
-
-    const orderToken = createOrderToken({
-      v: 1,
-      orderId: randomUUID(),
-      planId,
-      items: canonicalItems,
-      totalPrice,
-      currency: "usd",
-      expiresAt: Date.now() + 30 * 60 * 1000,
+    if (!checkout.plan?.id || !checkout.id) throw new Error("Checkout target missing");
+    await attachCheckout(orderId, checkout.plan.id, checkout.id);
+    const response = NextResponse.json({ orderId, planId: checkout.plan.id, checkoutConfigurationId: checkout.id }, {
+      headers: { "Cache-Control": "no-store" },
     });
-
-    return NextResponse.json({
-      planId,
-      orderToken,
+    response.cookies.set(orderCookieName(orderId), access, {
+      httpOnly: true, secure: new URL(request.url).protocol === "https:", sameSite: "lax",
+      path: "/api/orders", maxAge: 7 * 24 * 60 * 60,
     });
+    return response;
   } catch (error) {
-    console.error("Checkout error:", error);
-
-    const message = error instanceof Error ? error.message : String(error);
-
-    if (message === "Invalid cart item" || message === "Unknown product") {
-      return NextResponse.json(
-        { error: "Your cart contains an invalid item. Please refresh and try again." },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Something went wrong creating the checkout. Please try again." },
-      { status: 500 }
-    );
+    if (error instanceof InvalidCartError) return NextResponse.json({ error: error.message }, { status: 400 });
+    console.error("Dropify checkout creation failed", { type: error instanceof Error ? error.name : "unknown" });
+    return NextResponse.json({ error: "Checkout is unavailable. Please try again later." }, { status: 503 });
   }
 }

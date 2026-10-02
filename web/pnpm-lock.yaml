@@ -69,9 +69,6 @@ importers:
       '@whop-examples/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@whop/checkout':
-        specifier: ^0.0.52
-        version: 0.0.52(react@19.2.4)
       '@whop/sdk':
         specifier: ^0.0.28
         version: 0.0.28
@@ -91,6 +88,9 @@ importers:
         specifier: ^19.0.0
         version: 19.2.4(react@19.2.4)
     devDependencies:
+      '@electric-sql/pglite':
+        specifier: 0.5.8
+        version: 0.5.8
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.18
@@ -488,6 +488,9 @@ packages:
         optional: true
       nodemailer:
         optional: true
+
+  '@electric-sql/pglite@0.5.8':
+    resolution: {integrity: sha512-n9tsbUOhwx2epK1V0ZG9Ar4SHWUju04dhmzZXiSBXwBoleOvIfals33NAaWgagQVAL4Rbvx/Ptsu3P+pA09f6Q==}
 
   '@emnapi/runtime@1.8.1':
     resolution: {integrity: sha512-mehfKSMWjjNol8659Z8KxEMrdSJDDot5SXMq00dM8BN4o+CLNXQ0xH2V7EchNHV4RmbZLmmPdEaXZc5H2FXmDg==}
@@ -1532,6 +1535,8 @@ snapshots:
       oauth4webapi: 3.8.4
       preact: 10.24.3
       preact-render-to-string: 6.5.11(preact@10.24.3)
+
+  '@electric-sql/pglite@0.5.8': {}
 
   '@emnapi/runtime@1.8.1':
     dependencies:
