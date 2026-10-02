@@ -12,6 +12,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  // Whop can append a payment client_secret to off-site return URLs.
+  // Keep it out of referrers to scripts, assets and outbound links.
+  referrer: "no-referrer",
   title: "LUMI\u00c8RE \u2014 Artisan Candle House",
   description:
     "Luxury hand-poured candles crafted from sustainably sourced beeswax. Each candle is a meditation on scent, light, and place.",

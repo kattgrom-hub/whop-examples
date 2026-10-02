@@ -25,7 +25,9 @@ function CheckoutContent() {
   }, []);
   useEffect(() => {
     setOrder(null); setError(null); setRetry(false); setCompletion(null);
-    setConfirming(outcome === "succeeded");
+    // A return can still be processing or require another provider step.
+    // Never reopen payment collection while that attempt may settle.
+    setConfirming(outcome !== null && outcome !== "failed" && outcome !== "canceled");
     setReturned(outcome === "failed" || outcome === "canceled");
   }, [orderId, outcome]);
   useEffect(() => {

@@ -72,9 +72,16 @@ try {
     await c.page.getByRole('button',{name:'Retry checkout'}).click();
     await c.page.getByRole('button',{name:'Mock complete'}).waitFor();passed++;await c.page.close();
   }
-  const d=await setup();await d.page.goto(`${base}/checkout?orderId=11111111-1111-4111-8111-111111111111&status=succeeded`);
-  await d.page.getByRole('heading',{name:'Confirming your payment'}).waitFor();
-  assert.equal(await d.page.getByRole('heading',{name:'Thank you for your order'}).count(),0);passed++;await d.page.close();
+  for (const outcome of ['succeeded', 'processing', 'requires_action', 'unknown']) {
+    const d=await setup();await d.page.goto(`${base}/checkout?orderId=11111111-1111-4111-8111-111111111111&payment=pay_Test&status=${outcome}&client_secret=local-test-only`);
+    await d.page.getByRole('heading',{name:'Confirming your payment'}).waitFor();
+    assert.equal(await d.page.getByRole('heading',{name:'Thank you for your order'}).count(),0);
+    assert.equal(await d.page.getByRole('button',{name:'Mock complete'}).count(),0);
+    assert.equal(await d.page.locator('meta[name="referrer"]').getAttribute('content'),'no-referrer');
+    d.setState('paid');await d.page.getByRole('button',{name:'Check again'}).click();
+    await d.page.getByRole('heading',{name:'Thank you for your order'}).waitFor();
+    passed++;await d.page.close();
+  }
   const e=await setup({result:'waitlist_entry'});await e.page.goto(`${base}/checkout?orderId=11111111-1111-4111-8111-111111111111`);
   await e.page.getByRole('button',{name:'Mock complete'}).click();
   await e.page.getByText('This checkout did not complete a payment. No order has been confirmed.',{exact:true}).waitFor();assert.equal(await e.page.getByRole('heading',{name:'Thank you for your order'}).count(),0);passed++;await e.page.close();

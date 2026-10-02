@@ -1,5 +1,13 @@
 # Dropify checkout release
 
+## Payments overview integration
+
+The existing full Whop Elements Checkout controller collects payment details and handles confirmation and provider actions. Keep that single payment path rather than also exposing a custom confirmation endpoint. The lower-level Payments API is intended for custom payment forms; this checkout already delegates those responsibilities to the Checkout controller.
+
+Return handling follows the Payments overview: `succeeded` waits for the verified webhook, `failed` and `canceled` offer explicit retry, and pending or unknown statuses stay in confirmation mode so buyers cannot accidentally pay again. The document uses `no-referrer` because Whop can append a scoped `client_secret` to return URLs. URL status and browser callbacks never authorize fulfilment.
+
+Reference: https://docs.whop.com/elements/latest/payments/overview
+
 The cart is priced from the server catalog. An order is persisted before Whop receives a checkout configuration. The full Whop Checkout controller receives that configuration (including order metadata and required shipping collection). All restores return to `/checkout?orderId=...`; browser status parameters and completion events never mark an order paid.
 
 Buyers access order status using a random HttpOnly, SameSite=Lax cookie. Only its SHA-256 hash is stored. No order token, secret or customer information is placed in the restore URL or returned from the status API. `planId` fallback is supported only for an existing authorized order, never an arbitrary plan query parameter. Legacy direct confirmation endpoints return 410.
