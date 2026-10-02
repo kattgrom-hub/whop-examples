@@ -2,13 +2,13 @@ import { products } from "@/data/products";
 
 export class InvalidCartError extends Error {}
 export function priceCart(input: unknown) {
-  if (!Array.isArray(input) || input.length < 1 || input.length > 20) {
-    throw new InvalidCartError("Choose between 1 and 20 cart items");
+  if (!Array.isArray(input) || input.length < 1 || input.length > products.length) {
+    throw new InvalidCartError("Choose one or both digital kits");
   }
   const seen = new Set<string>();
   const items = input.map(item => {
     if (!item || typeof item.productId !== "string" ||
-        !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20 ||
+        !Number.isInteger(item.quantity) || item.quantity !== 1 ||
         seen.has(item.productId)) throw new InvalidCartError("Invalid cart item");
     const product = products.find(p => p.id === item.productId);
     if (!product) throw new InvalidCartError("Unknown product");
@@ -20,5 +20,5 @@ export function priceCart(input: unknown) {
   if (!Number.isSafeInteger(totalMinor) || totalMinor <= 0 || totalMinor > 1000000) {
     throw new InvalidCartError("Cart total exceeds the checkout limit");
   }
-  return { items, totalMinor, currency: "usd" as const };
+  return { items, totalMinor, currency: "aud" as const };
 }

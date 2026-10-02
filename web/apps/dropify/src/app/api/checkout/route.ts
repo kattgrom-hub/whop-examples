@@ -22,6 +22,10 @@ export async function POST(request: NextRequest) {
     let body;
     try { body = JSON.parse(raw); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
     const { items, totalMinor, currency } = priceCart(body?.items);
+    // No charge can be created until a real delivery system has been connected.
+    if (process.env.DROPIFY_DIGITAL_DELIVERY_READY !== "true") {
+      return NextResponse.json({ error: "Sales are paused while digital product delivery is completed." }, { status: 503 });
+    }
     requireOrderStore();
     const client = getWhopApi();
     const orderId = randomUUID();
@@ -35,7 +39,7 @@ export async function POST(request: NextRequest) {
       metadata: { type: "dropify_order", order_id: orderId, environment },
       plan: { company_id: companyId, currency, initial_price: totalMinor / 100,
         plan_type: "one_time", visibility: "hidden", release_method: "buy_now",
-        product: { external_identifier: `dropify-${orderId}`, title: "Dropify candle order", collect_shipping_address: true },
+        product: { external_identifier: `dropify-${orderId}`, title: "Kattassie digital creator kits", collect_shipping_address: false },
       },
     });
     if (!checkout.plan?.id || !checkout.id) throw new Error("Checkout target missing");

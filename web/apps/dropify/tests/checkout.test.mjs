@@ -18,9 +18,9 @@ const request = (path, body, extra = {}) => new NextRequest(`http://localhost:50
 
 test('catalog prices override tampered values; bad carts are rejected', () => {
   const { priceCart } = loadTs('src/lib/checkout-cart.ts');
-  const cart = priceCart([{ productId: 'midnight-jasmine', quantity: 2, price: 0.01, name: 'tampered' }]);
-  assert.equal(cart.totalMinor, 13600); assert.equal(cart.items[0].name, 'Midnight Jasmine');
-  for (const value of [null, {}, [], [{productId:'unknown',quantity:1}], [{productId:'midnight-jasmine',quantity:-1}], [{productId:'midnight-jasmine',quantity:1.5}], [{productId:'midnight-jasmine',quantity:21}], [{productId:'midnight-jasmine',quantity:1},{productId:'midnight-jasmine',quantity:1}]]) {
+  const cart = priceCart([{ productId: 'coastal-creator-toolkit', quantity: 1, price: 0.01, name: 'tampered' }]);
+  assert.equal(cart.totalMinor, 2999); assert.equal(cart.items[0].name, 'Coastal Creator Toolkit');
+  for (const value of [null, {}, [], [{productId:'unknown',quantity:1}], [{productId:'coastal-creator-toolkit',quantity:-1}], [{productId:'coastal-creator-toolkit',quantity:1.5}], [{productId:'coastal-creator-toolkit',quantity:2}], [{productId:'coastal-creator-toolkit',quantity:1},{productId:'coastal-creator-toolkit',quantity:1}]]) {
     assert.throws(() => priceCart(value));
   }
 });
@@ -62,12 +62,13 @@ test('checkout persists canonical order before external config creation and sets
     '@/lib/whop-sdk': { getWhopApi() { return { checkoutConfigurations: { async create(input) { calls.push(['whop',input]); return { id:'ch_Test', plan:{id:'plan_Test'} }; } } }; } },
   };
   const { POST } = loadTs('src/app/api/checkout/route.ts', mocks);
-  const response = await POST(request('/api/checkout', { items: [{ productId:'midnight-jasmine', quantity:1, price:0 }] }));
+  process.env.DROPIFY_DIGITAL_DELIVERY_READY = 'true';
+  const response = await POST(request('/api/checkout', { items: [{ productId:'coastal-creator-toolkit', quantity:1, price:0 }] }));
   assert.equal(response.status, 200);
   const data = await response.json();
-  assert.equal(calls[0][0], 'order'); assert.equal(calls[0][1].total_minor, 6800);
-  assert.equal(calls[1][1].plan.initial_price, 68);
-  assert.equal(calls[1][1].plan.product.collect_shipping_address, true);
+  assert.equal(calls[0][0], 'order'); assert.equal(calls[0][1].total_minor, 2999);
+  assert.equal(calls[1][1].plan.initial_price, 29.99);
+  assert.equal(calls[1][1].plan.product.collect_shipping_address, false);
   assert.equal(calls[1][1].metadata.order_id, data.orderId);
   assert.equal(calls[1][1].redirect_url, `http://localhost:5007/checkout?orderId=${data.orderId}`);
   assert.match(response.headers.get('set-cookie'), /HttpOnly/i);
@@ -82,7 +83,7 @@ test('cross-site checkout and rate-limited attempts cannot create Whop configura
     '@/lib/whop-sdk': { getWhopApi(){return { checkoutConfigurations:{create(){calls++;}} };} },
   };
   const { POST } = loadTs('src/app/api/checkout/route.ts', mocks);
-  const cart={items:[{productId:'midnight-jasmine',quantity:1}]};
+  const cart={items:[{productId:'coastal-creator-toolkit',quantity:1}]};
   assert.equal((await POST(request('/api/checkout',cart,{Origin:'https://attacker.example'}))).status,403);
   assert.equal((await POST(request('/api/checkout',cart))).status,429);
   assert.equal(calls,0);
@@ -169,3 +170,11 @@ test('fulfilment denies nonstaff access and shipment cannot bypass payment valid
   });
   assert.equal((await admin.POST(request('/api/fulfilment',{orderId:order.id,trackingReference:'TEST'}))).status,503);
 });
+
+ test('unconfigured digital delivery cannot create a charge', async () => {
+  delete process.env.DROPIFY_DIGITAL_DELIVERY_READY;
+  const {POST}=loadTs('src/app/api/checkout/route.ts', { '@/lib/whop-sdk': {getWhopApi(){throw new Error('must not call Whop');}} });
+  const response=await POST(request('/api/checkout',{items:[{productId:'coastal-creator-toolkit',quantity:1}]}));
+  assert.equal(response.status,503);
+  assert.match((await response.json()).error,/delivery/);
+ });

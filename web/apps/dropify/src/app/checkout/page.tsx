@@ -53,7 +53,7 @@ function CheckoutContent() {
   if (!orderId) return <Message title="No checkout in progress" text="Add items to your cart to begin a new checkout." />;
   if (error) return <Message title="Unable to verify this order" text={error}><button onClick={() => setRefresh(n => n + 1)} className="underline mt-4">Check again</button></Message>;
   if (!order) return <Message title="Loading your order" text="Checking your secure order details." />;
-  if (order.status === "paid") return <Message title="Thank you for your order" text="Your payment has been verified and your order is in the fulfilment queue." />;
+  if (order.status === "paid") return <Message title="Thank you for your order" text="Your payment has been verified. Your order reference is available for delivery support." />;
   if (order.status === "review") return <Message title="Your order needs a review" text="A payment was recorded, but the order needs attention before fulfilment. Please contact support with your order reference."><p className="mt-4 text-sm">Order: {orderId}</p></Message>;
   if (confirming) return <Message title="Confirming your payment" text="We’re waiting for secure payment confirmation. Please don’t pay again.">
     <p className="mt-4 text-sm">Order: {orderId}</p>

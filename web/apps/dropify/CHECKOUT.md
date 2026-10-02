@@ -1,4 +1,12 @@
-# Dropify checkout release
+# Kattassie digital creator storefront
+
+The storefront now presents Coastal Creator Toolkit (`prod_lW8tQxG87dsKP`) and Viral Gold Video Kit (`prod_IjbZFclq4nnH4`) at A$29.99 each, one-time. Copy is based on the existing Whop descriptions. There are no physical products, shipping charges, sample reviews, or guaranteed viral results. Cart quantities are limited to one of each kit and priced on the server in AUD.
+
+## Sales and delivery status
+
+The cart visibly states that sales are paused and its checkout button is disabled. The server also rejects charge creation unless `DROPIFY_DIGITAL_DELIVERY_READY=true`. Do not set this variable merely to enable payments: neither product currently has delivery content attached. Connect and verify real digital delivery first, then update the cart and FAQ together with the backend.
+
+The existing inline checkout plan does **not** grant access to either existing Whop product. Implement verified product-specific plan access or a private digital delivery system before removing the gate. Do not put paid files in this public repository. The existing database/staff queue is still a legacy physical fulfilment implementation: address-less digital payments will remain on review, and it must be adapted and tested before launch. No fake address is used to bypass that review.
 
 ## Current release blocker
 
@@ -16,7 +24,7 @@ Return handling follows the Payments overview: `succeeded` waits for the verifie
 
 Reference: https://docs.whop.com/elements/latest/payments/overview
 
-The cart is priced from the server catalog. An order is persisted before Whop receives a checkout configuration. The full Whop Checkout controller receives that configuration (including order metadata and required shipping collection). All restores return to `/checkout?orderId=...`; browser status parameters and completion events never mark an order paid.
+The cart is priced from the server catalog. An order is persisted before Whop receives a checkout configuration. The full Whop Checkout controller receives that configuration (including order metadata; digital orders do not collect shipping). All restores return to `/checkout?orderId=...`; browser status parameters and completion events never mark an order paid.
 
 Buyers access order status using a random HttpOnly, SameSite=Lax cookie. Only its SHA-256 hash is stored. No order token, secret or customer information is placed in the restore URL or returned from the status API. `planId` fallback is supported only for an existing authorized order, never an arbitrary plan query parameter. Legacy direct confirmation endpoints return 410.
 
@@ -33,7 +41,7 @@ The rate limiter allows five checkout creations per hashed platform IP per minut
 - Explicitly set `NEXT_PUBLIC_WHOP_ENVIRONMENT` to sandbox or production. Preview must use sandbox. Use API keys, company IDs and webhook secrets from that same environment. The locked SDK 0.0.28 uses `baseURL` (capital URL).
 - `NEXT_PUBLIC_APP_URL` must be the checkout's actual HTTPS origin in production. Local loopback HTTP is allowed for development. Leave it blank for Preview: `VERCEL_URL` or `CHECKOUT_ALLOWED_ORIGINS` must allow the incoming origin. Set this per deployment; do not copy localhost or production origins into Preview.
 - Set a random `CHECKOUT_SIGNING_SECRET` of at least 32 characters for hashed rate-limiter identities. Do not reuse a placeholder.
-- Install/authorize the Whop app for the chosen company and grant checkout/plan/product creation and payment-read permissions required by the SDK endpoints. The inline physical product is unique per order and requires shipping collection; this example still sells the repository's original sample candles in USD. Confirm the catalog represents goods you can supply before live sales.
+- Install/authorize the Whop app for the chosen company and grant checkout/plan/product creation and payment-read permissions required by the SDK endpoints. The inline order is unique per checkout; digital delivery is gated as described above.
 - Configure the endpoint `<origin>/api/webhooks/whop`, subscribe to `payment.succeeded`, `refund.created`, `refund.updated`, `dispute.created`, `dispute.updated`, and set its signing secret. Hosting protection must permit signed webhook POSTs without exposing staff pages.
 - Configure Whop OAuth for staff and set the allowlisted Whop user IDs in `DROPIFY_FULFILMENT_ADMIN_IDS`. `/fulfilment` shows the durable queue to authenticated staff only. A tracking reference records manual dispatch; the app does not buy shipping labels or send customer emails. Staff must check address, stock and dispatch arrangements. Payment is rechecked with Whop before recording dispatch.
 - Vercel root: `web/apps/dropify`, include source outside the root for the shared auth package. Build/install commands are in the app's `vercel.json`. The PR and fix branches have automatic deployment disabled for Dropify.
