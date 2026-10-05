@@ -4,6 +4,9 @@ import { WhopWallet } from "@/components/whop-wallet";
 export const dynamic = "force-dynamic";
 
 export default async function WalletPage() {
+  if (process.env.WHOP_WALLET_ENABLED !== "true") {
+    return <section className="mx-auto max-w-3xl px-6 py-16"><h1>Your Whop wallet</h1><p>Wallet access is awaiting authorized validation.</p></section>;
+  }
   const session = await auth();
   return (
     <section className="mx-auto max-w-3xl px-6 py-16">

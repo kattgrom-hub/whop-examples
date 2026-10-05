@@ -1,57 +1,28 @@
-# Whop wallet actions
+# Personal wallet (disabled pending validation)
 
-`/wallet` embeds Whop Elements' Deposit, Accept, Send, Convert and Withdraw
-controls for the signed-in user's personal wallet. The Wallet link is visible
-on desktop and mobile. Sign-in returns directly to this page.
+`WHOP_WALLET_ENABLED` defaults to disabled. The wallet page and token endpoint do not expose actions until explicitly enabled. No automatic deployment is enabled for this PR branch.
 
-## Authentication and setup
+OAuth credentials remain in the encrypted NextAuth cookie; Dropify's browser session omits the OAuth access token. The token route decrypts the authenticated cookie server-side, validates user ID, OAuth expiry, recorded grant and environment, and exchanges only the viewer credential. Embedded tokens explicitly request only the configured approved scope subset and are never cached.
 
-- Configure the existing Whop OAuth app ID, client secret and NextAuth secret.
-- Set `WHOP_WALLET_OAUTH_SCOPES` to a comma-separated list of permissions that
-  Whop has approved for this app's intended wallet features. This is a server
-  variable; do not put API keys or tokens in public variables.
-- Re-sign in after changing scopes. Identity-only login may not authorize the
-  wallet overlays. Whop must approve the applicable permissions before the
-  integration can be verified against a real account.
-- `/api/wallet/token` exchanges the viewer's OAuth credential for a 15-minute
-  embedded token. Whop derives the user from OAuth. The endpoint accepts no
-  account selection and never uses the merchant API key. The embedded token
-  inherits only the viewer-authorized OAuth permissions.
-- The client updates the token one minute before expiration. If the underlying
-  OAuth credential expires, the wallet closes and offers sign-in again.
-- For a CSP, permit `https://cdn.whop.com` in `script-src` and `frame-src`.
-- The wallet uses `NEXT_PUBLIC_WHOP_ENVIRONMENT`, including the corresponding
-  server API host. Sandbox access depends on availability for your Whop account;
-  do not switch to production merely to make a test succeed.
+## Configuration and platform blocker
 
-This page is a **personal wallet**, not a business balance or merchant payout
-dashboard. The personal Accept button opens Whop company creation, as specified
-by Whop. A business wallet needs a separately authorized business-account mapping.
-Requested-action events report that an overlay opened, never that money moved.
-Identity-verification requests show an instruction and an explicit link to Whop.
+Set an explicit `NEXT_PUBLIC_WHOP_ENVIRONMENT`. Preview must be sandbox. Configure the existing OAuth app ID, client secret and AUTH_SECRET. Set comma-separated `WHOP_WALLET_OAUTH_SCOPES` to exact Whop-approved permissions; no scope names are guessed by this project. Sign out and sign in again after changing permissions. Missing expiry or grants fails closed and requires reauthentication.
 
-## Validation
+The existing OIDC provider uses production `https://api.whop.com`; its credentials are recorded as production and cannot be sent to sandbox. Do not guess a sandbox OAuth issuer or reuse production credentials there. Whop must confirm supported sandbox OAuth configuration before that path is implemented.
 
-From this app's directory:
+Whop's current sandbox guide explicitly says Elements sandbox is not available yet; payouts are also unavailable. Keep wallet disabled until Whop confirms support and an authorized environment check passes. Do not switch preview to production as a workaround.
 
-```sh
-node --test tests/*.test.mjs
-./node_modules/.bin/tsc --noEmit
-./node_modules/.bin/next build
-```
+## Required authorized validation
 
-Token tests mock authentication and Whop responses. They never mint live tokens
-or initiate payments, deposits, transfers, conversions or withdrawals.
-After Whop permissions and OAuth configuration are available, sign in and verify
-loading, token renewal and each overlay in an authorized sandbox. Stop before
-confirming any monetary action. No live transaction validation was performed.
+On the final commit, record approved scopes and actual consent grant, authenticated token exchange, correct personal account, each overlay opening/canceling, renewal before expiry, expired/revoked credential recovery, missing permissions, CDN failure/retry, navigation cleanup, and existing checkout loading. Stop before all monetary confirmations and company creation. No real monetary action has been performed.
 
-## References
+Accept opens company creation for personal wallets. Business balances need a separate authorized mapping. Action-request callbacks report overlay opening, never completed payments.
 
-- https://docs.whop.com/elements/latest/wallet/actions
-- https://docs.whop.com/elements/latest/wallet/overview
-- https://docs.whop.com/elements/latest/getting-started
+## Local validation
+
+From `web`: `pnpm --filter dropify test`, `pnpm --filter dropify typecheck`, and `NEXT_PUBLIC_WHOP_ENVIRONMENT=sandbox pnpm --filter dropify build`. Tests mock credentials and Whop responses; they cannot prove live authorization or overlay support.
+
+References:
+- https://docs.whop.com/developer/guides/sandbox
 - https://docs.whop.com/api-reference/access-tokens/create-access-token
-
-The Swift Package dependency is for native iOS apps and is not used by this
-Next.js implementation.
+- https://docs.whop.com/elements/latest/wallet/overview

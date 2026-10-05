@@ -1,0 +1,30 @@
+name: Dropify checkout checks
+on:
+  pull_request:
+    paths: ['web/apps/dropify/**', 'web/packages/auth/**', 'web/pnpm-lock.yaml', '.github/workflows/dropify-checkout.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: web
+      - run: pnpm --filter dropify test
+        working-directory: web
+      - run: pnpm --filter dropify typecheck
+        working-directory: web
+      - run: pnpm --filter dropify build
+        working-directory: web
+        env:
+          NEXT_PUBLIC_WHOP_ENVIRONMENT: sandbox

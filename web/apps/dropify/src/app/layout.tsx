@@ -12,9 +12,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "LUMI\u00c8RE \u2014 Artisan Candle House",
+  // Whop can append a payment client_secret to off-site return URLs.
+  // Keep it out of referrers to scripts, assets and outbound links.
+  referrer: "no-referrer",
+  title: "Kattassie — Digital Creator Kits",
   description:
-    "Luxury hand-poured candles crafted from sustainably sourced beeswax. Each candle is a meditation on scent, light, and place.",
+    "Explore Coastal Creator Toolkit and Viral Gold Video Kit. Digital resources for lifestyle creators and short-form storytellers, A$29.99 each.",
 };
 
 export default function RootLayout({

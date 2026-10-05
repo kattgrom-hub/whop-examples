@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { signIn } from "next-auth/react";
+import { getWhopEnvironment } from "@/lib/checkout-config";
 import { loadWhopElements, type WalletHandle } from "@/lib/whop-elements";
 
 export function WhopWallet() {
@@ -14,6 +16,7 @@ export function WhopWallet() {
     let cancelled = false;
     let wallet: WalletHandle | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let readyTimer: ReturnType<typeof setTimeout> | undefined;
     const abort = new AbortController();
     setLoading(true);
     setError(null);
@@ -23,7 +26,7 @@ export function WhopWallet() {
       const response = await fetch("/api/wallet/token", { cache: "no-store", signal: abort.signal });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to authorize your wallet.");
-      if (!data.token || !data.accountId || !Number.isFinite(Date.parse(data.expiresAt))) {
+      if (!data.token || !data.accountId || !Number.isFinite(Date.parse(data.expiresAt)) || Date.parse(data.expiresAt) <= Date.now()) {
         throw new Error("Unable to authorize your wallet.");
       }
       return data as { token: string; expiresAt: string; accountId: string };
@@ -31,6 +34,7 @@ export function WhopWallet() {
     const fail = (message: string) => {
       if (cancelled) return;
       clearTimeout(timer);
+      clearTimeout(readyTimer);
       wallet?.destroy();
       wallet = undefined;
       setLoading(false);
@@ -55,7 +59,7 @@ export function WhopWallet() {
         const WhopElements = await loadWhopElements();
         if (cancelled || !target.current) return;
         wallet = WhopElements({
-          environment: process.env.NEXT_PUBLIC_WHOP_ENVIRONMENT || "production",
+          environment: getWhopEnvironment(),
           locale: "en",
           appearance: { theme: { appearance: "light", accentColor: "yellow" } },
         }).wallet.create({
@@ -65,9 +69,10 @@ export function WhopWallet() {
             if (!cancelled) setNotice("Complete identity verification in your Whop account before continuing.");
           },
         });
+        readyTimer = setTimeout(() => fail("Whop wallet did not become ready. Please retry."), 15000);
         wallet.create("actions", {
           showWithdraw: true,
-          onReady: () => { if (!cancelled) setLoading(false); },
+          onReady: () => { clearTimeout(readyTimer); if (!cancelled) setLoading(false); },
           onError: () => fail("Whop could not load your wallet. Check your connection and wallet permissions, then retry."),
           onDepositRequested: () => { if (!cancelled) setNotice("Deposit form opened."); },
           onAcceptRequested: () => { if (!cancelled) setNotice("Whop payment setup opened."); },
@@ -85,6 +90,7 @@ export function WhopWallet() {
       cancelled = true;
       abort.abort();
       clearTimeout(timer);
+      clearTimeout(readyTimer);
       wallet?.destroy();
     };
   }, [attempt]);
@@ -98,7 +104,7 @@ export function WhopWallet() {
       {error && <div role="alert" className="space-y-3">
         <p className="text-red-600">{error}</p>
         <button type="button" onClick={() => setAttempt((value) => value + 1)} className="rounded-sm bg-gold px-4 py-2">Retry</button>
-        <a href="/api/auth/signin/whop?callbackUrl=%2Fwallet" className="ml-4 underline">Sign in again</a>
+        <button type="button" onClick={() => void signIn("whop", { redirectTo: "/wallet" })} className="ml-4 underline">Sign in again</button>
       </div>}
     </div>
   );

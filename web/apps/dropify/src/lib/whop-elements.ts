@@ -23,7 +23,14 @@ export type WalletHandle = {
   destroy(): void;
 };
 
+type Completion = { result: "payment"; paymentId: string; sessionId: string } |
+  { result: "setup"; setupIntentId: string; sessionId: string } |
+  { result: "waitlist_entry"; entryId: string; sessionId: string };
+type ElementHandle = { mount(target: HTMLElement): void; destroy(): void };
+export type CheckoutHandle = { create(name: "checkout", options?: { onError?: (event: { code?: string }) => void }): ElementHandle; destroy(): void };
+
 type WhopRoot = {
+  checkout: { create(options: { checkoutConfiguration?: string; plan?: string; returnUrl: string; onComplete(event: Completion): void }): CheckoutHandle };
   wallet: {
     create(options: Record<string, unknown>): WalletHandle;
   };

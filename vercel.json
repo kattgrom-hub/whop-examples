@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "chatgpt/dropify-whop-elements-checkout": false,
+      "fix/dropify-checkout-release": false,
+      "codex/whop-wallet-actions": false
+    }
+  }
+}

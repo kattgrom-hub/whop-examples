@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter dropify build",
+  "git": {
+    "deploymentEnabled": {
+      "chatgpt/dropify-whop-elements-checkout": false,
+      "fix/dropify-checkout-release": false,
+      "codex/whop-wallet-actions": false
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/.well-known/apple-developer-merchantid-domain-association",
+      "destination": "https://whop.com/.well-known/apple-platform-integrator/apple-developer-merchantid-domain-association"
+    }
+  ]
+}

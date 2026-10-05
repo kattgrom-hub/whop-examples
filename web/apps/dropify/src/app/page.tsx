@@ -1,75 +1,14 @@
+import Link from "next/link";
 import Hero from "@/components/Hero";
 import ProductCard from "@/components/ProductCard";
-import Newsletter from "@/components/Newsletter";
 import { products } from "@/data/products";
-
 export default function Home() {
-  const featured = products.slice(0, 3);
-
-  return (
-    <>
-      {/* Hero */}
-      <Hero />
-
-      {/* Featured Collection */}
-      <section className="px-6 lg:px-8 py-20 md:py-28">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-14 text-center">
-            <h2 className="text-2xl md:text-3xl font-extralight tracking-tight text-primary">
-              Featured Collection
-            </h2>
-            <p className="mt-3 text-sm font-light text-secondary">
-              Our most beloved scents, chosen by you
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            {featured.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Our Story */}
-      <section className="px-6 lg:px-8 py-20 md:py-28 bg-neutral-50">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-            {/* Text */}
-            <div>
-              <h2 className="text-2xl md:text-3xl font-extralight tracking-tight text-primary">
-                Our Story
-              </h2>
-              <p className="mt-6 text-sm font-light leading-[1.8] text-secondary">
-                Lumiere was born from a simple belief: the light we surround
-                ourselves with shapes how we feel. In our sun-filled atelier on
-                the California coast, every candle is hand-poured in small
-                batches using sustainably sourced beeswax and pure essential
-                oils. No synthetic fragrances, no shortcuts.
-              </p>
-              <p className="mt-5 text-sm font-light leading-[1.8] text-secondary">
-                Each scent is developed over months of careful refinement,
-                layering notes to create fragrances that evolve as they burn —
-                revealing new dimensions over the course of 50 to 60 hours. We
-                believe luxury should be quiet, intentional, and rooted in
-                craft.
-              </p>
-            </div>
-
-            {/* Atelier Image */}
-            <div className="aspect-[4/5] bg-neutral-100 overflow-hidden rounded-sm">
-              <img
-                src="https://images.unsplash.com/photo-1605651202774-7d573fd3f12d?w=800&h=1000&fit=crop"
-                alt="Our sun-filled candle atelier on the California coast"
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter */}
-      <Newsletter />
-    </>
-  );
+ return <><Hero/><div className="values-strip"><span>Made for creators</span><span>Digital tools, real possibilities</span><span>A$29.99 per kit · One-time</span></div><section className="section" id="collection"><div className="section-heading"><div><p className="eyebrow">THE COLLECTION</p><h2>Pick your creative direction.</h2></div><p>From a coastal content rhythm to a sharper short-form video strategy. Start with the kit that fits your next idea.</p></div><div className="product-grid">{products.map(product=><ProductCard key={product.id} product={product}/>)}</div></section><section id="about" className="story-section"><div><p className="eyebrow">A NOTE FROM KATTASSIE</p><h2>Ideas are better<br/>with a little <em>direction.</em></h2></div><div><p>Kattassie brings together digital creator kits for two different creative paths: coastal lifestyle content and short-form video.</p><p>Choose the templates and workflows that suit your style. Keep your own voice at the centre of what you create.</p><Link href="/shop" className="text-link">Explore the collection ↗</Link></div></section><section id="faq" className="section faq-section"><p className="eyebrow">GOOD TO KNOW</p><h2>A few things before you start.</h2><div className="faq-grid">{[
+ ["Are these physical products?","No. Both are digital creator kits. There is no physical shipment or delivery address to enter."],
+ ["Is this a subscription?","Both kits are priced at A$29.99 each as a one-time purchase. Buying both is A$59.98 before any applicable checkout adjustments."],
+ ["Which kit should I choose?","Coastal Creator Toolkit focuses on lifestyle content, templates and workflows. Viral Gold Video Kit focuses on hooks, editing and short-form platform strategy."],
+ ["Can I buy right now?","Yes. Choose Buy now to complete a secure Whop checkout. Each kit is purchased separately; use the same Whop account to access both."],
+ ["Does Viral Gold guarantee viral results?","No. Reach and engagement depend on your content, audience and platform. The kit provides creative resources, not guaranteed views or income."],
+ ["How will I receive my kit?","After payment, open the kit’s Downloads app in your Whop account. Download the ZIP, unzip it and read START_HERE.txt. Each kit includes a PDF guide and editable resources. No shipping is required."]
+ ].map(([q,a])=><details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></section></>;
 }
