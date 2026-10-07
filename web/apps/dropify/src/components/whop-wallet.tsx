@@ -14,6 +14,8 @@ export function WhopWallet() {
 
   useEffect(() => {
     let cancelled = false;
+    let failed = false;
+    let accountId: string | undefined;
     let wallet: WalletHandle | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let readyTimer: ReturnType<typeof setTimeout> | undefined;
@@ -32,19 +34,24 @@ export function WhopWallet() {
       return data as { token: string; expiresAt: string; accountId: string };
     };
     const fail = (message: string) => {
-      if (cancelled) return;
+      if (cancelled || failed) return;
+      failed = true;
+      abort.abort();
       clearTimeout(timer);
       clearTimeout(readyTimer);
       wallet?.destroy();
       wallet = undefined;
+      setNotice("");
       setLoading(false);
       setError(message);
     };
     const refreshAt = (expiresAt: string) => {
+      if (cancelled || failed) return;
       timer = setTimeout(async () => {
         try {
           const data = await getToken();
-          if (cancelled) return;
+          if (cancelled || failed) return;
+          if (data.accountId !== accountId) throw new Error("Your Whop account changed. Please sign in again.");
           wallet?.update({ accessToken: data.token });
           refreshAt(data.expiresAt);
         } catch (err) {
@@ -56,8 +63,9 @@ export function WhopWallet() {
     void (async () => {
       try {
         const data = await getToken();
+        accountId = data.accountId;
         const WhopElements = await loadWhopElements();
-        if (cancelled || !target.current) return;
+        if (cancelled || failed || !target.current) return;
         wallet = WhopElements({
           environment: getWhopEnvironment(),
           locale: "en",
@@ -66,19 +74,19 @@ export function WhopWallet() {
           accountId: data.accountId,
           accessToken: data.token,
           onIdentityVerificationRequested: () => {
-            if (!cancelled) setNotice("Complete identity verification in your Whop account before continuing.");
+            if (!cancelled && !failed) setNotice("Complete identity verification in your Whop account before continuing.");
           },
         });
         readyTimer = setTimeout(() => fail("Whop wallet did not become ready. Please retry."), 15000);
         wallet.create("actions", {
           showWithdraw: true,
-          onReady: () => { clearTimeout(readyTimer); if (!cancelled) setLoading(false); },
+          onReady: () => { clearTimeout(readyTimer); if (!cancelled && !failed) setLoading(false); },
           onError: () => fail("Whop could not load your wallet. Check your connection and wallet permissions, then retry."),
-          onDepositRequested: () => { if (!cancelled) setNotice("Deposit form opened."); },
-          onAcceptRequested: () => { if (!cancelled) setNotice("Whop payment setup opened."); },
-          onSendRequested: () => { if (!cancelled) setNotice("Send form opened."); },
-          onWithdrawRequested: () => { if (!cancelled) setNotice("Withdrawal form opened."); },
-          onConvertRequested: () => { if (!cancelled) setNotice("Conversion form opened."); },
+          onDepositRequested: () => { if (!cancelled && !failed) setNotice("Deposit form opened."); },
+          onAcceptRequested: () => { if (!cancelled && !failed) setNotice("Whop payment setup opened."); },
+          onSendRequested: () => { if (!cancelled && !failed) setNotice("Send form opened."); },
+          onWithdrawRequested: () => { if (!cancelled && !failed) setNotice("Withdrawal form opened."); },
+          onConvertRequested: () => { if (!cancelled && !failed) setNotice("Conversion form opened."); },
         }).mount(target.current);
         refreshAt(data.expiresAt);
       } catch (err) {

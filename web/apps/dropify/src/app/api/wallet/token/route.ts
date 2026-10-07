@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
   if (!scopes.length || scopes.some(s => !/^[A-Za-z0-9_:.-]+$/.test(s))) {
     return NextResponse.json({ error: "Configure approved wallet permissions." }, { status: 503, headers });
   }
-  const session = await getWalletCredential(request);
+  let session;
+  try { session = await getWalletCredential(request); } catch {
+    return NextResponse.json({ error: "Sign in to Whop to open your wallet." }, { status: 401, headers });
+  }
   if (!session?.id || typeof session.accessToken !== "string" || !session.accessToken) {
     return NextResponse.json({ error: "Sign in to Whop to open your wallet." }, { status: 401, headers });
   }

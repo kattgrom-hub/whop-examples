@@ -87,3 +87,14 @@ test("disabled, missing permissions, stale grants, expired credentials and envir
   assert.equal((await handler({...viewer,walletExpiresAt:0},noFetch)()).status,401);
   assert.equal((await handler(viewer,noFetch,"sandbox")()).status,403);
 });
+
+test("embedded expiry never outlives the OAuth credential", async () => {
+  const expires=Math.floor(Date.now()/1000)+120;
+  let body;
+  await handler({...viewer,walletExpiresAt:expires},async (_,options)=>{
+    body=JSON.parse(options.body);
+    return {ok:true,json:async()=>({token:'mock',expires_at:body.expires_at})};
+  })();
+  assert.equal(Date.parse(body.expires_at),expires*1000);
+  assert.deepEqual(body.scoped_actions,['wallet:test']);
+});
