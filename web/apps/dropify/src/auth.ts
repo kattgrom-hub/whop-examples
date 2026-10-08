@@ -1,7 +1,9 @@
 import { createWhopAuth } from "@whop-examples/auth";
 
 export const { auth, handlers, signIn, signOut } = createWhopAuth({
-  scopes: (process.env.WHOP_WALLET_OAUTH_SCOPES || "").split(",").map(s => s.trim()).filter(Boolean),
+  scopes: process.env.WHOP_WALLET_ENABLED === "true"
+    ? (process.env.WHOP_WALLET_OAUTH_SCOPES || "").split(",").map(s => s.trim()).filter(Boolean)
+    : [],
   callbacks: {
     jwt: ({ token, account }) => {
       if (account) {

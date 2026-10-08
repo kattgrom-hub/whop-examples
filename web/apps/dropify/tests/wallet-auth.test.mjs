@@ -21,3 +21,27 @@ test("credential reader uses authenticated encrypted cookie with HTTPS secure-co
   await getWalletCredential(request);
   assert.equal(input.req,request); assert.equal(input.secureCookie,true);
 });
+
+test("disabled wallet does not request extra OAuth permissions even with stale scope configuration", () => {
+  const previous = { enabled: process.env.WHOP_WALLET_ENABLED, scopes: process.env.WHOP_WALLET_OAUTH_SCOPES };
+  try {
+    process.env.WHOP_WALLET_OAUTH_SCOPES = "wallet:test";
+    for (const enabled of [undefined, "false", "TRUE", "1"]) {
+      if (enabled === undefined) delete process.env.WHOP_WALLET_ENABLED;
+      else process.env.WHOP_WALLET_ENABLED = enabled;
+      let options;
+      loadTs("src/auth.ts", { "@whop-examples/auth": { createWhopAuth(value) { options = value; return {}; } } });
+      assert.deepEqual(options.scopes, []);
+    }
+    process.env.WHOP_WALLET_ENABLED = "true";
+    process.env.WHOP_WALLET_OAUTH_SCOPES = " wallet:test, wallet:other , ";
+    let options;
+    loadTs("src/auth.ts", { "@whop-examples/auth": { createWhopAuth(value) { options = value; return {}; } } });
+    assert.deepEqual(options.scopes, ["wallet:test", "wallet:other"]);
+  } finally {
+    if (previous.enabled === undefined) delete process.env.WHOP_WALLET_ENABLED;
+    else process.env.WHOP_WALLET_ENABLED = previous.enabled;
+    if (previous.scopes === undefined) delete process.env.WHOP_WALLET_OAUTH_SCOPES;
+    else process.env.WHOP_WALLET_OAUTH_SCOPES = previous.scopes;
+  }
+});
