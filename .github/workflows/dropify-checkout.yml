@@ -22,6 +22,8 @@ jobs:
         working-directory: web
       - run: pnpm --filter dropify test
         working-directory: web
+      - run: pnpm --filter dropify typecheck
+        working-directory: web
       - run: pnpm --filter dropify build
         working-directory: web
         env:
