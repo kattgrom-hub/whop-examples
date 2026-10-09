@@ -5,8 +5,9 @@
 billing details, mandatory BrandingElement, email collection, readiness gating,
 confirmation tokens, server confirmation and pending provider actions.
 
-This is a **disabled sandbox integration**, not a replacement for the shop's
-hosted purchase links. Those links continue to grant native access to each kit.
+The custom form is a **disabled sandbox integration**. When sandbox configuration
+is unavailable, `/payment-element` displays product-specific hosted Whop purchase
+links instead of a 404. Those links continue to grant native access to each kit.
 The new form cannot run in the production Whop environment or a Vercel production
 deployment. It does not fulfil orders, grant downloads or mark legacy orders paid.
 Its webhook metadata is deliberately separate from the legacy fulfilment path.
@@ -82,6 +83,9 @@ test installation. `DROPIFY_TEST_URL` selects the local origin (default port 501
 The script starts and stops a local production server with sandbox flags. Initial
 session failures have a working retry; missing API credentials are checked before
 an attempt is reserved.
+
+Add `DROPIFY_TEST_HOSTED=1` to verify the production purchase fallback: both kit
+links must match the catalog, and the page must make no custom payment API calls.
 
 Local mocks cannot prove API permissions, correct account configuration, provider
 authentication, or payment collection. No external payment, schema change or

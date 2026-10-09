@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import { app, require } from './load-ts.mjs';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const base = process.env.DROPIFY_TEST_URL || 'http://127.0.0.1:5019';
+const hosted = process.env.DROPIFY_TEST_HOSTED === '1';
 let server;
 const launch = { headless:true, args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu'],
   ...(process.env.CHROMIUM_EXECUTABLE_PATH ? {executablePath:process.env.CHROMIUM_EXECUTABLE_PATH} : {}) };
@@ -13,7 +14,7 @@ try {
   if (process.env.DROPIFY_TEST_START === '1') {
     server=spawn(process.execPath,[require.resolve('next/dist/bin/next'),'start','-H','127.0.0.1','-p',new URL(base).port],{
       cwd:app,stdio:'ignore',env:{...process.env,NEXT_PUBLIC_WHOP_ENVIRONMENT:'sandbox',
-        NEXT_PUBLIC_WHOP_COMPANY_ID:'biz_Test',DROPIFY_PAYMENT_ELEMENT_ENABLED:'true',
+        NEXT_PUBLIC_WHOP_COMPANY_ID:'biz_Test',DROPIFY_PAYMENT_ELEMENT_ENABLED:hosted?'false':'true',
         DROPIFY_PAYMENT_ELEMENT_PLAN_ID:'plan_Sandbox',NEXT_PUBLIC_APP_URL:base},
     });
     let ready=false;
@@ -24,6 +25,21 @@ try {
     assert.ok(ready,'local server must become ready');
   }
   browser=await chromium.launch(launch);
+  if(hosted) {
+    const page=await browser.newPage();let paymentRequests=0;
+    await page.route('**/*',route=>{
+      const url=new URL(route.request().url());
+      if(url.pathname.startsWith('/api/payment-element/'))paymentRequests++;
+      return url.origin===new URL(base).origin?route.continue():route.abort();
+    });
+    await page.goto(`${base}/payment-element`);
+    await page.getByRole('heading',{name:'Choose your creator kit'}).waitFor();
+    assert.equal(await page.getByRole('link',{name:'Buy Coastal Creator Toolkit on Whop ↗'}).getAttribute('href'),'https://whop.com/checkout/plan_jXJDMD5T3MKJD/');
+    assert.equal(await page.getByRole('link',{name:'Buy Viral Gold Video Kit on Whop ↗'}).getAttribute('href'),'https://whop.com/checkout/plan_iTC5mUal2nJw5/');
+    assert.equal(paymentRequests,0);
+    assert.equal(await page.getByRole('button',{name:'Pay in sandbox',exact:true}).count(),0);
+    console.log('Hosted checkout fallback passed without custom payment API requests.');
+  } else {
   async function setup({sessionFailure=false,scriptFailure=false,reserved=false,confirmFailure=false,status='pending'}={}) {
     const page=await browser.newPage();let sessions=0,confirms=0,statusReads=0,scriptLoads=0;
     const blocked=[];
@@ -117,4 +133,5 @@ try {
   await failed.page.getByRole('button',{name:'Complete mock payment fields'}).waitFor();
   assert.equal(await failed.page.getByText('The payment form could not load. Retry loading the form.',{exact:true}).count(),0);await failed.page.close();
   console.log('5 PaymentElement browser scenarios passed; all Whop requests were mocked or blocked.');
+  }
 } finally {await browser?.close();server?.kill();}
