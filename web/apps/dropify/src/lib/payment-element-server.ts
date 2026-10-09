@@ -48,10 +48,14 @@ export async function reserveElementSession(id: string) {
 export async function attachElementPayment(id: string, paymentId: string) {
   await orderRequest(`dropify_element_sessions?id=eq.${id}`, "PATCH", { payment_id: paymentId });
 }
-export async function elementApi(path: string, body?: unknown) {
+export function requireElementCredentials() {
   elementConfig();
   const key = process.env.WHOP_API_KEY;
   if (!key || key.includes("xxxxx")) throw new Error("Configure sandbox credentials");
+  return key;
+}
+export async function elementApi(path: string, body?: unknown) {
+  const key = requireElementCredentials();
   const response = await fetch(`https://sandbox-api.whop.com/api/v1/${path}`, {
     method: body === undefined ? "GET" : "POST", cache: "no-store", signal: AbortSignal.timeout(30000),
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },

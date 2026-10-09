@@ -67,6 +67,22 @@ concurrency, database rate-limit and RLS tests, including the existing checkout
 regressions. Run `pnpm --filter dropify build` with
 `NEXT_PUBLIC_WHOP_ENVIRONMENT=sandbox`.
 
+`tests/payment-element-browser.mjs` exercises the built page in Chromium with all
+Whop traffic mocked or blocked: initial session failure/retry, readiness gating,
+double submission, forged return parameters, provider-result versus server-status
+confirmation, unresolved attempts, resumed verification and script failure/reload.
+With Playwright installed separately, run from the app directory:
+
+```sh
+DROPIFY_TEST_START=1 node tests/payment-element-browser.mjs
+```
+
+`PLAYWRIGHT_MODULE_PATH` and `CHROMIUM_EXECUTABLE_PATH` can point to an existing
+test installation. `DROPIFY_TEST_URL` selects the local origin (default port 5019).
+The script starts and stops a local production server with sandbox flags. Initial
+session failures have a working retry; missing API credentials are checked before
+an attempt is reserved.
+
 Local mocks cannot prove API permissions, correct account configuration, provider
 authentication, or payment collection. No external payment, schema change or
 deployment is performed by these checks.

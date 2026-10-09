@@ -7,7 +7,7 @@ import { loadTs, require, app } from './load-ts.mjs';
 const { NextRequest } = require('next/server');
 const env = { DROPIFY_PAYMENT_ELEMENT_ENABLED:'true', DROPIFY_PAYMENT_ELEMENT_PLAN_ID:'plan_Sandbox',
   NEXT_PUBLIC_WHOP_ENVIRONMENT:'sandbox', NEXT_PUBLIC_WHOP_COMPANY_ID:'biz_Test',
-  NEXT_PUBLIC_APP_URL:'http://localhost:5007' };
+  NEXT_PUBLIC_APP_URL:'http://localhost:5007', WHOP_API_KEY:'sandbox-local-test-only' };
 Object.assign(process.env, env);
 const session = {id:randomUUID(),company_id:'biz_Test',plan_id:'plan_Sandbox',reserved:false,payment_id:null};
 const body = {confirmationToken:'ctok_Test',email:'buyer@example.invalid',plan:'plan_Attacker',amount:0};
@@ -65,6 +65,13 @@ test('provider timeout leaves reservation locked, never creates a second attempt
   const {lib}=mocks(); let calls=0;lib.elementApi=async()=>{calls++;throw new Error('timeout');};
   const {POST}=loadTs('src/app/api/payment-element/confirm/route.ts',{'@/lib/payment-element-server':lib});
   assert.equal((await POST(request())).status,503); assert.equal((await POST(request())).status,409);assert.equal(calls,1);
+});
+test('missing API credentials cannot permanently reserve an unsubmitted attempt',async()=>{
+  const {lib}=mocks();let reserved=0;lib.reserveElementSession=async()=>{reserved++;return true;};
+  const {POST}=loadTs('src/app/api/payment-element/confirm/route.ts',{'@/lib/payment-element-server':lib});
+  const saved=process.env.WHOP_API_KEY;delete process.env.WHOP_API_KEY;
+  try { assert.equal((await POST(request())).status,503);assert.equal(reserved,0); }
+  finally { process.env.WHOP_API_KEY=saved; }
 });
 test('status ignores forged URL success and reports an unresolved reservation as unknown',async()=>{
   const {lib}=mocks();lib.readElementSession=async()=>({...session,reserved:true});

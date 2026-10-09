@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { attachElementPayment, elementApi, elementOrigin, elementPayment, readElementSession, reserveElementSession } from "@/lib/payment-element-server";
+import { attachElementPayment, elementApi, elementOrigin, elementPayment, readElementSession, requireElementCredentials, reserveElementSession } from "@/lib/payment-element-server";
 export async function POST(request: NextRequest) {
   try {
     const origin = elementOrigin(request, true);
@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
         typeof body?.email !== "string" || body.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
       return NextResponse.json({ error: "Valid payment token and email required" }, { status: 400 });
     }
+    requireElementCredentials();
     // Durable compare-and-set BEFORE the external charge. Never unlock on a timeout:
     // the provider may have accepted it. Reloads and parallel requests cannot pay twice.
     if (!await reserveElementSession(session.id)) return NextResponse.json({ error: "An attempt already exists. Check its status." }, { status: 409 });

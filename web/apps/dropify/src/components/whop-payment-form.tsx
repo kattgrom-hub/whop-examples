@@ -16,6 +16,8 @@ export function WhopPaymentForm() {
   const [state, setState] = useState<PaymentState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
+  const [sessionAttempt, setSessionAttempt] = useState(0);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const checkStatus = useCallback(async () => {
     const response = await fetch("/api/payment-element/status", { cache: "no-store" });
     const data = await response.json();
@@ -28,15 +30,17 @@ export function WhopPaymentForm() {
     // remove scoped secrets from the address bar before subsequent navigation.
     window.history.replaceState(null, "", window.location.pathname);
     let canceled = false;
+    setSessionLoading(true); setError(null);
     void fetch("/api/payment-element/session", { method: "POST" }).then(async response => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not start sandbox checkout");
       if (canceled) return;
       setSession(data); setLocked(data.reserved);
       if (data.reserved) await checkStatus();
-    }).catch(e => { if (!canceled) setError(e.message); });
+    }).catch(e => { if (!canceled) setError(e.message); })
+      .finally(() => { if (!canceled) setSessionLoading(false); });
     return () => { canceled = true; };
-  }, [checkStatus]);
+  }, [checkStatus, sessionAttempt]);
   useEffect(() => {
     if (!session || locked) return;
     let canceled = false;
@@ -98,9 +102,12 @@ export function WhopPaymentForm() {
   };
   return <div>
     {error && <p role="alert" className="mb-4 text-sm text-red-700">{error}</p>}
-    {locked ? <div aria-live="polite">
+    {!session ? <div aria-live="polite">
+      {sessionLoading ? <p>Starting secure checkout…</p> : <button type="button" onClick={() => setSessionAttempt(n => n + 1)} className="underline">Retry checkout</button>}
+    </div> : locked ? <div aria-live="polite">
       <p>{state?.status === "succeeded" ? "Sandbox payment verified. No kit has been delivered." :
         state?.status === "failed" || state?.status === "canceled" ? "The sandbox payment did not complete." :
+        state?.status === "unknown" ? "The attempt needs a status review. Do not submit another payment." :
         "Checking the existing attempt. Do not submit another payment."}</p>
       <button disabled={busy} onClick={() => void refresh()} className="underline mt-4">Check payment status</button>
       {state?.status === "pending" && state.clientSecret && <button disabled={busy} onClick={() => void refresh(true)} className="underline mt-4 ml-4">Continue verification</button>}
