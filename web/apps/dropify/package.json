@@ -8,11 +8,12 @@
     "build": "next build",
     "start": "next start -p 5007",
     "lint": "next lint",
-    "test": "node --test tests/checkout.test.mjs tests/database.test.mjs"
+    "test": "node --test tests/checkout.test.mjs tests/database.test.mjs tests/payment-element.test.mjs"
   },
   "dependencies": {
-    "@whop/sdk": "^0.0.28",
     "@whop-examples/auth": "workspace:*",
+    "@whop/elements": "1.8.0",
+    "@whop/sdk": "^0.0.28",
     "lucide-react": "^0.575.0",
     "next": "^15.1.0",
     "next-auth": "5.0.0-beta.30",
@@ -20,12 +21,12 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "@electric-sql/pglite": "0.5.8"
+    "typescript": "^5"
   }
 }
