@@ -69,6 +69,9 @@ importers:
       '@whop-examples/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@whop/elements':
+        specifier: 1.8.0
+        version: 1.8.0
       '@whop/sdk':
         specifier: ^0.0.28
         version: 0.0.28
@@ -1057,6 +1060,9 @@ packages:
       react:
         optional: true
 
+  '@whop/elements@1.8.0':
+    resolution: {integrity: sha512-G0IjNc6VxZCvB+Ix5v/mR2huDE0bjOS8TlmFOiUB4tO0yBHAckk38zbA2QC1qs/3mDWeqyJxSmUVgp+JNWVllQ==}
+
   '@whop/embedded-components-react-js@0.0.13-beta.10':
     resolution: {integrity: sha512-aULSrbkYbpz9c+iU3WOxF4hFcyBC3riASrHA1kzYn3xt8QTqC3TbwjGneRlvhDJSNnAXMum2zAH1NubW1GJIhw==}
     peerDependencies:
@@ -1913,6 +1919,8 @@ snapshots:
   '@whop/checkout@0.0.52(react@19.2.4)':
     optionalDependencies:
       react: 19.2.4
+
+  '@whop/elements@1.8.0': {}
 
   '@whop/embedded-components-react-js@0.0.13-beta.10(@whop/embedded-components-vanilla-js@0.0.13-beta.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:

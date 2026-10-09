@@ -3,7 +3,8 @@
   "git": {
     "deploymentEnabled": {
       "chatgpt/dropify-whop-elements-checkout": false,
-      "fix/dropify-checkout-release": false
+      "fix/dropify-checkout-release": false,
+      "feat/kattassie-payment-element": false
     }
   }
 }
