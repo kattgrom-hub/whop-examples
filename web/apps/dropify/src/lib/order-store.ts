@@ -25,11 +25,15 @@ export function hasOrderAccess(order: Order, token?: string) {
   const expected = Buffer.from(order.access_hash);
   return provided.length === expected.length && timingSafeEqual(provided, expected);
 }
-export function checkoutClientKey(request: Request) {
+export function requireCheckoutSigningSecret() {
   const secret = process.env.CHECKOUT_SIGNING_SECRET;
   if (!secret || secret.length < 32 || secret.includes("replace-with")) {
     throw new Error("CHECKOUT_SIGNING_SECRET must contain at least 32 random characters");
   }
+  return secret;
+}
+export function checkoutClientKey(request: Request) {
+  const secret = requireCheckoutSigningSecret();
   // Trust Vercel's platform header there; do not trust arbitrary forwarded headers locally.
   const ip = process.env.VERCEL ? request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() : "local";
   return createHmac("sha256", secret).update(ip || "unknown").digest("hex");

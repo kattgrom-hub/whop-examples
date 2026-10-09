@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "crypto";
 import type { NextRequest } from "next/server";
 import { getAppOrigin, getWhopCompanyId, getWhopEnvironment } from "./checkout-config";
-import { checkoutClientKey, hashAccess, newOrderAccess, orderRequest } from "./order-store";
+import { checkoutClientKey, hashAccess, newOrderAccess, orderRequest, requireOrderStore, requireCheckoutSigningSecret } from "./order-store";
 
 export const elementCookie = "dropify_element_session";
 export type ElementSession = { id: string; access_hash: string; company_id: string; plan_id: string;
@@ -22,6 +22,11 @@ export function elementOrigin(request: NextRequest, mutation = false) {
     throw new Error("Cross-site payment request");
   }
   return origin;
+}
+export function requireElementSetup() {
+  const config = elementConfig();
+  requireElementCredentials(); requireOrderStore(); requireCheckoutSigningSecret();
+  return config;
 }
 export async function readElementSession(request: NextRequest) {
   const config = elementConfig();
@@ -45,6 +50,12 @@ export async function reserveElementSession(id: string) {
   const rows = await orderRequest<ElementSession[]>(`dropify_element_sessions?id=eq.${id}&reserved=eq.false`, "PATCH", { reserved: true });
   return rows.length === 1;
 }
+export async function releaseElementSession(id: string) {
+  await orderRequest(`dropify_element_sessions?id=eq.${id}&reserved=eq.true&payment_id=is.null`, "PATCH", { reserved: false });
+}
+export class ElementApiRejection extends Error {
+  constructor(public readonly status: number) { super("Sandbox payment request rejected"); }
+}
 export async function attachElementPayment(id: string, paymentId: string) {
   await orderRequest(`dropify_element_sessions?id=eq.${id}`, "PATCH", { payment_id: paymentId });
 }
@@ -61,6 +72,7 @@ export async function elementApi(path: string, body?: unknown) {
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
+  if ([400, 401, 403, 404, 422, 429].includes(response.status)) throw new ElementApiRejection(response.status);
   if (!response.ok) throw new Error("Sandbox payment request failed");
   return response.json();
 }
@@ -73,8 +85,9 @@ export function elementPayment(session: ElementSession, payment: {
       payment.metadata?.element_session !== session.id || payment.metadata?.type !== "dropify_element_test") {
     throw new Error("Sandbox payment identity mismatch");
   }
-  const status = payment.status === "paid" && payment.substatus === "succeeded" ? "succeeded" :
-    payment.status === "failed" || payment.substatus === "failed" ? "failed" :
-    payment.status === "canceled" || payment.substatus === "canceled" ? "canceled" : "pending";
-  return { paymentId: payment.id, status, clientSecret: payment.client_secret || null };
+  const canceled = payment.status === "void" || payment.status === "canceled" || payment.substatus === "canceled";
+  const failed = payment.status === "failed" || payment.status === "uncollectible" ||
+    ["failed", "blocked", "price_too_low", "uncollectible", "refunded", "auto_refunded", "partially_refunded", "dispute_lost", "resolution_lost"].includes(payment.substatus || "");
+  const status = canceled ? "canceled" : failed ? "failed" : payment.status === "paid" && payment.substatus === "succeeded" ? "succeeded" : "pending";
+  return { paymentId: payment.id, status, clientSecret: status === "pending" ? payment.client_secret || null : null };
 }

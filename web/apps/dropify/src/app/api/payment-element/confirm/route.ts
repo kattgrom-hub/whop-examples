@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { attachElementPayment, elementApi, elementOrigin, elementPayment, readElementSession, requireElementCredentials, reserveElementSession } from "@/lib/payment-element-server";
+import { attachElementPayment, elementApi, elementOrigin, elementPayment, readElementSession, requireElementCredentials, reserveElementSession, releaseElementSession, ElementApiRejection } from "@/lib/payment-element-server";
 export async function POST(request: NextRequest) {
   try {
     const origin = elementOrigin(request, true);
@@ -18,10 +18,15 @@ export async function POST(request: NextRequest) {
     // Durable compare-and-set BEFORE the external charge. Never unlock on a timeout:
     // the provider may have accepted it. Reloads and parallel requests cannot pay twice.
     if (!await reserveElementSession(session.id)) return NextResponse.json({ error: "An attempt already exists. Check its status." }, { status: 409 });
-    const payment = await elementApi("payments", { account_id: session.company_id, plan: session.plan_id,
+    let payment;
+    try { payment = await elementApi("payments", { account_id: session.company_id, plan: session.plan_id,
       confirmation_token: body.confirmationToken, email: body.email, return_url: `${origin}/payment-element`,
       metadata: { type: "dropify_element_test", element_session: session.id },
     });
+    } catch (error) {
+      if (error instanceof ElementApiRejection) await releaseElementSession(session.id);
+      throw error;
+    }
     const result = elementPayment(session, payment);
     await attachElementPayment(session.id, result.paymentId);
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store", Vary: "Cookie" } });

@@ -97,3 +97,5 @@ References:
 - https://docs.whop.com/elements/latest/payments/overview
 - https://docs.whop.com/api-reference/payments/create-payment
 - https://docs.whop.com/developer/guides/sandbox
+
+The form checks payment credentials, database configuration and the signing secret before hiding hosted checkout links. Definitive API rejections (400/401/403/404/422/429) release an unattached reservation; transport failures, 408/409 and server errors remain locked for reconciliation. Terminal unsuccessful provider states show failure/cancellation and do not offer authentication.

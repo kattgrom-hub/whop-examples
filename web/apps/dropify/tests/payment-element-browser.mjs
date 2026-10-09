@@ -15,7 +15,9 @@ try {
     server=spawn(process.execPath,[require.resolve('next/dist/bin/next'),'start','-H','127.0.0.1','-p',new URL(base).port],{
       cwd:app,stdio:'ignore',env:{...process.env,NEXT_PUBLIC_WHOP_ENVIRONMENT:'sandbox',
         NEXT_PUBLIC_WHOP_COMPANY_ID:'biz_Test',DROPIFY_PAYMENT_ELEMENT_ENABLED:hosted?'false':'true',
-        DROPIFY_PAYMENT_ELEMENT_PLAN_ID:'plan_Sandbox',NEXT_PUBLIC_APP_URL:base},
+        DROPIFY_PAYMENT_ELEMENT_PLAN_ID:'plan_Sandbox',NEXT_PUBLIC_APP_URL:base,
+        WHOP_API_KEY:'sandbox-browser-test-only',DROPIFY_SUPABASE_URL:'https://database.example.invalid',
+        DROPIFY_SUPABASE_SERVICE_ROLE_KEY:'browser-test-only',CHECKOUT_SIGNING_SECRET:'browser-test-secret-with-at-least-32-characters'},
     });
     let ready=false;
     for(let i=0;i<100;i++) {

@@ -1,10 +1,10 @@
-import { elementConfig } from "@/lib/payment-element-server";
+import { requireElementSetup } from "@/lib/payment-element-server";
 import { WhopPaymentForm } from "@/components/whop-payment-form";
 import { products, formatPrice } from "@/data/products";
 export const dynamic = "force-dynamic";
 export default function PaymentElementPage() {
   let sandbox = false;
-  try { elementConfig(); sandbox = true; } catch { /* Hosted purchase links need no payment credentials. */ }
+  try { requireElementSetup(); sandbox = true; } catch { /* Hosted purchase links need no payment credentials. */ }
   if (!sandbox) return <section className="mx-auto max-w-2xl px-6 py-16">
     <h1 className="text-3xl mb-3">Choose your creator kit</h1>
     <p className="text-sm text-secondary mb-8">Pay securely on Whop, then open your kit’s Downloads app in your Whop account.</p>
