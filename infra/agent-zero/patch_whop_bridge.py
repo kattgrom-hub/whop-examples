@@ -25,6 +25,9 @@ targets = [
       await fs.rename(process.env.MCP_REMOTE_PENDING_FILE + ".tmp", process.env.MCP_REMOTE_PENDING_FILE);
     }''')
 ]
+if all(any(new in p.read_text() for p in (root/"node_modules/mcp-remote/dist").glob("*.js")) for _,new in targets):
+    print("Pinned bridge adapter already installed")
+    raise SystemExit(0)
 for old,new in targets:
     hits=[p for p in (root/"node_modules/mcp-remote/dist").glob("*.js") if old in p.read_text()]
     assert len(hits)==1, "Pinned bridge source changed"
