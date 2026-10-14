@@ -1,0 +1,14 @@
+services:
+  agent-zero:
+    image: agent0ai/agent-zero:v2.14
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5080:80"
+    environment:
+      AUTH_LOGIN: ${AUTH_LOGIN:?Set AUTH_LOGIN in your private environment}
+      AUTH_PASSWORD: ${AUTH_PASSWORD:?Set AUTH_PASSWORD in your private environment}
+    volumes:
+      - agent_zero_usr:/a0/usr
+
+volumes:
+  agent_zero_usr:
