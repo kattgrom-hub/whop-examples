@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@whop/checkout": "^0.0.52",
-    "@whop/sdk": "^0.0.26",
+    "@whop/sdk": "0.0.26",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

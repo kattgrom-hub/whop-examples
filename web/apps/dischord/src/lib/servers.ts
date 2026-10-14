@@ -16,7 +16,7 @@ export async function fetchServers(
   const apiKey = process.env.WHOP_API_KEY;
   if (!apiKey) return [];
 
-  const whop = new Whop({ apiKey });
+  const whop = new Whop({ baseURL: "https://api.whop.com/api/v1", defaultHeaders: { "Api-Version-Date": "2025-01-01" }, apiKey });
   const servers: Server[] = [];
 
   for await (const company of whop.companies.list({

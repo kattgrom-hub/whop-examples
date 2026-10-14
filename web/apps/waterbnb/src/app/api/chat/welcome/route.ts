@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
         "Content-Type": "application/json",
+      "Api-Version-Date": "2025-01-01",
       },
       body: JSON.stringify({
         channel_id: dmChannel.id,

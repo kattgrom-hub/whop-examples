@@ -20,7 +20,7 @@ if (!COMPANY_ID || !API_KEY) {
   process.exit(1);
 }
 
-const client = new Whop({ apiKey: API_KEY });
+const client = new Whop({ baseURL: "https://api.whop.com/api/v1", defaultHeaders: { "Api-Version-Date": "2025-01-01" }, apiKey: API_KEY });
 
 async function findOrCreateProduct() {
   // Check if product already exists
