@@ -28,13 +28,17 @@ class OwnerAccess(ApiHandler):
     async def process(self,input,request:Request):
         headers={"Cache-Control":"no-store","Referrer-Policy":"no-referrer",
                  "X-Frame-Options":"DENY"}
+        existing_hash=login.get_credentials_hash()
+        if request.method=="GET" and existing_hash and session.get("authentication")==existing_hash:
+            headers["Location"]="/"
+            return Response("",302,headers=headers)
         with self.thread_lock:
             try: state=json.loads(STATE.read_text())
             except (OSError,ValueError):
                 return Response("This sign-in link is unavailable.",403,headers=headers)
             values=(request.args if request.method=="GET" else request.form).getlist("token")
             if len(values)!=1 or not consume(values[0],state,time.time()):
-                return Response("This sign-in link expired or has already been used.",403,headers=headers)
+                return Response("This link is invalid, expired, or already used. If you signed in, open the Agent Zero home page in the same browser.",403,headers=headers)
             if request.method=="GET":
                 page=('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">'
                       '<title>Sign in to Agent Zero</title></head><body style="background:#111;color:#fff;'
@@ -44,7 +48,7 @@ class OwnerAccess(ApiHandler):
                       '<input type="hidden" name="token" value="'+values[0]+'">'
                       '<button type="submit" style="font-size:20px;padding:16px 28px;border:0;'
                       'border-radius:12px;background:#62d9c5">Sign in</button></form>'
-                      '<p>This private link expires in five minutes.</p></body></html>')
+                      '<p>This private link works once.</p></body></html>')
                 return Response(page,200,headers=headers,mimetype="text/html")
             credential_hash=login.get_credentials_hash()
             if not credential_hash:
