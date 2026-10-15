@@ -10,20 +10,25 @@ export async function reconcileWhopEvent(event: WhopWebhook) {
   const adverse = ["refund.created", "refund.updated", "dispute.created", "dispute.updated"].includes(event.type);
   if (event.type !== "payment.succeeded" && !adverse) return NextResponse.json({ received: true });
   const source = adverse ? event.data?.payment : event.data;
-  if (source?.metadata?.type !== "dropify_order") return NextResponse.json({ received: true });
+  if (!adverse && source?.metadata?.type !== "dropify_order") return NextResponse.json({ received: true });
   if (!event.id || !source?.id || !/^pay_[a-zA-Z0-9]+$/.test(source.id)) {
     return NextResponse.json({ error: "Malformed payment event" }, { status: 400 });
   }
   try {
     const client = getWhopApi();
-    const orderId = source.metadata?.order_id;
+    // Dispute payloads contain a compact payment reference without metadata.
+    // Resolve its current payment before deciding whether this is our order.
+    const adversePayment = adverse ? await client.payments.retrieve(source.id) as unknown as OrderPayment : undefined;
+    const metadata = adversePayment ? adversePayment.metadata : source.metadata;
+    if (metadata?.type !== "dropify_order") return NextResponse.json({ received: true });
+    const orderId = metadata?.order_id;
     if (typeof orderId !== "string") throw new Error("Missing order reference");
     const order = await getOrder(orderId);
     if (!order || order.environment !== getWhopEnvironment() || order.company_id !== getWhopCompanyId()) {
       throw new Error("Order environment mismatch");
     }
     // Fetch current authoritative state too: a delayed success event must not dispatch a refunded order.
-    const payment = await client.payments.retrieve(source.id) as unknown as OrderPayment;
+    const payment = adversePayment || await client.payments.retrieve(source.id) as unknown as OrderPayment;
     validateOrderIdentity(order, payment);
     if (adverse || payment.substatus !== "succeeded" || payment.status !== "paid") {
       await holdOrder(order.id);

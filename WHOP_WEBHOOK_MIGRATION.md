@@ -2,6 +2,16 @@
 
 Code migration prepared 15 October 2026. Storefront cutover and live Whop delivery remain unverified. A dedicated webhook-only ingress is included for public delivery without exposing the storefront preview.
 
+## Operational verification, 15 October 2026
+
+The dedicated `whop-webhook-ingress` Production service has its endpoint signing secret, a payment-read-only Kattassie API key, company/environment settings and the approved existing Dropify database credential. The first read-only key was revoked and replaced. Secrets are sensitive Production-only Vercel variables. The Whop endpoint and reconciliation flag remain disabled; configuring credentials does not certify payment fulfilment or enable sales.
+
+The Supabase dashboard successfully verified the existing `dropify_private_checkout_orders` migration: all four tables have RLS enabled, deny anon/authenticated access, and grant server access. The three reconciliation functions use security invoker and permit only server execution. An authentic Whop no-op test previously returned 202 and reached the private queue consumer. Health returns 200; unsigned delivery returns 401. Actual payment fulfilment still requires a sandbox provider payment/order fixture and delivery verification.
+
+The local pipeline regression test verifies signed ingress, queue reference projection, the actual worker/order-store code and the production SQL functions in isolated PostgreSQL (PGlite). It covers duplicate delivery, a dispute with only a payment ID, delayed success after a hold, provider failure, transactional rollback on a database permission failure, successful retry and unrelated refunds. HTTP/Whop and broker boundaries are substituted; it is not a live Whop or Vercel Queue certification.
+
+Dispute references do not necessarily include payment metadata. The worker now retrieves the authoritative payment before selecting the affected order for refund/dispute events, preventing those events from being silently skipped. References: https://docs.whop.com/api-reference/disputes/dispute-created and https://docs.whop.com/api-reference/refunds/refund-created.
+
 ## Implemented
 
 All five `/api/webhooks/whop` handlers now use the current `@whop/sdk/helpers` verifier through `@whop-examples/webhooks`. The shared package pins SDK 2.5.0; existing payment/API clients keep their existing SDK versions. Pass `WHOP_WEBHOOK_SECRET` exactly as issued, including `ws_`; no manual encoding. Verification uses raw UTF-8 body bytes, Standard Webhooks headers, the SDK's timestamp tolerance and signature rotation support. Missing configuration returns 503; bad signatures return 401; invalid v1 envelopes or inconsistent body/header IDs return 400. No legacy unsigned fallback exists.
@@ -20,7 +30,7 @@ Dropify retains its durable database replay protection, current payment lookup, 
 
 ## Cutover requirements
 
-1. Inventory actual Whop endpoints, owners, environments, subscribed events, enabled state and version pins. No account-level inventory was available in this session. Do not disable any current endpoint yet.
+1. Recheck actual Whop endpoints, owners, environments, subscribed events, enabled state and version pins. The new Kattassie endpoint is disabled and subscribes to the five Dropify events above. Do not alter other endpoints as part of this cutover.
 2. Coordinate this change with draft PR #9 (`fix/whop-api-version-compatibility`), which separately pins existing API clients. This branch does not replace that REST migration. Retain a compatible dated webhook contract (the existing pre-versioning data shape, `2025-01-01`, proposed in #9) until the deployed payment/resource readers are validated against a newer date. Installing a current signature helper does not migrate money fields or other REST schemas.
 3. Deploy this code to a separate reachable deployment/hostname for validation. Create a v1 webhook to that deployment, set an explicit compatible `api_version_date`, and securely configure that endpoint's own signing secret. Never paste secrets into source, logs or PR comments. Keep legacy endpoints routed to their existing deployed handler until cutover is verified: these new handlers intentionally reject legacy envelopes.
 4. Send Whop test events and inspect delivery logs; test missing/bad signatures and retry behavior. API and storage operations must have valid credentials/permissions in the same environment. Do not make a real purchase to test this change.
@@ -31,7 +41,7 @@ Dropify retains its durable database replay protection, current payment lookup, 
 - Non-Dropify examples lack a transactional durable inbox/worker keyed by `webhook-id`. Stable Blob filenames are audit storage, **not** atomic deduplication. In particular, Waterbnb's DM creation/message side effects can repeat on retries. Do not activate that booking flow until these effects have durable per-step idempotency.
 - Existing storefront/example webhook routes still perform API/storage work synchronously. Use the dedicated ingress for Dropify cutover. It publishes durably before returning 202, gives publishing a three-second deadline, and uses a private Vercel queue consumer to reconcile. It does not migrate the unrelated Waterbnb/Masterclass example workflows to the queue.
 - Some pre-existing example business handlers swallow Blob/DM failures and have read/modify/write races. Their workflow recovery needs separate implementation before activating those flows. Membership access policies beyond explicit canceled/expired states require business confirmation and environment-specific fixtures.
-- Live Whop signing/API secrets, endpoint pins, permissions and real Whop test-delivery results remain unverified. Account-level Whop tools are unavailable. The storefront Vercel project inventory has no WHOP_WEBHOOK_SECRET, WHOP_API_KEY or DROPIFY_SUPABASE_SERVICE_ROLE_KEY configured. Payment reconciliation must remain disabled until valid credentials and the existing order database are verified. No live Whop endpoint mutation or sale was performed.
+- The dedicated service's credentials and no-op signed delivery are configured as described above. The storefront remains separate. Live payment API lookup, order recording and refund/dispute delivery still need a complete provider sandbox fixture. Keep reconciliation disabled until that verification passes. No real purchase was performed.
 
 ## Validation
 
