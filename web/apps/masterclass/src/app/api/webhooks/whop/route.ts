@@ -1,3 +1,5 @@
+import { getWhopApi } from "@/lib/whop-sdk";
+import { readWhopWebhook, WebhookRequestError } from "@whop-examples/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 import { addBooking, type BookingRecord } from "@/lib/blob/bookings-index";
 import { updateInstructorEntry } from "@/lib/blob/instructors-index";
@@ -13,15 +15,20 @@ function isProPlan(planId: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { data } = body;
-    // Normalize event name: v2 sends underscores, handler uses dots
-    const event = (body.event as string).replace(/_/g, ".");
-
-    console.log(`Received Whop webhook: ${event}`, JSON.stringify(data, null, 2));
+    const body = await readWhopWebhook(request);
+    const event = body.type;
+    let data = body.data;
+    if (event === "membership.activated" || event === "membership.updated") {
+      // Webhook delivery order is not guaranteed. Reconcile against the API before
+      // granting or revoking access instead of trusting a delayed snapshot.
+      data = await getWhopApi().memberships.retrieve(data.id) as unknown as typeof data;
+      if (event === "membership.activated" && !["active", "trialing"].includes(data.status)) {
+        return NextResponse.json({ received: true });
+      }
+    }
+    console.info("Whop webhook received", { eventId: body.id, type: event });
 
     switch (event) {
-      case "membership.went.valid":
       case "membership.activated": {
         const planId = data.plan?.id ?? data.plan_id;
         const userId = data.user?.id ?? data.user_id;
@@ -30,7 +37,7 @@ export async function POST(request: NextRequest) {
         // Instructor subscribed to Pro plan — update their tier
         if (planId && isProPlan(planId) && userId) {
           // Find instructor's company by checking if the membership is under the platform company
-          const companyId = data.company?.id ?? data.company_id;
+          const companyId = data.account?.id ?? data.company?.id ?? data.company_id;
           if (companyId) {
             await updateInstructorEntry(companyId, { plan: "pro" }).catch((err) =>
               console.error("Failed to update instructor plan in blob:", err)
@@ -64,10 +71,11 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "membership.went.invalid":
-      case "membership.deactivated": {
+      case "membership.updated": {
+        // Cancellation at period end alone must not revoke paid access.
+        if (!["canceled", "expired"].includes(data.status)) break;
         const deactPlanId = data.plan?.id ?? data.plan_id;
-        const deactCompanyId = data.company?.id ?? data.company_id;
+        const deactCompanyId = data.account?.id ?? data.company?.id ?? data.company_id;
 
         // Instructor's Pro subscription ended — downgrade to core
         if (deactPlanId && isProPlan(deactPlanId) && deactCompanyId) {
@@ -86,6 +94,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
+    if (error instanceof WebhookRequestError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Webhook error:", error);
     return NextResponse.json(
       { error: "Webhook handler failed" },
@@ -99,8 +110,8 @@ export async function GET() {
   return NextResponse.json({
     status: "Whop webhook endpoint active",
     events: [
-      "membership.went_valid",
-      "membership.went_invalid",
+      "membership.activated",
+      "membership.updated",
     ],
   });
 }

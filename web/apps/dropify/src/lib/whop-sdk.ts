@@ -8,6 +8,5 @@ export function getWhopApi(): Whop {
   if (!apiKey || apiKey.includes("xxxxx")) throw new Error("Configure the Whop API key for this environment");
   return new Whop({ apiKey,
     baseURL: environment === "sandbox" ? "https://sandbox-api.whop.com/api/v1" : "https://api.whop.com/api/v1",
-    ...(process.env.WHOP_WEBHOOK_SECRET ? { webhookKey: Buffer.from(process.env.WHOP_WEBHOOK_SECRET).toString("base64") } : {}),
   });
 }

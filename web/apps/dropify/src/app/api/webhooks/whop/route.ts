@@ -1,3 +1,4 @@
+import { readWhopWebhook, WebhookRequestError } from "@whop-examples/webhooks";
 import { NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
 import { getWhopCompanyId, getWhopEnvironment } from "@/lib/checkout-config";
@@ -5,16 +6,14 @@ import { getOrder, recordVerifiedPayment, holdOrder } from "@/lib/order-store";
 import { validateOrderPayment, validateOrderIdentity, type OrderPayment } from "@/lib/payment-validation";
 
 export async function POST(request: Request) {
-  if (!process.env.WHOP_WEBHOOK_SECRET || process.env.WHOP_WEBHOOK_SECRET.includes("xxxxx")) {
-    return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
+  let event;
+  try { event = await readWhopWebhook(request); }
+  catch (error) {
+    const status = error instanceof WebhookRequestError ? error.status : 500;
+    return NextResponse.json({ error: error instanceof WebhookRequestError ? error.message : "Webhook unavailable" }, { status });
   }
-  const raw = await request.text();
-  if (raw.length > 1048576) return NextResponse.json({ error: "Payload too large" }, { status: 413 });
   let client;
   try { client = getWhopApi(); } catch { return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 }); }
-  let event: { id?: string; type: string; data: { id?: string; metadata?: Record<string, unknown> | null; payment?: { id?: string; metadata?: Record<string, unknown> | null } | null } };
-  try { event = client.webhooks.unwrap(raw, { headers: Object.fromEntries(request.headers.entries()) }) as typeof event; }
-  catch { return NextResponse.json({ error: "Invalid signature" }, { status: 401 }); }
   const adverse = ["refund.created", "refund.updated", "dispute.created", "dispute.updated"].includes(event.type);
   if (event.type !== "payment.succeeded" && !adverse) return NextResponse.json({ received: true });
   const source = adverse ? event.data?.payment : event.data;

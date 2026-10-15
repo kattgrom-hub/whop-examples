@@ -1,0 +1,13 @@
+{
+  "name": "@whop-examples/webhooks",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./index.cjs",
+  "types": "./index.d.cts",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs"
+  },
+  "dependencies": {
+    "@whop/sdk": "2.5.0"
+  }
+}
