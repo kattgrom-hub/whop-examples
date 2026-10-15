@@ -7,6 +7,7 @@ export function getWhopApi(): Whop {
   const apiKey = process.env.WHOP_API_KEY;
   if (!apiKey || apiKey.includes("xxxxx")) throw new Error("Configure the Whop API key for this environment");
   return new Whop({ apiKey,
+    defaultHeaders: { "Api-Version-Date": "2025-01-01" },
     baseURL: environment === "sandbox" ? "https://sandbox-api.whop.com/api/v1" : "https://api.whop.com/api/v1",
   });
 }
