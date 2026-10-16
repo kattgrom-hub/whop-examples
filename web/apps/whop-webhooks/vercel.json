@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter whop-webhooks build",
+  "functions": {
+    "src/app/api/queues/reconcile/route.ts": {
+      "maxDuration": 60,
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "whop-reconcile"
+        }
+      ]
+    }
+  },
+  "git": {
+    "deploymentEnabled": false
+  }
+}
