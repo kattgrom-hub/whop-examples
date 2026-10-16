@@ -56,9 +56,11 @@ function extractEventRecord(
  */
 export async function persistWebhookEvent(
   eventType: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  deliveryId?: string
 ): Promise<WebhookEventRecord> {
   const record = extractEventRecord(eventType, data);
+  if (deliveryId) record.eventId = deliveryId;
 
   // Use dots in event type as-is for the path (e.g., "payment.succeeded")
   const pathname = `webhooks/${eventType}/${record.eventId}.json`;

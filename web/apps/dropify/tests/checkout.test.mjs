@@ -103,11 +103,11 @@ test('reconciliation rejects amount, seller, plan, config, environment and refun
 });
 
 function signedWebhook(event, timestamp=Math.floor(Date.now()/1000), corrupt=false) {
-  const body=JSON.stringify(event); const id='msg_Test';
+  const body=JSON.stringify({api_version:'v1',...event}); const id=event.id;
   const signature=createHmac('sha256',process.env.WHOP_WEBHOOK_SECRET).update(`${id}.${timestamp}.${body}`).digest('base64');
   return new Request('http://localhost:5007/api/webhooks/whop',{method:'POST',headers:{'webhook-id':id,'webhook-timestamp':String(timestamp),'webhook-signature':`v1,${corrupt?'bad':signature}`},body});
 }
-test('real SDK signature verification rejects tampering/stale events; valid event queues only after reconciliation', async () => {
+test('current SDK helper signature verification rejects tampering/stale events; valid event queues only after reconciliation', async () => {
   let writes=0;
   const sdk=new Whop({apiKey:'local-only',webhookKey:Buffer.from(process.env.WHOP_WEBHOOK_SECRET).toString('base64')});
   sdk.payments.retrieve=async()=>payment;
