@@ -1,3 +1,11 @@
 .env
 .env.*
 !.env.example
+runtime.env
+node_modules/
+whop-mcp-auth/
+whop-mcp-bridge/
+auth-pending*.json
+whop-connection-status.json
+*.log
+__pycache__/
