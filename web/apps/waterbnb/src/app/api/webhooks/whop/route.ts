@@ -1,3 +1,4 @@
+import { readWhopWebhook, WebhookRequestError } from "@whop-examples/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
 import { persistWebhookEvent } from "@/lib/blob/webhook-events";
@@ -44,29 +45,34 @@ function isProPlan(planId: string): boolean {
  *
  * Handles:
  * - payment.succeeded / payment.failed
- * - membership.went_valid — removes booked date
- * - membership.went_invalid — downgrades host plan
- * - payout.completed
+ * - membership.activated — removes booked date
+ * - membership.updated — downgrades host plan
+ * - payout.updated
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { data } = body;
-    // Normalize event name: v2 uses `type`, older versions use `event`; underscores → dots
-    const rawEvent = body.event || body.type || "";
-    const event = (rawEvent as string).replace(/_/g, ".");
-
-    console.log(`Received Whop webhook: ${event}`, JSON.stringify(data, null, 2));
+    const body = await readWhopWebhook(request);
+    const event = body.type;
+    let data = body.data;
+    if (event === "membership.activated" || event === "membership.updated") {
+      // Webhook delivery order is not guaranteed. Reconcile against the API before
+      // granting or revoking access instead of trusting a delayed snapshot.
+      data = await getWhopApi().memberships.retrieve(data.id) as unknown as typeof data;
+      if (event === "membership.activated" && !["active", "trialing"].includes(data.status)) {
+        return NextResponse.json({ received: true });
+      }
+    }
+    console.info("Whop webhook received", { eventId: body.id, type: event });
 
     switch (event) {
       case "payment.succeeded": {
-        await persistWebhookEvent(event, data);
+        await persistWebhookEvent(event, data, body.id);
         console.log("Payment succeeded (persisted):", data.id);
         break;
       }
 
       case "payment.failed": {
-        await persistWebhookEvent(event, data);
+        await persistWebhookEvent(event, data, body.id);
         console.log("Payment failed (persisted):", data.id);
         break;
       }
@@ -169,7 +175,9 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "membership.deactivated": {
+      case "membership.updated": {
+        // Cancellation at period end alone must not revoke paid access.
+        if (!["canceled", "expired"].includes(data.status)) break;
         // Host's Pro subscription ended - downgrade to core
         const deactPlanId = data.plan?.id ?? data.plan_id;
         const deactUserId = data.user?.id ?? data.user_id;
@@ -183,8 +191,8 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "payout.completed": {
-        await persistWebhookEvent(event, data);
+      case "payout.updated": {
+        await persistWebhookEvent(event, data, body.id);
         console.log("Payout completed (persisted):", data.id);
         break;
       }
@@ -195,6 +203,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
+    if (error instanceof WebhookRequestError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Webhook error:", error);
     return NextResponse.json(
       { error: "Webhook handler failed" },
@@ -210,9 +221,9 @@ export async function GET() {
     events: [
       "payment.succeeded",
       "payment.failed",
-      "membership.went_valid",
-      "membership.went_invalid",
-      "payout.completed"
+      "membership.activated",
+      "membership.updated",
+      "payout.updated"
     ]
   });
 }

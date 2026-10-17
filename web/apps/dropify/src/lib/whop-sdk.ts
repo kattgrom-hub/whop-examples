@@ -9,6 +9,5 @@ export function getWhopApi(): Whop {
   return new Whop({ apiKey,
     defaultHeaders: { "Api-Version-Date": "2025-01-01" },
     baseURL: environment === "sandbox" ? "https://sandbox-api.whop.com/api/v1" : "https://api.whop.com/api/v1",
-    ...(process.env.WHOP_WEBHOOK_SECRET ? { webhookKey: Buffer.from(process.env.WHOP_WEBHOOK_SECRET).toString("base64") } : {}),
   });
 }

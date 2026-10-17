@@ -49,3 +49,28 @@ and does not enable its sales. No setup script needs to run for this change.
 From `web`, install with the repository's pnpm version and frozen lockfile, then
 run `pnpm --filter dropify test` and `pnpm --filter dropify build`.
 The tests mock network transport and do not contact Whop or charge a buyer.
+
+## Integration with the merged webhook migration (17 October 2026)
+
+PR #10 is merged into main. This branch incorporates that main revision and
+preserves its shared signed webhook verifier, dedicated queue ingress, database
+reconciliation and all test glob entries. Dropify already pins its REST contract
+to `2025-01-01`; retain that client unchanged rather than restoring its removed
+legacy webhook-key configuration. The workflow now covers every example app and
+the shared webhook package while retaining all verifier, application and ingress
+checks. All nine legacy account SDK dependencies retain their resolved versions;
+the separate webhook verification helper keeps SDK 2.5.0.
+
+PR #10 records signed sample receipt, queue processing and database rollback
+checks. That evidence does not certify a buyer/order/delivery path: the sample
+had no matching Dropify order metadata. A provider sandbox order carrying
+`type: dropify_order` and the matching `order_id`, followed through authoritative
+payment lookup, reconciliation and delivery, remains required. Inspect current
+account endpoints and deployment configuration before changing them; repository
+history is not a current account inventory. AI Credit Mastery remains subject to
+its separate launch contract.
+
+This reconciliation was prepared through repository APIs. Runtime tests and
+builds must pass on the resulting commit in CI before release; earlier branch
+test results do not certify this combined revision. No live Whop account settings
+were changed during this reconciliation.

@@ -1,3 +1,4 @@
+import { readWhopWebhook, WebhookRequestError } from "@whop-examples/webhooks";
 import { NextRequest, NextResponse } from "next/server";
 import { getWhopApi } from "@/lib/whop-sdk";
 import { persistWebhookEvent } from "@/lib/blob/webhook-events";
@@ -47,33 +48,40 @@ function isProPlan(planId: string): boolean {
  * This endpoint receives webhook events from Whop for:
  * - payment.succeeded - When a learner pays for a class
  * - payment.failed - When a payment fails
- * - membership.went_valid - When a subscription becomes active
- * - membership.went_invalid - When a subscription is cancelled/expired
- * - payout.completed - When an instructor payout is processed
+ * - membership.activated - When a subscription becomes active
+ * - membership.updated - When a subscription is cancelled/expired
+ * - payout.updated - When an instructor payout is processed
  */
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-
-    const { event, data } = body;
-
-    console.log(`Received Whop webhook: ${event}`, data);
+    const body = await readWhopWebhook(request);
+    const event = body.type;
+    let data = body.data;
+    if (event === "membership.activated" || event === "membership.updated") {
+      // Webhook delivery order is not guaranteed. Reconcile against the API before
+      // granting or revoking access instead of trusting a delayed snapshot.
+      data = await getWhopApi().memberships.retrieve(data.id) as unknown as typeof data;
+      if (event === "membership.activated" && !["active", "trialing"].includes(data.status)) {
+        return NextResponse.json({ received: true });
+      }
+    }
+    console.info("Whop webhook received", { eventId: body.id, type: event });
 
     switch (event) {
       case "payment.succeeded": {
-        await persistWebhookEvent(event, data);
+        await persistWebhookEvent(event, data, body.id);
         console.log("Payment succeeded (persisted):", data.id);
         break;
       }
 
       case "payment.failed": {
-        await persistWebhookEvent(event, data);
+        await persistWebhookEvent(event, data, body.id);
         console.log("Payment failed (persisted):", data.id);
         break;
       }
 
-      case "membership.went_valid": {
+      case "membership.activated": {
         // Instructor subscribed to Pro plan - update their tier
         if (data.plan_id && isProPlan(data.plan_id) && data.user_id) {
           const companyId = await updateInstructorPlanTier(data.user_id, "pro");
@@ -95,7 +103,9 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "membership.went_invalid": {
+      case "membership.updated": {
+        // Cancellation at period end alone must not revoke paid access.
+        if (!["canceled", "expired"].includes(data.status)) break;
         // Instructor's Pro subscription ended - downgrade to core
         if (data.plan_id && isProPlan(data.plan_id) && data.user_id) {
           const companyId = await updateInstructorPlanTier(data.user_id, "core");
@@ -103,12 +113,12 @@ export async function POST(request: NextRequest) {
             await updateInstructorEntry(companyId, { plan: "core" }).catch(() => {});
           }
         }
-        console.log("Membership went invalid:", data.id);
+        console.log("Membership updated:", data.id);
         break;
       }
 
-      case "payout.completed": {
-        await persistWebhookEvent(event, data);
+      case "payout.updated": {
+        await persistWebhookEvent(event, data, body.id);
         console.log("Payout completed (persisted):", data.id);
         break;
       }
@@ -119,6 +129,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
+    if (error instanceof WebhookRequestError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("Webhook error:", error);
     return NextResponse.json(
       { error: "Webhook handler failed" },
@@ -134,9 +147,9 @@ export async function GET() {
     events: [
       "payment.succeeded",
       "payment.failed",
-      "membership.went_valid",
-      "membership.went_invalid",
-      "payout.completed"
+      "membership.activated",
+      "membership.updated",
+      "payout.updated"
     ]
   });
 }
