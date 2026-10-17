@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   try {
-    const whop = new Whop({ apiKey });
+    const whop = new Whop({ baseURL: "https://api.whop.com/api/v1", defaultHeaders: { "Api-Version-Date": "2025-01-01" }, apiKey });
     const servers: { id: string; name: string }[] = [];
 
     for await (const company of whop.companies.list({
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const whop = new Whop({ apiKey });
+    const whop = new Whop({ baseURL: "https://api.whop.com/api/v1", defaultHeaders: { "Api-Version-Date": "2025-01-01" }, apiKey });
     const company = await whop.companies.create({
       parent_company_id: parentCompanyId,
       title,

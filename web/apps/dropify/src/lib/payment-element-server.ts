@@ -69,7 +69,7 @@ export async function elementApi(path: string, body?: unknown) {
   const key = requireElementCredentials();
   const response = await fetch(`https://sandbox-api.whop.com/api/v1/${path}`, {
     method: body === undefined ? "GET" : "POST", cache: "no-store", signal: AbortSignal.timeout(30000),
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "Api-Version-Date": "2025-01-01" },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   if ([400, 401, 403, 404, 422, 429].includes(response.status)) throw new ElementApiRejection(response.status);

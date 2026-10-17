@@ -21,6 +21,7 @@ export async function GET() {
     headers: {
       Authorization: `Bearer ${session.accessToken}`,
       "Content-Type": "application/json",
+      "Api-Version-Date": "2025-01-01",
     },
     body: JSON.stringify({}),
   });

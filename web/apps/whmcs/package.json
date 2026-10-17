@@ -11,7 +11,7 @@
   "dependencies": {
     "@whop/embedded-components-react-js": "^0.0.9",
     "@whop/embedded-components-vanilla-js": "^0.0.9",
-    "@whop/sdk": "^0.0.26",
+    "@whop/sdk": "0.0.26",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const whop = new Whop({ apiKey });
+    const whop = new Whop({ baseURL: "https://api.whop.com/api/v1", defaultHeaders: { "Api-Version-Date": "2025-01-01" }, apiKey });
     const tokenResponse = await whop.accessTokens.create({
       company_id: companyId,
     });

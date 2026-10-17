@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const whop = new Whop({ apiKey });
+    const whop = new Whop({ baseURL: "https://api.whop.com/api/v1", defaultHeaders: { "Api-Version-Date": "2025-01-01" }, apiKey });
     const channels: { id: string; name: string }[] = [];
 
     for await (const ch of whop.chatChannels.list({
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const whop = new Whop({ apiKey });
+    const whop = new Whop({ baseURL: "https://api.whop.com/api/v1", defaultHeaders: { "Api-Version-Date": "2025-01-01" }, apiKey });
 
     // Discover the chat app_id from existing experiences
     let chatAppId: string | null = null;

@@ -14,7 +14,7 @@
     "@whop/checkout": "^0.0.51",
     "@whop/embedded-components-react-js": "^0.0.9",
     "@whop/embedded-components-vanilla-js": "^0.0.9",
-    "@whop/sdk": "^0.0.26",
+    "@whop/sdk": "0.0.26",
     "@whop-examples/auth": "workspace:*",
     "next": "^15.1.0",
     "next-auth": "5.0.0-beta.30",

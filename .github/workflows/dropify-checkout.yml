@@ -1,7 +1,7 @@
 name: Dropify checkout checks
 on:
   pull_request:
-    paths: ['web/apps/dropify/**', 'web/apps/whop-webhooks/**', 'web/packages/auth/**', 'web/packages/webhooks/**', 'web/apps/masterclass/**', 'web/apps/waterbnb/**', 'web/apps/winners-club/**', 'web/apps/titled-tuesday/**', 'web/pnpm-lock.yaml', '.github/workflows/dropify-checkout.yml']
+    paths: ['web/apps/**', 'web/packages/auth/**', 'web/packages/webhooks/**', 'web/pnpm-lock.yaml', '.github/workflows/dropify-checkout.yml']
   workflow_dispatch:
 permissions:
   contents: read

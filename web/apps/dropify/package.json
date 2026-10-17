@@ -13,7 +13,7 @@
   "dependencies": {
     "@whop-examples/auth": "workspace:*",
     "@whop/elements": "1.8.0",
-    "@whop/sdk": "^0.0.28",
+    "@whop/sdk": "0.0.28",
     "lucide-react": "^0.575.0",
     "next": "^15.1.0",
     "next-auth": "5.0.0-beta.30",
