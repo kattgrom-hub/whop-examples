@@ -43,9 +43,13 @@ test('a verified dedicated release uses the provider plan and fixed A$197 offer'
 });
 test('creator-kit products and checkout plans are rejected independently', async () => {
   for (const change of [
-    { productId: 'prod_lW8tQxG87dsKP' }, { productId: 'prod_IjbZFclq4nnH4' },
-    { planId: 'plan_jXJDMD5T3MKJD', checkoutUrl: 'https://sandbox.whop.com/checkout/plan_jXJDMD5T3MKJD/' },
-    { planId: 'plan_iTC5mUal2nJw5', checkoutUrl: 'https://sandbox.whop.com/checkout/plan_iTC5mUal2nJw5/' },
+    ...loadTs('src/data/products.ts').products.flatMap(product => {
+      const planId = new URL(product.checkoutUrl).pathname.split('/')[2];
+      return [
+        { productId: product.whopProductId },
+        { planId, checkoutUrl: `https://sandbox.whop.com/checkout/${planId}/` },
+      ];
+    }),
   ]) {
     const loaded = checkout({ ...release, ...change });
     await assert.rejects(loaded.getCreditMasteryCheckout());
