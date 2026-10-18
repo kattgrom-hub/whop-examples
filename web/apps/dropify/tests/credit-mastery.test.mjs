@@ -117,8 +117,8 @@ test('closed product publishes machine-readable A$197 AUD offer without claiming
   const markup = renderToStaticMarkup(await Page());
   assert.match(markup, /application\/ld\+json/);
   assert.match(markup, /schema\.org\/OutOfStock/);
-  assert.match(markup, /&quot;price&quot;:&quot;197\.00&quot;/);
-  assert.match(markup, /&quot;priceCurrency&quot;:&quot;AUD&quot;/);
+  assert.match(markup, /"price":"197\.00"/);
+  assert.match(markup, /"priceCurrency":"AUD"/);
   assert.doesNotMatch(markup, /schema\.org\/InStock/);
   assert.doesNotMatch(markup, /whop\.com\/checkout/);
 });
