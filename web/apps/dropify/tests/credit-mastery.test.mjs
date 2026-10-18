@@ -110,3 +110,15 @@ test('closed product page has no purchase form, checkout URL or false success st
   assert.match(markup, /A\$197 total, one-time payment/);
   assert.doesNotMatch(markup, /<form|whop\.com\/checkout|payment successful/i);
 });
+
+
+test('closed product publishes machine-readable A$197 AUD offer without claiming stock', async () => {
+  const Page = loadTs('src/app/ai-credit-mastery/page.tsx').default;
+  const markup = renderToStaticMarkup(await Page());
+  assert.match(markup, /application\/ld\+json/);
+  assert.match(markup, /schema\.org\/OutOfStock/);
+  assert.match(markup, /"price":"197\.00"/);
+  assert.match(markup, /"priceCurrency":"AUD"/);
+  assert.doesNotMatch(markup, /schema\.org\/InStock/);
+  assert.doesNotMatch(markup, /whop\.com\/checkout/);
+});
