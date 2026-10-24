@@ -1,7 +1,7 @@
 # Kattassie PaymentElement integration
 
 `/payment-element` implements Whop's lower-level payment form: the official
-`@whop/elements` 1.8.0 loader, a Payments controller, PaymentElement with full
+`@whop/elements` 1.9.0 loader, a Payments controller, PaymentElement with full
 billing details, mandatory BrandingElement, email collection, readiness gating,
 confirmation tokens, server confirmation and pending provider actions.
 
@@ -99,3 +99,20 @@ References:
 - https://docs.whop.com/developer/guides/sandbox
 
 The form checks payment credentials, database configuration and the signing secret before hiding hosted checkout links. Definitive API rejections (400/401/403/404/422/429) release an unattached reservation; transport failures, 408/409 and server errors remain locked for reconciliation. Terminal unsuccessful provider states show failure/cancellation and do not offer authentication.
+
+## Getting-started alignment (24 October 2026)
+
+The SDK is pinned to 1.9.0, matching the current getting-started guide. React 19
+is already configured. `.env.example` includes the explicit disabled-by-default
+Elements flag and sandbox plan setting. Wallet-sheet cancellation before server
+submission keeps the form available and sends no confirmation request.
+
+The custom payment form needs no account-data token endpoint. Its confirmation
+token is created in the browser and confirmed on the server. Do not expose an
+API key or add a public balance/wallet token endpoint to make checkout work.
+The app currently sets no restrictive CSP; if a hosting proxy sets one, allow all
+sources in the guide's CSP table, including the sandbox API and payment providers.
+
+The guide states sandbox is not generally available. Owner access is still needed
+to verify sandbox eligibility, credentials, plan ownership, webhook configuration
+and end-to-end delivery before any live rollout. No production flags are changed.
