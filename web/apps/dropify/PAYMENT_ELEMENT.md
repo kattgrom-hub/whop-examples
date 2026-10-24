@@ -72,7 +72,8 @@ regressions. Run `pnpm --filter dropify build` with
 Whop traffic mocked or blocked: initial session failure/retry, readiness gating,
 double submission, forged return parameters, provider-result versus server-status
 confirmation, unresolved attempts, resumed verification and script failure/reload.
-With Playwright installed separately, run from the app directory:
+Playwright is pinned as a development dependency. Install Chromium with
+`pnpm exec playwright install chromium`, then run from the app directory:
 
 ```sh
 DROPIFY_TEST_START=1 node tests/payment-element-browser.mjs
@@ -116,3 +117,7 @@ sources in the guide's CSP table, including the sandbox API and payment provider
 The guide states sandbox is not generally available. Owner access is still needed
 to verify sandbox eligibility, credentials, plan ownership, webhook configuration
 and end-to-end delivery before any live rollout. No production flags are changed.
+
+CI now installs Chromium and runs both the sandbox browser scenarios and the
+hosted checkout fallback after building. Provider requests in these checks are
+mocked or blocked; a green browser check does not establish live payment readiness.
