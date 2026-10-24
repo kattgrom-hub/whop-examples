@@ -12,14 +12,14 @@
   },
   "dependencies": {
     "@whop-examples/auth": "workspace:*",
-    "@whop/elements": "1.8.0",
+    "@whop-examples/webhooks": "workspace:*",
+    "@whop/elements": "1.9.0",
     "@whop/sdk": "0.0.28",
     "lucide-react": "^0.575.0",
     "next": "^15.1.0",
     "next-auth": "5.0.0-beta.30",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@whop-examples/webhooks": "workspace:*"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
@@ -27,6 +27,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "playwright": "1.62.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
