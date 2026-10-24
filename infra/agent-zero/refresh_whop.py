@@ -6,7 +6,11 @@ pending=root/"whop-mcp-bridge/auth-pending.json"
 status_path=Path("/vercel/agent-zero/whop-connection-status.json")
 deadline=time.time()+1200
 base="http://127.0.0.1:5080"
-def record(status): status_path.write_text(json.dumps(status))
+last_status=None
+def record(status):
+    global last_status
+    status_path.write_text(json.dumps(status))
+    last_status=status
 while time.time()<deadline:
     try:
         p=json.loads(pending.read_text())
@@ -29,4 +33,5 @@ while time.time()<deadline:
         record({"whop_connected":False,"action":"Check sign-in and apply MCP settings"})
     time.sleep(5)
 else:
-    record({"whop_connected":False,"action":"Browser authorization expired; restart sign-in"})
+    if last_status is None:
+        record({"whop_connected":False,"action":"Browser authorization expired; restart sign-in"})
