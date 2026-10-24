@@ -53,7 +53,7 @@ try {
         create:options=>{
           window.mockOptions={config,options}; const mounted=[];
           return {destroy(){window.mockCalls.destroys++;mounted.forEach(t=>t.replaceChildren());},
-            createConfirmationToken:async input=>{window.mockCalls.tokens++;window.mockEmail=input.billingDetails.email;return {confirmationToken:'ctok_Test',type:'card'};},
+            createConfirmationToken:async input=>{window.mockCalls.tokens++;if(window.cancelNextPayment){window.cancelNextPayment=false;throw {code:'payment_request_cancelled'};}window.mockEmail=input.billingDetails.email;return {confirmationToken:'ctok_Test',type:'card'};},
             create(name,callbacks){return {mount(target){mounted.push(target);
               if(name==='payment') {const button=document.createElement('button');button.type='button';button.textContent='Complete mock payment fields';
                 button.onclick=()=>callbacks.onChange({complete:true});target.appendChild(button);}
@@ -112,6 +112,18 @@ try {
   payment.setStatus('succeeded');await payment.page.getByRole('button',{name:'Check payment status'}).click();
   await payment.page.getByText('Sandbox payment verified. No kit has been delivered.').waitFor();await payment.page.close();
 
+  const canceled=await setup();await canceled.page.goto(`${base}/payment-element`);
+  await canceled.page.getByLabel('Email',{exact:true}).fill('buyer@example.invalid');
+  await canceled.page.getByRole('button',{name:'Complete mock payment fields'}).click();
+  await canceled.page.evaluate(()=>{window.cancelNextPayment=true;});
+  await canceled.page.getByRole('button',{name:'Pay in sandbox',exact:true}).click();
+  await canceled.page.getByText('Payment canceled. You can choose a payment method and try again.').waitFor();
+  assert.equal(canceled.counts().confirms,0);
+  assert.equal(await canceled.page.getByRole('button',{name:'Pay in sandbox',exact:true}).isEnabled(),true);
+  await canceled.page.getByRole('button',{name:'Pay in sandbox',exact:true}).click();
+  await canceled.page.getByRole('button',{name:'Check payment status'}).waitFor();
+  assert.equal(canceled.counts().confirms,1);await canceled.page.close();
+
   const unknown=await setup({confirmFailure:true,status:'unknown'});await unknown.page.goto(`${base}/payment-element`);
   await unknown.page.getByLabel('Email',{exact:true}).fill('buyer@example.invalid');
   await unknown.page.getByRole('button',{name:'Complete mock payment fields'}).click();
@@ -134,6 +146,6 @@ try {
   await failed.page.getByRole('button',{name:'Reload payment form'}).click();
   await failed.page.getByRole('button',{name:'Complete mock payment fields'}).waitFor();
   assert.equal(await failed.page.getByText('The payment form could not load. Retry loading the form.',{exact:true}).count(),0);await failed.page.close();
-  console.log('5 PaymentElement browser scenarios passed; all Whop requests were mocked or blocked.');
+  console.log('6 PaymentElement browser scenarios passed; all Whop requests were mocked or blocked.');
   }
 } finally {await browser?.close();server?.kill();}

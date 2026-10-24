@@ -84,7 +84,10 @@ export function WhopPaymentForm() {
       await checkStatus();
     } catch (e) {
       if (sent) setLocked(true);
-      setError(e instanceof Error ? e.message : "Payment could not be confirmed");
+      const canceled = !sent && typeof e === "object" && e !== null &&
+        "code" in e && e.code === "payment_request_cancelled";
+      setError(canceled ? "Payment canceled. You can choose a payment method and try again." :
+        e instanceof Error ? e.message : "Payment could not be confirmed");
     } finally { inFlight.current = false; setBusy(false); }
   };
   const refresh = async (continueAction = false) => {

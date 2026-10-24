@@ -8,6 +8,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -32,3 +33,17 @@ jobs:
         working-directory: web
         env:
           NEXT_PUBLIC_WHOP_ENVIRONMENT: sandbox
+      - name: Install Chromium for payment UI checks
+        run: pnpm --filter dropify exec playwright install --with-deps chromium
+        working-directory: web
+      - name: Verify sandbox Elements flow (mocked provider)
+        run: node tests/payment-element-browser.mjs
+        working-directory: web/apps/dropify
+        env:
+          DROPIFY_TEST_START: '1'
+      - name: Verify hosted checkout fallback
+        run: node tests/payment-element-browser.mjs
+        working-directory: web/apps/dropify
+        env:
+          DROPIFY_TEST_START: '1'
+          DROPIFY_TEST_HOSTED: '1'
