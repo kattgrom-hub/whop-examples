@@ -1,14 +1,14 @@
 # Kattassie digital creator storefront
 
-The storefront now presents Coastal Creator Toolkit (`prod_lW8tQxG87dsKP`) and Viral Gold Video Kit (`prod_IjbZFclq4nnH4`) at A$29.99 each, one-time. Copy is based on the existing Whop descriptions. There are no physical products, shipping charges, sample reviews, or guaranteed viral results. Cart quantities are limited to one of each kit and priced on the server in AUD.
+The storefront presents Coastal Creator Toolkit (`prod_LkjEveWKQenmk`) and Viral Gold Video Kit (`prod_AhxJKmo5Rzchx`) at A$29.99 each, one-time. The existing Coastal Creator All-Access Bundle (`prod_73b5rvfQNvLbq`) grants both for A$49.99 once. There are no physical products, shipping charges, sample reviews, or guaranteed viral results. Cart quantities are limited to one of each kit.
 
 ## Live sales and delivery
 
 The storefront uses product-specific hosted Whop checkouts: Coastal `plan_jXJDMD5T3MKJD` and Viral Gold `plan_iTC5mUal2nJw5`, A$29.99 one-time with unlimited stock. ZIP files are uploaded into separate native Files apps (`exp_uggpaxt7j1Asgr`, `exp_zsD5umAIRdXxFG`), gated to their matching standard products. The original API/app products cannot include experiences; standard purchase listings were created for native delivery. Paid files are not in this public repository.
 
-Each kit has its own checkout, rather than a combined charge that fails to grant both entitlements. Whop manages payment, receipts and access. Buyer pages and original AUD checkout totals were verified without making a real purchase. Whop may offer a local currency conversion. The Vercel app needs no payment credentials for these links.
+Single-kit carts use the matching individual checkout. The exact pair uses the existing bundle plan `plan_BlhWmxBPGOOeC` at A$49.99, saving A$9.99 against two separate purchases. On 25 October 2026 its hosted payment form loaded and the bundle product editor showed both Downloads apps selected. Changing/removing a cart item selects the corresponding single-kit checkout again. Whop manages payment, receipts and access. No real purchase was submitted; post-payment access remains untested. Whop may offer a local currency conversion. The Vercel app needs no payment credentials for these links.
 
-The legacy inline order route remains gated. Leave `DROPIFY_DIGITAL_DELIVERY_READY` unset: it must not be enabled for this hosted launch. The local database/staff queue is a separate legacy physical fulfilment implementation and does not track hosted Whop purchases. Monitor hosted purchases in Whop. The existing `whopProductId` catalog fields identify legacy API products and are not used by the hosted purchase links.
+The legacy inline order route remains gated. Leave `DROPIFY_DIGITAL_DELIVERY_READY` unset: it must not be enabled for this hosted launch. The local database/staff queue is a separate legacy physical fulfilment implementation and does not track hosted Whop purchases. Monitor hosted purchases in Whop. The `whopProductId` catalog fields identify the standard native-delivery products and are not used by the hosted purchase links.
 
 ## Legacy embedded checkout limitation
 

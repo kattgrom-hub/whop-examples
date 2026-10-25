@@ -1,6 +1,7 @@
 import { requireElementSetup } from "@/lib/payment-element-server";
 import { WhopPaymentForm } from "@/components/whop-payment-form";
 import { products, formatPrice } from "@/data/products";
+import { creatorBundle } from "@/lib/hosted-cart";
 export const dynamic = "force-dynamic";
 export default function PaymentElementPage() {
   let sandbox = false;
@@ -16,7 +17,12 @@ export default function PaymentElementPage() {
         <a className="button dark" href={product.checkoutUrl}>Buy {product.name} on Whop ↗</a>
       </article>)}
     </div>
-    <p className="text-sm text-secondary mt-6">Buying both? Complete a separate checkout for each kit using the same Whop account.</p>
+    <article className="border border-border rounded-xl p-6 mt-6">
+      <h2 className="text-xl mb-2">{creatorBundle.name}</h2>
+      <p className="text-sm text-secondary mb-4">Both kits in one checkout. Access both Downloads apps in your Whop account.</p>
+      <p className="mb-4">{formatPrice(creatorBundle.price)} · One-time purchase · Save {formatPrice(products.reduce((sum, product) => sum + product.price, 0) - creatorBundle.price)} compared with buying separately.</p>
+      <a className="button dark" href={creatorBundle.checkoutUrl}>Buy both kits on Whop ↗</a>
+    </article>
   </section>;
   return <section className="mx-auto max-w-lg px-6 py-16">
     <h1 className="text-2xl mb-3">Kattassie payment form</h1>

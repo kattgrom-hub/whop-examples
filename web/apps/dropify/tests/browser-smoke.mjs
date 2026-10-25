@@ -103,7 +103,7 @@ try {
   await shop.page.keyboard.press('Escape');
   await shop.page.getByRole('button',{name:'Add to cart',exact:true}).last().click();
   assert.match(await shop.page.getByRole('dialog').innerText(),/A\$59.98/);
-  assert.equal(await shop.page.getByRole('dialog').getByRole('link',{name:/Buy Viral Gold Video Kit/}).getAttribute('href'),'https://whop.com/checkout/plan_iTC5mUal2nJw5/');
+  assert.equal(await shop.page.getByRole('dialog').getByRole('link',{name:'Buy both kits — A$49.99 ↗'}).getAttribute('href'),'https://whop.com/checkout/plan_BlhWmxBPGOOeC/');
   await shop.page.keyboard.press('Escape');
   await shop.page.setViewportSize({width:390,height:844});
   await shop.page.goto(base+'/shop');
