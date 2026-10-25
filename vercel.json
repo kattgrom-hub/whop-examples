@@ -4,7 +4,8 @@
     "deploymentEnabled": {
       "chatgpt/dropify-whop-elements-checkout": false,
       "fix/dropify-checkout-release": false,
-      "feat/kattassie-payment-element": false
+      "feat/kattassie-payment-element": false,
+      "codex/agent-zero-v214": false
     }
   }
 }
