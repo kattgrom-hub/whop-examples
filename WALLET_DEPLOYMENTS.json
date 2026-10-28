@@ -1,0 +1,78 @@
+{
+  "whopCompany": "Kattassie",
+  "vercelTeam": "kattgrom-hubs-projects",
+  "apps": [
+    {
+      "app": "dropify",
+      "whopAppId": "app_Kh0hCiEmNi1qKH",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-dropify",
+      "origin": "https://kattassie-dropify.vercel.app",
+      "oauthRedirectUri": "https://kattassie-dropify.vercel.app/api/auth/callback/whop",
+      "status": "hosting-prepared-oauth-access-pending"
+    },
+    {
+      "app": "masterclass",
+      "whopAppId": "app_LVhLIdIUMg2itT",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-masterclass",
+      "origin": "https://kattassie-masterclass.vercel.app",
+      "oauthRedirectUri": "https://kattassie-masterclass.vercel.app/api/auth/callback/whop",
+      "status": "hosting-prepared-oauth-access-pending"
+    },
+    {
+      "app": "winners-club",
+      "whopAppId": "app_oV4ooqbnpEFssC",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-winners-club",
+      "origin": "https://kattassie-winners-club.vercel.app",
+      "oauthRedirectUri": "https://kattassie-winners-club.vercel.app/api/auth/callback/whop",
+      "status": "hosting-prepared-oauth-access-pending"
+    },
+    {
+      "app": "waterbnb",
+      "whopAppId": "app_aw0VVznpa56zGN",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-waterbnb",
+      "origin": "https://kattassie-waterbnb.vercel.app",
+      "oauthRedirectUri": "https://kattassie-waterbnb.vercel.app/api/auth/callback/whop",
+      "status": "hosting-prepared-oauth-access-pending"
+    },
+    {
+      "app": "dischord",
+      "whopAppId": "app_W8koQWJ0nlwMl2",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-dischord",
+      "origin": "https://kattassie-dischord.vercel.app",
+      "oauthRedirectUri": "https://kattassie-dischord.vercel.app/api/auth/callback/whop",
+      "status": "hosting-prepared-oauth-access-pending"
+    },
+    {
+      "app": "sockx",
+      "whopAppId": "app_TKjzDGfnKfqwaY",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-sockx",
+      "origin": "https://kattassie-sockx.vercel.app",
+      "oauthRedirectUri": "https://kattassie-sockx.vercel.app/api/auth/callback/whop",
+      "status": "hosting-prepared-oauth-access-pending"
+    },
+    {
+      "app": "whmcs",
+      "whopAppId": "app_Dcl8JAw5Oe6so3",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-whmcs",
+      "origin": "https://kattassie-whmcs.vercel.app",
+      "oauthRedirectUri": "https://kattassie-whmcs.vercel.app/api/auth/callback/whop",
+      "status": "hosting-prepared-oauth-access-pending"
+    },
+    {
+      "app": "grail-talent",
+      "whopAppId": "app_HYUamQRhZbF8ua",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-grail-talent",
+      "origin": "https://kattassie-grail-talent.vercel.app",
+      "oauthRedirectUri": "https://kattassie-grail-talent.vercel.app/api/auth/callback/whop",
+      "status": "hosting-prepared-oauth-access-pending"
+    }
+  ]
+}
