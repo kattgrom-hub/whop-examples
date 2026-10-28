@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+:root {
+  --font-anton: "Anton";
+  --font-epilogue: "Epilogue";
+}
+
 @theme inline {
   --color-sockx-primary: #7C3AED;
   --color-sockx-secondary: #A78BFA;

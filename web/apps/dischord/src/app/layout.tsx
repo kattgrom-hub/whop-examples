@@ -22,6 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
         {children}
+          <footer style={{ padding: 16, textAlign: "center" }}><a href="/wallet">Wallet balance</a></footer>
       </body>
     </html>
   );

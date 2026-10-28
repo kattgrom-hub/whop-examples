@@ -30,7 +30,8 @@ export default function RootLayout({
       <body className={`${inter.variable} antialiased`}>
         <CartProvider>
           <Navbar />
-          <main className="min-h-screen">{children}</main>
+          <main className="min-h-screen">{children}
+          <footer style={{ padding: 16, textAlign: "center" }}><a href="/wallet">Wallet balance</a></footer></main>
           <Footer />
           <CartDrawer />
         </CartProvider>

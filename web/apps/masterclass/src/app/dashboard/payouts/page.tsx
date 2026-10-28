@@ -2,8 +2,8 @@
 
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
+import { WalletBalance } from "@whop-examples/auth/wallet";
 import {
-  BalanceElement,
   Elements,
   PayoutsSession,
   WithdrawButtonElement,
@@ -78,13 +78,7 @@ export default function PayoutsPage() {
           redirectUrl={`${appUrl}/dashboard/payouts`}
         >
           <div className="space-y-4">
-            <BalanceElement
-              fallback={
-                <div className="flex items-center justify-center h-[100px]">
-                  <div className="w-6 h-6 border-2 spinner-red rounded-full animate-spin" />
-                </div>
-              }
-            />
+            <WalletBalance />
 
             <WithdrawButtonElement
               fallback={

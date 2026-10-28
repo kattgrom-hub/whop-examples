@@ -1,0 +1,181 @@
+{
+  "whopCompany": "Kattassie",
+  "vercelTeam": "kattgrom-hubs-projects",
+  "apps": [
+    {
+      "app": "dropify",
+      "whopAppId": "app_Kh0hCiEmNi1qKH",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-dropify",
+      "origin": "https://kattassie-dropify.vercel.app",
+      "oauthRedirectUri": "https://kattassie-dropify.vercel.app/api/auth/callback/whop",
+      "status": "production-ready",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "deploymentId": "dpl_7bK6mzsDfokXKWUN3wqsXtiAnx6A",
+      "deployedCommit": "dd4ecded30c5426ad6236877c9c09c22751dc7df",
+      "walletUrl": "https://kattassie-dropify.vercel.app/wallet",
+      "signedOutChecks": {
+        "walletStatus": 200,
+        "tokenStatus": 401,
+        "oauthProviderRegistered": true
+      },
+      "authenticatedBalanceTest": "pending-user-sign-in"
+    },
+    {
+      "app": "masterclass",
+      "whopAppId": "app_LVhLIdIUMg2itT",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-masterclass",
+      "origin": "https://kattassie-masterclass.vercel.app",
+      "oauthRedirectUri": "https://kattassie-masterclass.vercel.app/api/auth/callback/whop",
+      "status": "production-ready",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "businessPermissionScopes": [
+        "company:balance:read",
+        "stats:read"
+      ],
+      "productionApiKeyConfigured": true,
+      "deploymentId": "dpl_DXz6US8gfvkjWfFQokgTV89kqgGi",
+      "deployedCommit": "dd4ecded30c5426ad6236877c9c09c22751dc7df",
+      "walletUrl": "https://kattassie-masterclass.vercel.app/wallet",
+      "signedOutChecks": {
+        "walletStatus": 200,
+        "tokenStatus": 401,
+        "oauthProviderRegistered": true
+      },
+      "authenticatedBalanceTest": "pending-user-sign-in"
+    },
+    {
+      "app": "winners-club",
+      "whopAppId": "app_oV4ooqbnpEFssC",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-winners-club",
+      "origin": "https://kattassie-winners-club.vercel.app",
+      "oauthRedirectUri": "https://kattassie-winners-club.vercel.app/api/auth/callback/whop",
+      "status": "production-ready",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "businessPermissionScopes": [
+        "company:balance:read",
+        "stats:read"
+      ],
+      "productionApiKeyConfigured": true,
+      "deploymentId": "dpl_H3NdDHZ7U6nttGeAGg3BrvpURAtQ",
+      "deployedCommit": "dd4ecded30c5426ad6236877c9c09c22751dc7df",
+      "walletUrl": "https://kattassie-winners-club.vercel.app/wallet",
+      "signedOutChecks": {
+        "walletStatus": 200,
+        "tokenStatus": 401,
+        "oauthProviderRegistered": true
+      },
+      "authenticatedBalanceTest": "pending-user-sign-in"
+    },
+    {
+      "app": "waterbnb",
+      "whopAppId": "app_aw0VVznpa56zGN",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-waterbnb",
+      "origin": "https://kattassie-waterbnb.vercel.app",
+      "oauthRedirectUri": "https://kattassie-waterbnb.vercel.app/api/auth/callback/whop",
+      "status": "production-ready",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "businessPermissionScopes": [
+        "company:balance:read",
+        "stats:read"
+      ],
+      "productionApiKeyConfigured": true,
+      "deploymentId": "dpl_BNdBMT34jGmzCQtCy3AY16peaGPx",
+      "deployedCommit": "dd4ecded30c5426ad6236877c9c09c22751dc7df",
+      "walletUrl": "https://kattassie-waterbnb.vercel.app/wallet",
+      "signedOutChecks": {
+        "walletStatus": 200,
+        "tokenStatus": 401,
+        "oauthProviderRegistered": true
+      },
+      "authenticatedBalanceTest": "pending-user-sign-in"
+    },
+    {
+      "app": "dischord",
+      "whopAppId": "app_W8koQWJ0nlwMl2",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-dischord",
+      "origin": "https://kattassie-dischord.vercel.app",
+      "oauthRedirectUri": "https://kattassie-dischord.vercel.app/api/auth/callback/whop",
+      "status": "production-ready",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "deploymentId": "dpl_C3BRp1kejuigKjSBbuxuq5Dyp4N1",
+      "deployedCommit": "dd4ecded30c5426ad6236877c9c09c22751dc7df",
+      "walletUrl": "https://kattassie-dischord.vercel.app/wallet",
+      "signedOutChecks": {
+        "walletStatus": 200,
+        "tokenStatus": 401,
+        "oauthProviderRegistered": true
+      },
+      "authenticatedBalanceTest": "pending-user-sign-in"
+    },
+    {
+      "app": "sockx",
+      "whopAppId": "app_TKjzDGfnKfqwaY",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-sockx",
+      "origin": "https://kattassie-sockx.vercel.app",
+      "oauthRedirectUri": "https://kattassie-sockx.vercel.app/api/auth/callback/whop",
+      "status": "production-ready",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "deploymentId": "dpl_EUPbGnhXuqhCf1gt3pzxw8brwDjN",
+      "deployedCommit": "9211b8b3ddf59e206b3998a5a60eb7111a5c8c8a",
+      "walletUrl": "https://kattassie-sockx.vercel.app/wallet",
+      "signedOutChecks": {
+        "walletStatus": 200,
+        "tokenStatus": 401,
+        "oauthProviderRegistered": true
+      },
+      "authenticatedBalanceTest": "pending-user-sign-in"
+    },
+    {
+      "app": "whmcs",
+      "whopAppId": "app_Dcl8JAw5Oe6so3",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-whmcs",
+      "origin": "https://kattassie-whmcs.vercel.app",
+      "oauthRedirectUri": "https://kattassie-whmcs.vercel.app/api/auth/callback/whop",
+      "status": "production-ready",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "deploymentId": "dpl_4Nm5urXk4nyE7KA4u565fzHpx87w",
+      "deployedCommit": "dd4ecded30c5426ad6236877c9c09c22751dc7df",
+      "walletUrl": "https://kattassie-whmcs.vercel.app/wallet",
+      "signedOutChecks": {
+        "walletStatus": 200,
+        "tokenStatus": 401,
+        "oauthProviderRegistered": true
+      },
+      "authenticatedBalanceTest": "pending-user-sign-in"
+    },
+    {
+      "app": "grail-talent",
+      "whopAppId": "app_HYUamQRhZbF8ua",
+      "whopOwnerCompanyId": "biz_Ngf1SlU09oO3TE",
+      "vercelProject": "kattassie-grail-talent",
+      "origin": "https://kattassie-grail-talent.vercel.app",
+      "oauthRedirectUri": "https://kattassie-grail-talent.vercel.app/api/auth/callback/whop",
+      "status": "production-ready",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "deploymentId": "dpl_AwQTzSD4jDS2UYYwC2LnchH36Sxr",
+      "deployedCommit": "dd4ecded30c5426ad6236877c9c09c22751dc7df",
+      "walletUrl": "https://kattassie-grail-talent.vercel.app/wallet",
+      "signedOutChecks": {
+        "walletStatus": 200,
+        "tokenStatus": 401,
+        "oauthProviderRegistered": true
+      },
+      "authenticatedBalanceTest": "pending-user-sign-in"
+    }
+  ]
+}

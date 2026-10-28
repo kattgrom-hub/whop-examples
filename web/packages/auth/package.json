@@ -4,7 +4,10 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./client": "./src/client.tsx"
+    "./client": "./src/client.tsx",
+    "./wallet": "./src/wallet.tsx",
+    "./wallet-server": "./src/wallet-server.ts",
+    "./wallet-document": "./src/wallet-document.ts"
   },
   "dependencies": {
     "next-auth": "5.0.0-beta.30"

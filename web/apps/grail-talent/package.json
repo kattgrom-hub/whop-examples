@@ -13,7 +13,8 @@
     "@whop/sdk": "0.0.26",
     "next": "^15.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@whop-examples/auth": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
