@@ -9,7 +9,9 @@
       "vercelProject": "kattassie-dropify",
       "origin": "https://kattassie-dropify.vercel.app",
       "oauthRedirectUri": "https://kattassie-dropify.vercel.app/api/auth/callback/whop",
-      "status": "hosting-prepared-oauth-access-pending"
+      "status": "oauth-configured-not-deployed",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read"
     },
     {
       "app": "masterclass",
@@ -18,7 +20,14 @@
       "vercelProject": "kattassie-masterclass",
       "origin": "https://kattassie-masterclass.vercel.app",
       "oauthRedirectUri": "https://kattassie-masterclass.vercel.app/api/auth/callback/whop",
-      "status": "hosting-prepared-oauth-access-pending"
+      "status": "oauth-configured-not-deployed",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "businessPermissionScopes": [
+        "company:balance:read",
+        "stats:read"
+      ],
+      "productionApiKeyConfigured": true
     },
     {
       "app": "winners-club",
@@ -27,7 +36,14 @@
       "vercelProject": "kattassie-winners-club",
       "origin": "https://kattassie-winners-club.vercel.app",
       "oauthRedirectUri": "https://kattassie-winners-club.vercel.app/api/auth/callback/whop",
-      "status": "hosting-prepared-oauth-access-pending"
+      "status": "oauth-configured-not-deployed",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "businessPermissionScopes": [
+        "company:balance:read",
+        "stats:read"
+      ],
+      "productionApiKeyConfigured": true
     },
     {
       "app": "waterbnb",
@@ -36,7 +52,14 @@
       "vercelProject": "kattassie-waterbnb",
       "origin": "https://kattassie-waterbnb.vercel.app",
       "oauthRedirectUri": "https://kattassie-waterbnb.vercel.app/api/auth/callback/whop",
-      "status": "hosting-prepared-oauth-access-pending"
+      "status": "oauth-configured-not-deployed",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read",
+      "businessPermissionScopes": [
+        "company:balance:read",
+        "stats:read"
+      ],
+      "productionApiKeyConfigured": true
     },
     {
       "app": "dischord",
@@ -45,7 +68,9 @@
       "vercelProject": "kattassie-dischord",
       "origin": "https://kattassie-dischord.vercel.app",
       "oauthRedirectUri": "https://kattassie-dischord.vercel.app/api/auth/callback/whop",
-      "status": "hosting-prepared-oauth-access-pending"
+      "status": "oauth-configured-not-deployed",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read"
     },
     {
       "app": "sockx",
@@ -54,7 +79,9 @@
       "vercelProject": "kattassie-sockx",
       "origin": "https://kattassie-sockx.vercel.app",
       "oauthRedirectUri": "https://kattassie-sockx.vercel.app/api/auth/callback/whop",
-      "status": "hosting-prepared-oauth-access-pending"
+      "status": "oauth-configured-not-deployed",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read"
     },
     {
       "app": "whmcs",
@@ -63,7 +90,9 @@
       "vercelProject": "kattassie-whmcs",
       "origin": "https://kattassie-whmcs.vercel.app",
       "oauthRedirectUri": "https://kattassie-whmcs.vercel.app/api/auth/callback/whop",
-      "status": "hosting-prepared-oauth-access-pending"
+      "status": "oauth-configured-not-deployed",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read"
     },
     {
       "app": "grail-talent",
@@ -72,7 +101,9 @@
       "vercelProject": "kattassie-grail-talent",
       "origin": "https://kattassie-grail-talent.vercel.app",
       "oauthRedirectUri": "https://kattassie-grail-talent.vercel.app/api/auth/callback/whop",
-      "status": "hosting-prepared-oauth-access-pending"
+      "status": "oauth-configured-not-deployed",
+      "oauthClientMode": "public",
+      "personalBalanceScope": "user:balance:read"
     }
   ]
 }
