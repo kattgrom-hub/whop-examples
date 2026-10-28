@@ -79,6 +79,7 @@ async function ensureConnectedAccount(
 
 export const { auth, handlers, signIn, signOut } = createWhopAuth({
   scopes: [
+    "user:balance:read",
     "openid",
     "profile",
     "email",

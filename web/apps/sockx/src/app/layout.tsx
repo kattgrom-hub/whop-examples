@@ -31,7 +31,8 @@ export default function RootLayout({
       <body
         className={`${anton.variable} ${epilogue.variable} antialiased bg-sockx-bg text-sockx-text`}
       >
-        <Providers>{children}</Providers>
+        <Providers>{children}
+          <footer style={{ padding: 16, textAlign: "center" }}><a href="/wallet">Wallet balance</a></footer></Providers>
       </body>
     </html>
   );

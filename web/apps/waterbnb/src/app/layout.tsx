@@ -22,6 +22,7 @@ export default function RootLayout({
           <ModeProvider>
             <Nav />
             {children}
+          <footer style={{ padding: 16, textAlign: "center" }}><a href="/wallet">Wallet balance</a></footer>
             <KonamiEasterEgg />
           </ModeProvider>
         </AuthProvider>

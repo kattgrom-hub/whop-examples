@@ -20,6 +20,7 @@ export default function RootLayout({
         <AuthProvider>
           <Nav />
           {children}
+          <footer style={{ padding: 16, textAlign: "center" }}><a href="/wallet">Wallet balance</a></footer>
           <KonamiEasterEgg />
         </AuthProvider>
       </body>
