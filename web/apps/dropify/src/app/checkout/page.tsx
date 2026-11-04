@@ -65,10 +65,11 @@ function CheckoutContent() {
     <button onClick={() => setRefresh(n => n + 1)} className="underline mt-4 ml-4">Check payment status</button>
   </Message>;
   if (!order.checkoutConfigurationId && !order.planId) return <Message title="Checkout is unavailable" text="Return to your cart and start a new checkout." />;
-  return <div className="px-6 py-12"><div className="mx-auto max-w-lg">
-    <h1 className="text-2xl font-extralight mb-8">Complete your order</h1>
+  return <main className="min-h-[70vh] bg-[#0b1720] px-6 py-12 text-white"><div className="mx-auto max-w-lg rounded-2xl border border-white/10 bg-[#10232c] p-6 shadow-2xl sm:p-8">
+    <h1 className="mb-8 text-2xl font-semibold tracking-tight">Complete your order</h1>
     <WhopEmbeddedCheckout orderId={orderId} checkoutConfigurationId={order.checkoutConfigurationId} planId={order.planId} onPaymentComplete={onComplete} />
-  </div></div>;
+    <p className="mt-5 text-center text-xs text-slate-400">Secure checkout powered by Whop.</p>
+  </div></main>;
 }
 function Message({ title, text, children }: { title: string; text: string; children?: React.ReactNode }) {
   return <div className="flex flex-col items-center justify-center py-32 px-6 text-center">
