@@ -1,13 +1,17 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { getWhopEnvironment } from "@/lib/checkout-config";
+import { whopAppearance } from "@/lib/whop-appearance";
 
 type Completion = { result: "payment"; paymentId: string; sessionId: string } |
   { result: "setup"; setupIntentId: string; sessionId: string } |
   { result: "waitlist_entry"; entryId: string; sessionId: string };
 type ElementHandle = { mount(target: HTMLElement): void; destroy(): void };
 type CheckoutHandle = { create(name: "checkout", options?: { onError?: (event: { code?: string }) => void }): ElementHandle; destroy(): void };
-type ElementsConstructor = (options: { environment: "sandbox" | "production" }) => {
+type ElementsConstructor = (options: {
+  environment: "sandbox" | "production";
+  appearance: typeof whopAppearance;
+}) => {
   checkout: { create(options: { checkoutConfiguration?: string; plan?: string; returnUrl: string; onComplete(event: Completion): void }): CheckoutHandle };
 };
 declare global { interface Window { WhopElements?: ElementsConstructor } }
@@ -55,7 +59,10 @@ export function WhopEmbeddedCheckout({ orderId, checkoutConfigurationId, planId,
       if (cancelled || !target.current) return;
       const restore = new URL("/checkout", window.location.origin);
       restore.searchParams.set("orderId", orderId);
-      checkout = Elements({ environment: getWhopEnvironment() }).checkout.create({
+      checkout = Elements({
+        environment: getWhopEnvironment(),
+        appearance: whopAppearance,
+      }).checkout.create({
         ...(checkoutConfigurationId ? { checkoutConfiguration: checkoutConfigurationId } : { plan: planId || undefined }),
         returnUrl: restore.toString(),
         onComplete: event => {
@@ -74,7 +81,7 @@ export function WhopEmbeddedCheckout({ orderId, checkoutConfigurationId, planId,
     return () => { cancelled = true; checkout?.destroy(); };
   }, [orderId, checkoutConfigurationId, planId, attempt]);
   return <div>
-    {error && <div role="alert" className="mb-4 text-sm text-red-700">
+    {error && <div role="alert" className="mb-4 text-sm text-red-300">
       <p>{error}</p><button type="button" onClick={() => setAttempt(n => n + 1)} className="underline mt-2">Retry checkout</button>
     </div>}
     <div ref={target} className="min-h-[360px] w-full" aria-label="Whop checkout" />
