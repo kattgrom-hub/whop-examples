@@ -85,3 +85,18 @@ override the amount. Preview deployments must use sandbox configuration.
 
 This implementation adds the isolated checkout layer, not a verified live
 payment-and-delivery deployment. No real purchase is required for these tests.
+
+## Legacy portal audit — 6 November 2026
+
+A separate Supabase-hosted member portal is still active and is not controlled
+by this Dropify release flag. Its public page contains legacy Stripe purchase
+links for the A$197, A$497 and A$1,497 tiers, and all three corresponding
+`acm_products` rows were active at audit time. The detailed read-only finding,
+customer-access safeguards and remediation sequence are recorded in
+[`LEGACY_ACM_PORTAL_REMEDIATION.md`](./LEGACY_ACM_PORTAL_REMEDIATION.md).
+
+Do not treat the new Dropify fail-closed page as closing this separate legacy
+sales route. Remove the old public purchase links in a reviewed Supabase
+function update, but preserve member login, existing entitlements and the
+Stripe webhook until historic payments, refunds and customer access are
+reconciled. No production Supabase changes are authorized by this documentation.
