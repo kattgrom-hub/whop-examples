@@ -9,19 +9,18 @@ function asRecord(value: unknown): JsonRecord {
 }
 
 function asList(value: unknown): JsonRecord[] {
-  if (Array.isArray(value)) return value.map(asRecord);
   const record = asRecord(value);
-  if (Array.isArray(record.data)) return record.data.map(asRecord);
-  if (Array.isArray(record.results)) return record.results.map(asRecord);
-  return [];
+  return Array.isArray(record.data) ? record.data.map(asRecord) : [];
 }
 
 function safeText(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
-function safeNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+function safeAmount(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
 }
 
 async function whopGet(path: string) {
@@ -36,56 +35,74 @@ async function whopGet(path: string) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       Accept: "application/json",
-      "Api-Version-Date": "2026-08-21",
+      "Api-Version-Date": "2026-11-05-1",
     },
     cache: "no-store",
     signal: AbortSignal.timeout(12_000),
   });
-  if (!response.ok) {
-    // Never return provider response bodies: they can contain account details.
-    throw new Error(`Whop read failed with HTTP ${response.status}`);
-  }
+  if (!response.ok) throw new Error(`Whop read failed with HTTP ${response.status}`);
   return response.json() as Promise<unknown>;
 }
 
 /**
- * Read-only business reconciliation snapshot. This module deliberately exposes
- * no create/update/withdraw/transfer operations and never returns payout destinations.
+ * Read-only account financial snapshot using documented Whop endpoints.
+ * No create, update, cancel, withdraw, transfer, deposit, or swap methods exist here.
  */
 export async function getWhopPayoutAudit() {
   const companyId = getWhopCompanyId();
-  const [ledgerRaw, payoutsRaw] = await Promise.all([
-    whopGet(`/ledger_accounts/${encodeURIComponent(companyId)}`),
-    whopGet(`/payouts?account_id=${encodeURIComponent(companyId)}`),
+  const query = new URLSearchParams({ account_id: companyId });
+  const [reportRaw, activityRaw, payoutsRaw] = await Promise.all([
+    whopGet(`/financial_reports?${new URLSearchParams({ account_id: companyId, report_type: "balance_summary" })}`),
+    whopGet(`/financial_activity?${new URLSearchParams({ ...Object.fromEntries(query), limit: "50", include_resource: "false" })}`),
+    whopGet(`/payouts?${new URLSearchParams({ ...Object.fromEntries(query), first: "50" })}`),
   ]);
 
-  const ledger = asRecord(ledgerRaw);
-  const balances = Array.isArray(ledger.balances) ? ledger.balances.map((item) => {
-    const row = asRecord(item);
-    return {
-      currency: safeText(row.currency),
-      available: safeNumber(row.balance),
-      pending: safeNumber(row.pending_balance),
-      reserved: safeNumber(row.reserve_balance),
-    };
-  }) : [];
+  const report = asRecord(reportRaw);
+  const rows = asList({ data: report.rows }).map((row) => ({
+    accountName: safeText(row.account_name),
+    accountPath: safeText(row.account_ik_path),
+    accountType: safeText(row.account_type),
+    amount: safeAmount(row.amount),
+    currency: safeText(row.currency),
+    grouping: safeText(row.grouping),
+    lineCategory: safeText(row.line_category),
+  }));
 
-  const payouts = asList(payoutsRaw).slice(0, 100).map((row) => ({
+  const activityEnvelope = asRecord(activityRaw);
+  const activity = asList(activityRaw).map((row) => ({
+    id: safeText(row.id),
+    amount: safeAmount(row.amount),
+    currency: safeText(asRecord(row.currency).code),
+    lineType: safeText(row.line_type),
+    postedAt: safeText(row.posted_at),
+    availableAt: safeText(row.available_at),
+    paymentId: safeText(row.payment_id),
+  }));
+
+  const payouts = asList(payoutsRaw).map((row) => ({
     id: safeText(row.id),
     status: safeText(row.status),
-    amount: safeNumber(row.amount),
+    amount: safeAmount(row.amount),
     currency: safeText(row.currency),
     createdAt: safeText(row.created_at),
-    updatedAt: safeText(row.updated_at),
+    estimatedArrival: safeText(row.estimated_arrival),
+    // Deliberately omit bank, wallet, and payout-method details.
   }));
 
   return {
     environment: getWhopEnvironment(),
     companyId,
-    ledgerAccountId: safeText(ledger.id),
-    balances,
+    balanceSummary: {
+      total: safeAmount(report.total),
+      beginningBalance: safeAmount(report.beginning_balance),
+      endingBalance: safeAmount(report.ending_balance),
+      currencies: Array.isArray(report.currencies) ? report.currencies.filter((v): v is string => typeof v === "string") : [],
+      rows,
+    },
+    recentActivity: activity,
+    activityPageInfo: asRecord(activityEnvelope.page_info),
     payouts,
-    payoutCountReturned: payouts.length,
+    payoutPageInfo: asRecord(asRecord(payoutsRaw).page_info),
     generatedAt: new Date().toISOString(),
     readOnly: true as const,
   };
