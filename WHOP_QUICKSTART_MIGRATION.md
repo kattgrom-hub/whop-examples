@@ -17,6 +17,14 @@ This audit compared the repository's current `main` branch with Whop's current p
 - Whop's official guide explicitly says fulfilment should be driven by the signed `payment.succeeded` webhook; the browser's `onComplete` callback only indicates that checkout interaction finished. The existing browser callback must never mark an order paid.
 - The AI Credit Mastery release remains deliberately null. Its purchase endpoint must continue returning 503 until the dedicated production resources and delivery evidence are reviewed.
 
+## Additional checkout and webhook review
+
+- The checkout route writes a pending order before calling Whop. If Whop rejects the checkout request, the catch block returns 503 but does not cancel/expire the pending order. A retry generates a new order UUID, so the first order can remain orphaned. Add an explicit checkout-creation state and safe compensation/expiry path; do not mark the order paid or retry against an uncertain Whop response without reconciliation.
+- `checkoutClientKey(request)` is derived from the caller IP (HMAC) and is passed to the database order-creation RPC as a rate-limit/client key. It is not passed to Whop's checkout-configuration creation call and therefore does not provide Whop-side idempotency.
+- The webhook ingress verifies the raw signed envelope and checks the v1 event ID against the `webhook-id` header. Reconciliation then retrieves authoritative payment state and validates company, plan, checkout configuration, order metadata, currency, and amount before recording payment. This is a good foundation.
+- The webhook tests cover signature tampering, key mismatch, timestamp boundaries, malformed envelopes, missing secrets, and payload size. They do not currently demonstrate end-to-end durable queue acknowledgement, duplicate event delivery, repeated reconciliation idempotency, refund/dispute races, or retry recovery. Those remain required integration tests, not proven behaviour from the unit test file.
+- The checkout route has a separate `DROPIFY_DIGITAL_DELIVERY_READY` fail-closed gate. Keep it false until fulfilment is connected and verified.
+
 ## Deployment and CI observations
 
 The documentation branch commit has mixed Vercel statuses:
