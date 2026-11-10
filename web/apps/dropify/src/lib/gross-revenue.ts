@@ -19,12 +19,20 @@ function isRealDate(value: string) {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
-export function parseGrossRevenueQuery(params: URLSearchParams): GrossRevenueQuery {
+export function getWhopRevenueAccountIds(): string[] {
   const configuredCompany = getWhopCompanyId();
-  const allowedAccounts = (process.env.WHOP_REVENUE_ACCOUNT_IDS || configuredCompany)
+  const ids = [...new Set((process.env.WHOP_REVENUE_ACCOUNT_IDS || configuredCompany)
     .split(",")
     .map((value) => value.trim())
-    .filter(Boolean);
+    .filter(Boolean))];
+  if (ids.length > 50 || ids.some((id) => !/^biz_[a-zA-Z0-9]+$/.test(id))) {
+    throw new Error("WHOP_REVENUE_ACCOUNT_IDS must contain at most 50 valid biz_ IDs");
+  }
+  return ids;
+}
+
+export function parseGrossRevenueQuery(params: URLSearchParams): GrossRevenueQuery {
+  const allowedAccounts = getWhopRevenueAccountIds();
 
   const accountId = params.get("account_id") || configuredCompany;
   const from = params.get("from") || new Date().toISOString().slice(0, 10);
@@ -39,7 +47,7 @@ export function parseGrossRevenueQuery(params: URLSearchParams): GrossRevenueQue
     throw new Error("from and to must be valid YYYY-MM-DD dates, with from on or before to");
   }
   const days = (Date.parse(`${to}T00:00:00.000Z`) - Date.parse(`${from}T00:00:00.000Z`)) / 86_400_000;
-  if (days > 31) throw new Error("Date range cannot exceed 32 calendar days");
+  if (days > 365) throw new Error("Date range cannot exceed 366 calendar days");
   if (!ALLOWED_INTERVALS.has(interval)) {
     throw new Error("interval must be hour, day, week, or month");
   }
