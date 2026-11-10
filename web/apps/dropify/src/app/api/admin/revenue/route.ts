@@ -47,9 +47,22 @@ export async function GET(request: NextRequest) {
       }
     }));
 
+    const generatedAt = new Date().toISOString();
+    if (!allAccounts) {
+      const result = results[0];
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error }, {
+          status: 503,
+          headers: { "Cache-Control": "no-store" },
+        });
+      }
+      return NextResponse.json({ ...result, generatedAt, readOnly: true }, {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
     return NextResponse.json({
       results,
-      generatedAt: new Date().toISOString(),
+      generatedAt,
       readOnly: true,
       partialFailure: results.some((result) => !result.ok),
     }, { headers: { "Cache-Control": "no-store" } });
