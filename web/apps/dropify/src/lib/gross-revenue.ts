@@ -32,6 +32,7 @@ export function getWhopRevenueAccountIds(): string[] {
 }
 
 export function parseGrossRevenueQuery(params: URLSearchParams): GrossRevenueQuery {
+  const configuredCompany = getWhopCompanyId();
   const allowedAccounts = getWhopRevenueAccountIds();
 
   const accountId = params.get("account_id") || configuredCompany;
